@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { RTDB_URL } from "../lib/firebase.js";
+const RTDB_URL = "https://daralhadith-8e2c5-default-rtdb.europe-west1.firebasedatabase.app";
 const r = Router();
 
 r.get("/", async (_req, res) => {
@@ -10,7 +10,7 @@ r.get("/", async (_req, res) => {
       if (data?.version) return res.json(data);
     }
   } catch {}
-  res.json({ version: "1.20", apk_url: "https://daralhadith-8e2c5-default-rtdb.europe-west1.firebasedatabase.app/app_config/latest/apk_url.json" });
+  res.json({ version: "1.21", apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.21/DarAlHadith-AudioLibrary-v1.21.apk", release_notes: "تحسين شامل للمظهر، حذف أشرطة al-albany.com" });
 });
 
 export default r;
