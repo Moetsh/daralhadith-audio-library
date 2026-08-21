@@ -1,0 +1,30 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "audios": {
+      ".read": true,
+      ".write": "auth != null && auth.uid == '25XLPO8ISCXuiTsQRl0jXLsZoyk2'"
+    },
+    "scholars": {
+      ".read": true,
+      ".write": "auth != null && auth.uid == '25XLPO8ISCXuiTsQRl0jXLsZoyk2'"
+    },
+    "categories": {
+      ".read": true,
+      ".write": "auth != null && auth.uid == '25XLPO8ISCXuiTsQRl0jXLsZoyk2'"
+    },
+    "series": {
+      ".read": true,
+      ".write": "auth != null && auth.uid == '25XLPO8ISCXuiTsQRl0jXLsZoyk2'"
+    },
+    "meta": {
+      ".read": true,
+      ".write": "auth != null && auth.uid == '25XLPO8ISCXuiTsQRl0jXLsZoyk2'"
+    },
+    "admin": {
+      ".read": "auth != null && auth.uid == '25XLPO8ISCXuiTsQRl0jXLsZoyk2'",
+      ".write": "auth != null && auth.uid == '25XLPO8ISCXuiTsQRl0jXLsZoyk2'"
+    }
+  }
+}

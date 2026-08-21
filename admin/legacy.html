@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التحكم - دار الحديث الصوتية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1B5E20;
+  --primary-light: #2E7D32;
+  --primary-dark: #0D3B12;
+  --primary-soft: #E8F5E9;
+  --gold: #C8A951;
+  --gold-light: #F5E6C8;
+  --bg: #F0F2F0;
+  --card: #FFFFFF;
+  --sidebar: #0F1A12;
+  --sidebar-active: #1B5E20;
+  --text: #1A1A1A;
+  --text-sec: #5F6368;
+  --text-light: #9AA0A6;
+  --border: #E0E4E0;
+  --danger: #D32F2F;
+  --danger-soft: #FFEBEE;
+  --success: #2E7D32;
+  --success-soft: #E8F5E9;
+  --warning: #F57F17;
+  --warning-soft: #FFF8E1;
+  --shadow: 0 2px 12px rgba(0,0,0,.07);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Tajawal',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* ===== Login ===== */
+#loginPage {
+  position:fixed; inset:0; z-index:9999;
+  background:linear-gradient(150deg,var(--primary-dark),var(--primary));
+  display:flex; align-items:center; justify-content:center;
+}
+#loginPage.hidden { display:none; }
+.login-card {
+  background:var(--card); border-radius:24px;
+  padding:40px; width:90%; max-width:400px;
+  box-shadow:var(--shadow-lg); text-align:center;
+}
+.login-logo { width:72px; height:72px; border-radius:20px; background:var(--primary-soft); display:flex; align-items:center; justify-content:center; font-size:36px; margin:0 auto 20px; }
+.login-card h2 { font-size:22px; font-weight:800; margin-bottom:4px; }
+.login-card p { font-size:13px; color:var(--text-sec); margin-bottom:28px; }
+.form-group { margin-bottom:16px; text-align:right; }
+.form-group label { display:block; font-size:13px; font-weight:700; margin-bottom:6px; color:var(--text-sec); }
+.form-group input, .form-group select, .form-group textarea {
+  width:100%; padding:12px 14px; border:1.5px solid var(--border);
+  border-radius:var(--radius-sm); font-family:'Tajawal'; font-size:14px;
+  outline:none; transition:border .2s; background:var(--card); color:var(--text);
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--primary); }
+.btn {
+  padding:12px 24px; border-radius:var(--radius-sm); border:none;
+  font-family:'Tajawal'; font-size:14px; font-weight:700;
+  cursor:pointer; transition:all .2s; display:inline-flex;
+  align-items:center; gap:8px; justify-content:center;
+}
+.btn:active { transform:scale(.97); }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:hover { background:var(--primary-light); }
+.btn-gold { background:var(--gold); color:var(--primary-dark); }
+.btn-danger { background:var(--danger); color:#fff; }
+.btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--text); }
+.btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+.btn-sm { padding:7px 14px; font-size:12px; border-radius:8px; }
+.btn-block { width:100%; }
+.login-error { color:var(--danger); font-size:13px; margin-top:10px; display:none; }
+
+/* ===== Layout ===== */
+.layout { display:flex; min-height:100vh; }
+.sidebar {
+  width:250px; background:var(--sidebar); color:#fff;
+  position:fixed; top:0; right:0; bottom:0; z-index:100;
+  display:flex; flex-direction:column;
+  transition:transform .3s;
+}
+.sidebar-brand { padding:24px 20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,.08); }
+.sidebar-brand-icon { width:42px; height:42px; border-radius:12px; background:rgba(200,169,81,.15); display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(200,169,81,.3); }
+.sidebar-brand h3 { font-size:15px; font-weight:800; }
+.sidebar-brand p { font-size:10px; color:rgba(255,255,255,.5); }
+.sidebar-nav { flex:1; padding:16px 12px; overflow-y:auto; }
+.nav-section { font-size:10px; color:rgba(255,255,255,.35); padding:12px 12px 6px; font-weight:700; letter-spacing:1px; }
+.nav-link {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px; border-radius:var(--radius-sm);
+  color:rgba(255,255,255,.65); font-size:13px; font-weight:600;
+  cursor:pointer; transition:all .2s; margin-bottom:2px; border:none;
+  background:none; width:100%; font-family:'Tajawal'; text-align:right;
+}
+.nav-link:hover { background:rgba(255,255,255,.06); color:#fff; }
+.nav-link.active { background:var(--sidebar-active); color:#fff; }
+.nav-link .icon { font-size:17px; width:22px; text-align:center; }
+.nav-link .badge { margin-right:auto; background:var(--gold); color:var(--primary-dark); font-size:10px; padding:2px 8px; border-radius:8px; font-weight:800; }
+.sidebar-footer { padding:16px 20px; border-top:1px solid rgba(255,255,255,.08); }
+
+.main { flex:1; margin-right:250px; }
+.topbar {
+  background:var(--card); border-bottom:1px solid var(--border);
+  padding:16px 28px; display:flex; align-items:center;
+  justify-content:space-between; position:sticky; top:0; z-index:50;
+}
+.topbar h2 { font-size:18px; font-weight:800; }
+.topbar-actions { display:flex; gap:8px; align-items:center; }
+.content { padding:28px; }
+
+/* ===== Cards ===== */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
+.stat-card {
+  background:var(--card); border-radius:var(--radius);
+  padding:20px; box-shadow:var(--shadow); border:1px solid var(--border);
+  display:flex; align-items:center; gap:16px;
+}
+.stat-icon { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:24px; }
+.stat-info h3 { font-size:24px; font-weight:800; }
+.stat-info p { font-size:12px; color:var(--text-sec); }
+
+.card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--border); margin-bottom:20px; overflow:hidden; }
+.card-header { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.card-header h3 { font-size:15px; font-weight:800; display:flex; align-items:center; gap:8px; }
+.card-body { padding:22px; }
+
+/* ===== Table ===== */
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+th { padding:12px 16px; text-align:right; font-size:11px; color:var(--text-sec); font-weight:700; background:var(--bg); border-bottom:1px solid var(--border); white-space:nowrap; }
+td { padding:12px 16px; font-size:13px; border-bottom:1px solid var(--border); }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(27,94,32,.02); }
+
+/* ===== Tags & Badges ===== */
+.tag { display:inline-block; padding:3px 12px; border-radius:10px; font-size:11px; font-weight:700; }
+.tag-green { background:var(--success-soft); color:var(--success); }
+.tag-gold { background:var(--gold-light); color:#8B6914; }
+.tag-red { background:var(--danger-soft); color:var(--danger); }
+.tag-blue { background:#E3F2FD; color:#1565C0; }
+.tag-purple { background:#F3E5F5; color:#6A1B9A; }
+
+/* ===== Modal ===== */
+.modal-overlay {
+  position:fixed; inset:0; z-index:1000;
+  background:rgba(0,0,0,.5); backdrop-filter:blur(4px);
+  display:none; align-items:center; justify-content:center;
+  padding:20px;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--card); border-radius:20px;
+  width:100%; max-width:600px; max-height:90vh;
+  overflow-y:auto; box-shadow:var(--shadow-lg);
+  animation:modalIn .3s;
+}
+@keyframes modalIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+.modal-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:var(--card); z-index:1; }
+.modal-header h3 { font-size:16px; font-weight:800; }
+.modal-close { width:34px; height:34px; border-radius:10px; border:none; background:var(--bg); cursor:pointer; font-size:16px; }
+.modal-body { padding:24px; }
+.modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end; }
+
+/* ===== Tree ===== */
+.tree-item { border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; overflow:hidden; }
+.tree-parent { display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--bg); cursor:pointer; }
+.tree-parent .arrow { transition:transform .2s; font-size:12px; }
+.tree-parent .arrow.open { transform:rotate(90deg); }
+.tree-children { padding:8px 16px 8px 32px; display:none; }
+.tree-children.open { display:block; }
+.tree-child { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; margin-bottom:4px; background:var(--card); border:1px solid var(--border); font-size:13px; }
+.tree-child:hover { border-color:var(--primary); }
+
+/* ===== Series episodes ===== */
+.episode-row { display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; background:var(--card); }
+.episode-num { width:28px; height:28px; border-radius:8px; background:var(--gold-light); color:#8B6914; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.episode-info { flex:1; min-width:0; }
+.episode-info h4 { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.episode-info p { font-size:11px; color:var(--text-light); }
+
+/* ===== Empty ===== */
+.empty { text-align:center; padding:48px 20px; color:var(--text-light); }
+.empty .icon { font-size:48px; margin-bottom:12px; }
+
+/* ===== Toast ===== */
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--text); color:var(--card); padding:12px 28px;
+  border-radius:24px; font-size:13px; font-weight:600;
+  opacity:0; transition:all .3s; z-index:9999; pointer-events:none;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.success { background:var(--success); color:#fff; }
+.toast.error { background:var(--danger); color:#fff; }
+
+/* ===== Responsive ===== */
+.menu-toggle { display:none; background:none; border:none; font-size:22px; cursor:pointer; }
+@media(max-width:768px) {
+  .sidebar { transform:translateX(100%); }
+  .sidebar.open { transform:translateX(0); }
+  .main { margin-right:0; }
+  .menu-toggle { display:block; }
+  .stats-grid { grid-template-columns:1fr 1fr; }
+}
+
+/* ===== URL check ===== */
+.url-check { display:flex; gap:8px; align-items:flex-end; }
+.url-check .form-group { flex:1; margin-bottom:0; }
+.url-status { font-size:12px; margin-top:6px; font-weight:600; }
+.url-status.valid { color:var(--success); }
+.url-status.invalid { color:var(--danger); }
+
+/* ===== Two col form ===== */
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media(max-width:500px) { .form-row { grid-template-columns:1fr; } }
+
+/* ===== Confirm dialog ===== */
+.confirm-box { text-align:center; padding:10px 0; }
+.confirm-box .icon { font-size:40px; margin-bottom:12px; }
+.confirm-box p { font-size:14px; color:var(--text-sec); }
+</style>
+</head>
+<body>
+
+<!-- ===== Login ===== -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="login-logo">🕌</div>
+    <h2>دار الحديث الصوتية</h2>
+    <p>لوحة التحكم الموحّدة — متصلة مباشرة بقاعدة البيانات</p>
+    <div class="form-group">
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="loginEmail" placeholder="admin@daralhadith.app" value="admin@daralhadith.app">
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور</label>
+      <input type="password" id="loginPass" placeholder="••••••" value="admin123">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="doLogin()">🔐 تسجيل الدخول</button>
+    <div class="login-error" id="loginError">البريد أو كلمة المرور غير صحيحة</div>
+  </div>
+</div>
+
+<!-- ===== Layout ===== -->
+<div class="layout" id="appLayout" style="display:none">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">🕌</div>
+      <div>
+        <h3>دار الحديث</h3>
+        <p>لوحة التحكم</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">الرئيسية</div>
+      <button class="nav-link active" onclick="go('dashboard')"><span class="icon">📊</span> لوحة المعلومات</button>
+
+      <div class="nav-section">إدارة المحتوى</div>
+      <button class="nav-link" onclick="go('categories')"><span class="icon">📂</span> الأقسام والفروع <span class="badge" id="badgeCats">0</span></button>
+      <button class="nav-link" onclick="go('scholars')"><span class="icon">👤</span> العلماء والمشايخ <span class="badge" id="badgeScholars">0</span></button>
+      <button class="nav-link" onclick="go('series')"><span class="icon">📚</span> السلاسل العلمية <span class="badge" id="badgeSeries">0</span></button>
+      <button class="nav-link" onclick="go('audios')"><span class="icon">🎵</span> الأشرطة المنفردة <span class="badge" id="badgeAudios">0</span></button>
+
+      <div class="nav-section">أدوات</div>
+      <button class="nav-link" onclick="go('bulk')"><span class="icon">📥</span> إضافة جماعية</button>
+      <button class="nav-link" onclick="exportData()"><span class="icon">💾</span> تصدير البيانات</button>
+      <button class="nav-link" onclick="document.getElementById('importFile').click()"><span class="icon">📤</span> استيراد البيانات</button>
+
+      <div class="nav-section">المعالجة الذكية</div>
+      <button class="nav-link" onclick="go('transcribe')"><span class="icon">🧠</span> التحويل إلى نص</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="nav-link" onclick="doLogout()" style="color:rgba(255,255,255,.5)"><span class="icon">🚪</span> تسجيل الخروج</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <h2 id="pageTitle">لوحة المعلومات</h2>
+      </div>
+      <div class="topbar-actions">
+        <span id="topbarUser" style="font-size:12px;color:var(--text-sec)">👤 المشرف</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== Dashboard ===== -->
+      <div id="sec-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:var(--primary-soft)">🎵</div>
+            <div class="stat-info"><h3 id="dAudios">0</h3><p>شريط صوتي</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:var(--gold-light)">📚</div>
+            <div class="stat-info"><h3 id="dSeries">0</h3><p>سلسلة علمية</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#E3F2FD">📂</div>
+            <div class="stat-info"><h3 id="dCats">0</h3><p>قسم / فرع</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#F3E5F5">👤</div>
+            <div class="stat-info"><h3 id="dScholars">0</h3><p>عالم / شيخ</p></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>📥 إضافة سريعة</h3></div>
+          <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="openModal('modalCategory')">📂 قسم جديد</button>
+            <button class="btn btn-primary" onclick="openModal('modalScholar')">👤 شيخ جديد</button>
+            <button class="btn btn-gold" onclick="openModal('modalSeries')">📚 سلسلة جديدة</button>
+            <button class="btn btn-outline" onclick="openModal('modalAudio')">🎵 شريط منفرد</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>🕐 آخر الإضافات</h3></div>
+          <div class="card-body" id="recentList"></div>
+        </div>
+      </div>
+
+      <!-- ===== Categories ===== -->
+      <div id="sec-categories" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <h3>📂 الأقسام والفروع</h3>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modalCategory')">+ إضافة قسم</button>
+          </div>
+          <div class="card-body" id="catTree"></div>
+        </div>
+      </div>
+
+      <!-- ===== Scholars ===== -->
+      <div id="sec-scholars" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <h3>👤 العلماء والمشايخ</h3>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modalScholar')">+ إضافة شيخ</button>
+          </div>
+          <div class="card-body table-wrap" id="scholarsTable"></div>
+        </div>
+      </div>
+
+      <!-- ===== Series ===== -->
+      <div id="sec-series" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <h3>📚 السلاسل العلمية</h3>
+            <button class="btn btn-gold btn-sm" onclick="openModal('modalSeries')">+ إضافة سلسلة</button>
+          </div>
+          <div class="card-body" id="seriesList"></div>
+        </div>
+      </div>
+
+      <!-- ===== Audios ===== -->
+      <div id="sec-audios" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <h3>🎵 الأشرطة المنفردة</h3>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modalAudio')">+ إضافة شريط</button>
+          </div>
+          <div class="card-body table-wrap" id="audiosTable"></div>
+        </div>
+      </div>
+
+      <!-- ===== Bulk ===== -->
+      <div id="sec-bulk" style="display:none">
+        <div class="card">
+          <div class="card-header"><h3>📥 إضافة جماعية للأشرطة</h3></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>اختر الشيخ</label>
+              <select id="bulkScholar"></select>
+            </div>
+            <div class="form-group">
+              <label>اختر القسم</label>
+              <select id="bulkCat"></select>
+            </div>
+            <div class="form-group">
+              <label>اختر الفرع (اختياري)</label>
+              <select id="bulkSub"></select>
+            </div>
+            <div class="form-group">
+              <label>الصق الروابط (كل سطر: العنوان | الرابط | المدة)</label>
+              <textarea id="bulkText" rows="10" placeholder="عنوان الدرس الأول | https://archive.org/download/collection/file1.mp3 | 45:30
+عنوان الدرس الثاني | https://archive.org/download/collection/file2.mp3 | 50:15
+عنوان الدرس الثالث | https://archive.org/download/collection/file3.mp3 | 1:02:00" style="direction:ltr;text-align:left"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="bulkImport()">📥 استيراد الأشرطة</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== AI Transcription ===== -->
+      <div id="sec-transcribe" style="display:none">
+        <div class="card">
+          <div class="card-header"><h3>🔌 الاتصال بخادم Voice-Pro</h3></div>
+          <div class="card-body" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <input type="url" id="vpUrlInput" placeholder="https://xxxx.ngrok-free.app" style="flex:1;min-width:220px;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Tajawal';font-size:13px;direction:ltr;text-align:left">
+            <button class="btn btn-primary btn-sm" onclick="saveVpConfig()">💾 حفظ الرابط</button>
+            <button class="btn btn-outline btn-sm" onclick="refreshTranscribe()">🔄 فحص الاتصال</button>
+            <span id="vpStatus" class="tag tag-blue">جاري الفحص...</span>
+          </div>
+          <p style="font-size:11px;color:var(--text-light);margin:0 22px 14px">أدخل الرابط العام لخادم Voice-Pro (مثلاً عبر ngrok — المنفذ الافتراضي 7870) ثم اضغط حفظ. يُخزَّن الإعداد في Firebase ويُطبَّق على كل المشاريع.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>🧠 التحويل إلى نص (Voice-Pro)</h3>
+            <span id="vpStatus2" class="tag tag-blue">جاري الفحص...</span>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label>مصدر الصوت</label>
+                <select id="trSourceMode" onchange="toggleTrSource()">
+                  <option value="library">شريط من المكتبة</option>
+                  <option value="upload">رفع ملف صوتي جديد</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>الشريط</label>
+                <select id="trAudio"><option value="">— اختر الشريط —</option></select>
+              </div>
+            </div>
+            <div class="form-group" id="trUploadWrap" style="display:none">
+              <label>الملف الصوتي</label>
+              <input type="file" id="trFile" accept="audio/*">
+              <p style="font-size:11px;color:var(--text-light);margin-top:6px">يُرفع الملف مباشرة إلى خادم Voice-Pro (لا يمر عبر واجهة Vercel).</p>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>لغة الملف</label>
+                <select id="trLang">
+                  <option value="arabic">العربية</option>
+                  <option value="english">English</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>نموذج Whisper</label>
+                <select id="trModel">
+                  <option value="large-v3-turbo">large-v3-turbo (سريع)</option>
+                  <option value="large-v3">large-v3 (دقيق)</option>
+                  <option value="large-v2">large-v2</option>
+                  <option value="large">large</option>
+                  <option value="medium">medium</option>
+                  <option value="small">small</option>
+                  <option value="base">base</option>
+                  <option value="tiny">tiny</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="trStartBtn" onclick="startTranscribe()">🧠 بدء التحويل</button>
+          </div>
+        </div>
+
+        <div class="card" id="trProgressCard" style="display:none">
+          <div class="card-header">
+            <h3>⏳ تقدم التحويل</h3>
+            <span class="tag tag-gold" id="trStatusTag">قيد الانتظار</span>
+          </div>
+          <div class="card-body">
+            <div style="height:14px;background:var(--bg);border-radius:10px;overflow:hidden">
+              <div id="trProgressBar" style="height:100%;width:0%;background:var(--primary);transition:width .4s"></div>
+            </div>
+            <p id="trProgressMsg" style="font-size:12px;color:var(--text-sec);margin-top:8px"></p>
+          </div>
+        </div>
+
+        <div class="card" id="trResultCard" style="display:none">
+          <div class="card-header"><h3>📝 النص الناتج</h3></div>
+          <div class="card-body">
+            <textarea id="trText" rows="14" style="width:100%;direction:rtl;font-family:'Tajawal';font-size:14px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm)"></textarea>
+            <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center">
+              <button class="btn btn-primary" onclick="saveTranscription()">💾 حفظ النص</button>
+              <button class="btn btn-gold" onclick="linkTranscription()">🔗 ربط النص بالشريط</button>
+              <button class="btn btn-outline" onclick="copyTranscription()">📋 نسخ</button>
+              <select id="trLinkAudio" style="flex:1;min-width:200px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Tajawal';font-size:13px"><option value="">— اختر الشريط للربط —</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>🗂️ سجل التحويلات</h3></div>
+          <div class="card-body table-wrap" id="trHistory"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Category ===== -->
+<div class="modal-overlay" id="modalCategory">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="catModalTitle">📂 إضافة قسم جديد</h3>
+      <button class="modal-close" onclick="closeModal('modalCategory')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="catEditId">
+      <div class="form-group">
+        <label>المعرف (slug) * — لا يمكن تغييره بعد الإنشاء</label>
+        <input type="text" id="catSlug" placeholder="مثال: fiqh" dir="ltr" style="text-align:left">
+      </div>
+      <div class="form-group">
+        <label>اسم القسم / الفرع *</label>
+        <input type="text" id="catName" placeholder="مثال: الفقه وأصوله">
+      </div>
+      <div class="form-group">
+        <label>الأيقونة</label>
+        <input type="text" id="catIcon" placeholder="مثال: ⚖️" maxlength="4">
+      </div>
+      <div class="form-group">
+        <label>القسم الأب (اتركه فارغاً ليكون قسماً رئيسياً)</label>
+        <select id="catParent"><option value="">— قسم رئيسي —</option></select>
+      </div>
+      <div class="form-group">
+        <label>الترتيب</label>
+        <input type="number" id="catOrder" value="0" min="0">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalCategory')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveCat()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Scholar ===== -->
+<div class="modal-overlay" id="modalScholar">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="scholarModalTitle">👤 إضافة شيخ جديد</h3>
+      <button class="modal-close" onclick="closeModal('modalScholar')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="scholarEditId">
+      <div class="form-group">
+        <label>المعرف (slug) * — لا يمكن تغييره بعد الإنشاء</label>
+        <input type="text" id="scholarSlug" placeholder="مثال: albani" dir="ltr" style="text-align:left">
+      </div>
+      <div class="form-group">
+        <label>اسم الشيخ *</label>
+        <input type="text" id="scholarName" placeholder="مثال: الشيخ محمد ناصر الدين الألباني">
+      </div>
+      <div class="form-group">
+        <label>التخصص</label>
+        <input type="text" id="scholarSpec" placeholder="مثال: الحديث وعلومه">
+      </div>
+      <div class="form-group">
+        <label>نبذة مختصرة</label>
+        <textarea id="scholarBio" rows="3" placeholder="نبذة عن الشيخ..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalScholar')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveScholar()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Series ===== -->
+<div class="modal-overlay" id="modalSeries">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <h3 id="seriesModalTitle">📚 إضافة سلسلة جديدة</h3>
+      <button class="modal-close" onclick="closeModal('modalSeries')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="seriesEditId">
+      <div class="form-group">
+        <label>المعرف (slug) * — لا يمكن تغييره بعد الإنشاء</label>
+        <input type="text" id="seriesSlug" placeholder="مثال: sahih-al-hadith" dir="ltr" style="text-align:left">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم السلسلة *</label>
+          <input type="text" id="seriesTitle" placeholder="مثال: سلسلة الأحاديث الصحيحة">
+        </div>
+        <div class="form-group">
+          <label>الشيخ *</label>
+          <select id="seriesScholar"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>القسم *</label>
+        <select id="seriesCat"></select>
+      </div>
+      <div class="form-group">
+        <label>وصف السلسلة</label>
+        <textarea id="seriesDesc" rows="2" placeholder="وصف مختصر للسلسلة..."></textarea>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+      <h4 style="font-size:14px;font-weight:800;margin-bottom:14px">🎧 حلقات السلسلة</h4>
+      <div id="episodesList"></div>
+      <button class="btn btn-outline btn-sm" onclick="addEpisodeRow()" style="margin-top:10px">+ إضافة حلقة</button>
+      <p style="font-size:11px;color:var(--text-light);margin-top:8px">عند الحفظ تُنشأ الحلقات كأشرطة مرتبطة بهذه السلسلة في قاعدة البيانات مباشرة.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalSeries')">إلغاء</button>
+      <button class="btn btn-gold" onclick="saveSeries()">💾 حفظ السلسلة</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Audio ===== -->
+<div class="modal-overlay" id="modalAudio">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="audioModalTitle">🎵 إضافة شريط منفرد</h3>
+      <button class="modal-close" onclick="closeModal('modalAudio')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="audioEditId">
+      <div class="form-group">
+        <label>عنوان الشريط *</label>
+        <input type="text" id="audioTitle" placeholder="مثال: تفسير سورة الفاتحة">
+      </div>
+      <div class="form-group">
+        <label>الشيخ *</label>
+        <select id="audioScholar"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>القسم *</label>
+          <select id="audioCat" onchange="updateSubOptions('audioCat','audioSub')"></select>
+        </div>
+        <div class="form-group">
+          <label>الفرع (اختياري)</label>
+          <select id="audioSub"><option value="">— بدون فرع —</option></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>🔗 رابط الملف على Internet Archive *</label>
+        <div class="url-check">
+          <div class="form-group">
+            <input type="url" id="audioUrl" placeholder="https://archive.org/download/collection/file.mp3" style="direction:ltr;text-align:left">
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="checkUrl()" style="white-space:nowrap">🔍 فحص</button>
+        </div>
+        <div class="url-status" id="urlStatus"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>المدة</label>
+          <input type="text" id="audioDuration" placeholder="مثال: 45:30">
+        </div>
+        <div class="form-group">
+          <label>الحالة</label>
+          <select id="audioStatus">
+            <option value="published">منشور</option>
+            <option value="draft">مسودة</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>الوصف</label>
+        <textarea id="audioDesc" rows="2" placeholder="وصف مختصر..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalAudio')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveAudio()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Confirm ===== -->
+<div class="modal-overlay" id="modalConfirm">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-body">
+      <div class="confirm-box">
+        <div class="icon">⚠️</div>
+        <p id="confirmMsg">هل أنت متأكد؟</p>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:center">
+      <button class="btn btn-outline" onclick="closeModal('modalConfirm')">إلغاء</button>
+      <button class="btn btn-danger" id="confirmBtn" onclick="">تأكيد الحذف</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  طبقة API — اتصال مباشر بقاعدة البيانات عبر الخادم
+// ============================================================
+const state = { token: null, refresh: null, user: null, cats: [], scholars: [], series: [], audios: [] };
+
+function store() {
+  localStorage.setItem('dh_token', state.token || '');
+  localStorage.setItem('dh_rt', state.refresh || '');
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+async function api(path, opts = {}) {
+  const headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+  if (state.token) headers['Authorization'] = 'Bearer ' + state.token;
+  let res = await fetch('/api' + path, Object.assign({}, opts, { headers }));
+  if (res.status === 401 && state.refresh && !opts._retry) {
+    if (await tryRefresh()) return api(path, Object.assign({}, opts, { _retry: true }));
+  }
+  return res;
+}
+
+async function tryRefresh() {
+  try {
+    const res = await fetch('/api/auth/refresh-token', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: state.refresh }),
+    });
+    if (!res.ok) return false;
+    const d = await res.json();
+    state.token = d.accessToken;
+    store();
+    return true;
+  } catch { return false; }
+}
+
+async function json(res) {
+  try { return await res.json(); } catch { return {}; }
+}
+
+// ============================================================
+//  Login
+// ============================================================
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  err.style.display = 'none';
+  if (!email || !pass) { err.textContent = 'أدخل البريد وكلمة المرور'; err.style.display = 'block'; return; }
+
+  const btn = event && event.target;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري الدخول...'; }
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass }),
+    });
+    const d = await json(res);
+    if (!res.ok) throw new Error(d.error || 'فشل تسجيل الدخول');
+    if (d.user && d.user.role !== 'admin') throw new Error('هذا الحساب ليس لديه صلاحيات مشرف');
+    state.token = d.accessToken;
+    state.refresh = d.refreshToken;
+    state.user = d.user;
+    store();
+    enterApp();
+  } catch (e) {
+    err.textContent = e.message || 'فشل تسجيل الدخول';
+    err.style.display = 'block';
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '🔐 تسجيل الدخول'; }
+}
+
+function enterApp() {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('appLayout').style.display = 'flex';
+  document.getElementById('topbarUser').textContent = '👤 ' + (state.user?.name || state.user?.email || 'المشرف');
+  refreshAll();
+}
+
+async function doLogout() {
+  try {
+    if (state.refresh) {
+      await fetch('/api/auth/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: state.refresh }) });
+    }
+  } catch {}
+  localStorage.removeItem('dh_token');
+  localStorage.removeItem('dh_rt');
+  location.reload();
+}
+
+async function init() {
+  const t = localStorage.getItem('dh_token');
+  const rt = localStorage.getItem('dh_rt');
+  if (t && rt) {
+    state.token = t; state.refresh = rt;
+    try {
+      const res = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + t } });
+      if (res.ok) { state.user = await res.json(); enterApp(); return; }
+    } catch {}
+  }
+  state.token = null; state.refresh = null;
+  store();
+}
+
+// ============================================================
+//  Navigation
+// ============================================================
+const titles = { dashboard:'لوحة المعلومات', categories:'الأقسام والفروع', scholars:'العلماء والمشايخ', series:'السلاسل العلمية', audios:'الأشرطة المنفردة', bulk:'إضافة جماعية', transcribe:'التحويل إلى نص' };
+function go(page) {
+  document.querySelectorAll('[id^="sec-"]').forEach(s => s.style.display = 'none');
+  document.getElementById('sec-' + page).style.display = 'block';
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  event.target.closest('.nav-link')?.classList.add('active');
+  document.getElementById('pageTitle').textContent = titles[page] || '';
+  if (page === 'transcribe') refreshTranscribe();
+  if (window.innerWidth < 768) document.getElementById('sidebar').classList.remove('open');
+}
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+// ============================================================
+//  Modal helpers
+// ============================================================
+let editing = null;
+function openModal(id) {
+  if (editing !== 'cat') resetCatForm();
+  if (editing !== 'scholar') resetScholarForm();
+  if (editing !== 'series') resetSeriesForm();
+  if (editing !== 'audio') resetAudioForm();
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) { editing = null; document.getElementById(id).classList.remove('open'); }
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+//  Load data from API
+// ============================================================
+async function loadAll() {
+  const [cats, schs, sers, aud] = await Promise.all([
+    api('/api/categories').then(r => r.ok ? r.json() : []),
+    api('/api/scholars').then(r => r.ok ? r.json() : []),
+    api('/api/series').then(r => r.ok ? r.json() : []),
+    api('/api/audios?per=100&sort=new').then(r => r.ok ? r.json() : { items: [] }),
+  ]);
+  state.cats = cats; state.scholars = schs; state.series = sers; state.audios = aud.items || [];
+}
+
+async function refreshAll() {
+  await loadAll();
+  refreshBadges();
+  refreshDashboard();
+  renderCatTree();
+  renderScholars();
+  renderSeries();
+  renderAudios();
+  fillSelects();
+}
+
+function refreshBadges() {
+  document.getElementById('badgeCats').textContent = state.cats.length;
+  document.getElementById('badgeScholars').textContent = state.scholars.length;
+  document.getElementById('badgeSeries').textContent = state.series.length;
+}
+
+async function refreshDashboard() {
+  const ov = await api('/api/admin/overview').then(r => r.ok ? r.json() : null);
+  document.getElementById('dAudios').textContent = ov ? ov.audios : state.audios.length;
+  document.getElementById('dSeries').textContent = ov ? ov.series : state.series.length;
+  document.getElementById('dCats').textContent = ov ? ov.categories : state.cats.length;
+  document.getElementById('dScholars').textContent = ov ? ov.scholars : state.scholars.length;
+  if (ov) document.getElementById('badgeAudios').textContent = ov.audios;
+
+  const recent = await api('/api/audios/latest?n=8').then(r => r.ok ? r.json() : []);
+  document.getElementById('recentList').innerHTML = recent.length
+    ? recent.map(r => `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <span class="tag tag-green">شريط</span>
+        <strong style="font-size:13px">${esc(r.title)}</strong>
+        <span style="font-size:11px;color:var(--text-light);margin-right:auto">${(r.created_at||'').slice(0,10)}</span>
+      </div>`).join('')
+    : '<div class="empty"><div class="icon">📭</div><p>لا توجد إضافات بعد</p></div>';
+}
+
+// ============================================================
+//  Categories
+// ============================================================
+function renderCatTree() {
+  const cats = state.cats;
+  const parents = cats.filter(c => !c.parent_id).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+
+  document.getElementById('catTree').innerHTML = parents.length
+    ? parents.map(p => {
+      const children = cats.filter(c => c.parent_id === p.id).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+      return `<div class="tree-item">
+        <div class="tree-parent" onclick="this.querySelector('.arrow')?.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+          <span class="arrow">${children.length ? '◀' : ''}</span>
+          <span>${p.icon || '📁'}</span>
+          <strong style="font-size:14px">${esc(p.name)}</strong>
+          <span class="tag tag-green">${p.audio_count || 0} شريط</span>
+          <div style="margin-right:auto;display:flex;gap:6px">
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editCat('${p.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();confirmDelete('cat','${p.id}')">🗑️</button>
+          </div>
+        </div>
+        <div class="tree-children">
+          ${children.map(c => `<div class="tree-child">
+            <span>${c.icon || '📄'}</span>
+            <span>${esc(c.name)}</span>
+            <div style="margin-right:auto;display:flex;gap:6px">
+              <button class="btn btn-outline btn-sm" onclick="editCat('${c.id}')">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="confirmDelete('cat','${c.id}')">🗑️</button>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }).join('')
+    : '<div class="empty"><div class="icon">📂</div><p>لا توجد أقسام بعد</p></div>';
+}
+
+async function saveCat() {
+  const id = document.getElementById('catEditId').value;
+  const name = document.getElementById('catName').value.trim();
+  if (!name) return toast('أدخل اسم القسم', 'error');
+  const body = {
+    name,
+    icon: document.getElementById('catIcon').value || 'book',
+    parent_id: document.getElementById('catParent').value || null,
+    sort_order: parseInt(document.getElementById('catOrder').value) || 0,
+    is_active: 1,
+  };
+  try {
+    let res;
+    if (id) {
+      res = await api('/api/categories/' + encodeURIComponent(id), { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      const slug = document.getElementById('catSlug').value.trim();
+      if (!slug) return toast('أدخل المعرف (slug)', 'error');
+      body.id = slug;
+      res = await api('/api/categories', { method: 'POST', body: JSON.stringify(body) });
+    }
+    const d = await json(res);
+    if (!res.ok) throw new Error(d.error || 'خطأ في الحفظ');
+    toast(id ? 'تم تعديل القسم بنجاح' : 'تم إضافة القسم بنجاح', 'success');
+    closeModal('modalCategory');
+    resetCatForm();
+    refreshAll();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function editCat(id) {
+  const c = state.cats.find(x => x.id === id);
+  if (!c) return;
+  editing = 'cat';
+  document.getElementById('catEditId').value = c.id;
+  document.getElementById('catSlug').value = c.id;
+  document.getElementById('catSlug').disabled = true;
+  document.getElementById('catName').value = c.name;
+  document.getElementById('catIcon').value = c.icon || '';
+  document.getElementById('catOrder').value = c.sort_order || 0;
+  document.getElementById('catModalTitle').textContent = '✏️ تعديل القسم';
+
+  const parents = state.cats.filter(x => !x.parent_id && x.id !== id);
+  document.getElementById('catParent').innerHTML = '<option value="">— قسم رئيسي —</option>' +
+    parents.map(p => `<option value="${p.id}" ${c.parent_id===p.id?'selected':''}>${esc(p.icon)} ${esc(p.name)}</option>`).join('');
+
+  openModal('modalCategory');
+}
+
+function resetCatForm() {
+  document.getElementById('catEditId').value = '';
+  document.getElementById('catSlug').value = '';
+  document.getElementById('catSlug').disabled = false;
+  document.getElementById('catName').value = '';
+  document.getElementById('catIcon').value = '';
+  document.getElementById('catOrder').value = 0;
+  document.getElementById('catModalTitle').textContent = '📂 إضافة قسم جديد';
+  fillCatParentSelect();
+}
+
+function fillCatParentSelect() {
+  const cats = state.cats.filter(c => !c.parent_id);
+  document.getElementById('catParent').innerHTML = '<option value="">— قسم رئيسي —</option>' +
+    cats.map(c => `<option value="${c.id}">${esc(c.icon)} ${esc(c.name)}</option>`).join('');
+}
+
+// ============================================================
+//  Scholars
+// ============================================================
+function renderScholars() {
+  const scholars = state.scholars;
+  document.getElementById('scholarsTable').innerHTML = scholars.length
+    ? `<table><thead><tr><th>الاسم</th><th>التخصص</th><th>النبذة</th><th>الأشرطة</th><th>إجراءات</th></tr></thead><tbody>
+      ${scholars.map(s => `<tr>
+        <td><strong>${esc(s.name)}</strong></td>
+        <td><span class="tag tag-blue">${esc(s.specialization || '-')}</span></td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.bio || '-')}</td>
+        <td><span class="tag tag-gold">${s.audio_count || 0}</span></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="editScholar('${s.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmDelete('scholar','${s.id}')">🗑️</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`
+    : '<div class="empty"><div class="icon">👤</div><p>لا يوجد علماء بعد</p></div>';
+}
+
+async function saveScholar() {
+  const id = document.getElementById('scholarEditId').value;
+  const name = document.getElementById('scholarName').value.trim();
+  if (!name) return toast('أدخل اسم الشيخ', 'error');
+  const body = {
+    name,
+    specialization: document.getElementById('scholarSpec').value.trim() || null,
+    bio: document.getElementById('scholarBio').value.trim() || null,
+    status: 'active',
+  };
+  try {
+    let res;
+    if (id) {
+      res = await api('/api/scholars/' + encodeURIComponent(id), { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      const slug = document.getElementById('scholarSlug').value.trim();
+      if (!slug) return toast('أدخل المعرف (slug)', 'error');
+      body.id = slug;
+      res = await api('/api/scholars', { method: 'POST', body: JSON.stringify(body) });
+    }
+    const d = await json(res);
+    if (!res.ok) throw new Error(d.error || 'خطأ في الحفظ');
+    toast(id ? 'تم تعديل الشيخ بنجاح' : 'تم إضافة الشيخ بنجاح', 'success');
+    closeModal('modalScholar');
+    resetScholarForm();
+    refreshAll();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function editScholar(id) {
+  const s = state.scholars.find(x => x.id === id);
+  if (!s) return;
+  editing = 'scholar';
+  document.getElementById('scholarEditId').value = s.id;
+  document.getElementById('scholarSlug').value = s.id;
+  document.getElementById('scholarSlug').disabled = true;
+  document.getElementById('scholarName').value = s.name;
+  document.getElementById('scholarSpec').value = s.specialization || '';
+  document.getElementById('scholarBio').value = s.bio || '';
+  document.getElementById('scholarModalTitle').textContent = '✏️ تعديل الشيخ';
+  openModal('modalScholar');
+}
+
+function resetScholarForm() {
+  document.getElementById('scholarEditId').value = '';
+  document.getElementById('scholarSlug').value = '';
+  document.getElementById('scholarSlug').disabled = false;
+  document.getElementById('scholarName').value = '';
+  document.getElementById('scholarSpec').value = '';
+  document.getElementById('scholarBio').value = '';
+  document.getElementById('scholarModalTitle').textContent = '👤 إضافة شيخ جديد';
+}
+
+// ============================================================
+//  Series
+// ============================================================
+function renderSeries() {
+  const list = state.series;
+  document.getElementById('seriesList').innerHTML = list.length
+    ? list.map(s => {
+      const scholar = state.scholars.find(x => x.id === s.scholar_id);
+      const cat = state.cats.find(x => x.id === s.category_id);
+      return `<div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="flex:1">
+            <strong style="font-size:14px">${esc(s.title)}</strong>
+            <div style="font-size:12px;color:var(--text-sec)">👤 ${esc(scholar?.name || '-')} • ${esc(cat?.name || '-')} • ${s.episodes || 0} حلقات</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="editSeries('${s.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmDelete('series','${s.id}')">🗑️</button>
+        </div>
+      </div>`;
+    }).join('')
+    : '<div class="empty"><div class="icon">📚</div><p>لا توجد سلاسل بعد. أضف أول سلسلة!</p></div>';
+}
+
+function addEpisodeRow(num, title, url) {
+  const container = document.getElementById('episodesList');
+  const div = document.createElement('div');
+  div.className = 'episode-row';
+  div.innerHTML = `
+    <div class="episode-num">${num || container.children.length + 1}</div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+      <input type="text" placeholder="عنوان الحلقة" value="${esc(title || '')}" style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'Tajawal';font-size:12px">
+      <input type="url" placeholder="رابط Archive" value="${esc(url || '')}" style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'Tajawal';font-size:12px;direction:ltr;text-align:left">
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove();renumberEpisodes()">✕</button>
+  `;
+  container.appendChild(div);
+}
+
+function renumberEpisodes() {
+  document.querySelectorAll('#episodesList .episode-num').forEach((el, i) => el.textContent = i + 1);
+}
+
+function parseDuration(str) {
+  const p = String(str || '').split(':').map(x => parseInt(x, 10) || 0);
+  if (!p.length || p[0] === 0 && p.length === 1) return 0;
+  if (p.length === 3) return p[0]*3600 + p[1]*60 + p[2];
+  if (p.length === 2) return p[0]*60 + p[1];
+  return p[0];
+}
+
+async function saveSeries() {
+  const id = document.getElementById('seriesEditId').value;
+  const title = document.getElementById('seriesTitle').value.trim();
+  const scholarId = document.getElementById('seriesScholar').value;
+  const catId = document.getElementById('seriesCat').value;
+  if (!title) return toast('أدخل اسم السلسلة', 'error');
+  if (!scholarId) return toast('اختر الشيخ', 'error');
+  if (!catId) return toast('اختر القسم', 'error');
+
+  const rows = [];
+  document.querySelectorAll('#episodesList .episode-row').forEach((row, i) => {
+    const ti = row.querySelectorAll('input')[0];
+    const ui = row.querySelectorAll('input')[1];
+    if (ti.value.trim() && ui.value.trim()) rows.push({ title: ti.value.trim(), url: ui.value.trim(), num: i + 1 });
+  });
+
+  const body = {
+    title,
+    scholar_id: scholarId,
+    category_id: catId,
+    description: document.getElementById('seriesDesc').value.trim() || null,
+  };
+
+  try {
+    let seriesId = id;
+    if (id) {
+      const res = await api('/api/series/' + encodeURIComponent(id), { method: 'PUT', body: JSON.stringify(body) });
+      const d = await json(res);
+      if (!res.ok) throw new Error(d.error || 'خطأ في الحفظ');
+    } else {
+      const slug = document.getElementById('seriesSlug').value.trim();
+      if (!slug) return toast('أدخل المعرف (slug)', 'error');
+      body.id = slug;
+      const res = await api('/api/series', { method: 'POST', body: JSON.stringify(body) });
+      const d = await json(res);
+      if (!res.ok) throw new Error(d.error || 'خطأ في الحفظ');
+      seriesId = d.id || slug;
+    }
+
+    if (seriesId) {
+      const existing = id ? await api('/api/series/' + encodeURIComponent(id) + '/episodes').then(r => r.ok ? r.json() : []) : [];
+      const have = new Set(existing.map(e => e.file_url));
+      let added = 0;
+      for (const ep of rows) {
+        if (have.has(ep.url)) continue;
+        const ar = await api('/api/audios', { method: 'POST', body: JSON.stringify({
+          title: ep.title,
+          scholar_id: scholarId,
+          category_id: catId,
+          sub_category_id: null,
+          series_id: seriesId,
+          episode_number: ep.num,
+          file_url: ep.url,
+          archive_url: ep.url.includes('archive.org') ? ep.url.replace(/\/download\/.*/, '').replace('/details/', '/details/') : null,
+          duration: 0,
+          status: 'published',
+        }) });
+        const ad = await json(ar);
+        if (ar.ok) added++;
+        else if (ar.status !== 409) throw new Error(ad.error || 'خطأ أثناء إنشاء الحلقات');
+      }
+      for (const ex of existing) {
+        if (!rows.some(r => r.url === ex.file_url)) {
+          await api('/api/audios/' + encodeURIComponent(ex.id), { method: 'DELETE' });
+        }
+      }
+      if (added) toast(`تم حفظ السلسلة + ${added} حلقة جديدة`, 'success');
+      else toast(id ? 'تم تعديل السلسلة بنجاح' : 'تم إضافة السلسلة بنجاح', 'success');
+    }
+
+    closeModal('modalSeries');
+    resetSeriesForm();
+    refreshAll();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function editSeries(id) {
+  const s = state.series.find(x => x.id === id);
+  if (!s) return;
+  editing = 'series';
+  document.getElementById('seriesEditId').value = s.id;
+  document.getElementById('seriesSlug').value = s.id;
+  document.getElementById('seriesSlug').disabled = true;
+  document.getElementById('seriesTitle').value = s.title;
+  document.getElementById('seriesDesc').value = s.description || '';
+  document.getElementById('seriesModalTitle').textContent = '✏️ تعديل السلسلة';
+
+  fillSelects();
+  document.getElementById('seriesScholar').value = s.scholar_id || '';
+  document.getElementById('seriesCat').value = s.category_id || '';
+
+  document.getElementById('episodesList').innerHTML = '';
+  const eps = await api('/api/series/' + encodeURIComponent(id) + '/episodes').then(r => r.ok ? r.json() : []);
+  eps.forEach(ep => addEpisodeRow(ep.episode_number || 0, ep.title, ep.file_url || ''));
+
+  openModal('modalSeries');
+}
+
+function resetSeriesForm() {
+  document.getElementById('seriesEditId').value = '';
+  document.getElementById('seriesSlug').value = '';
+  document.getElementById('seriesSlug').disabled = false;
+  document.getElementById('seriesTitle').value = '';
+  document.getElementById('seriesDesc').value = '';
+  document.getElementById('episodesList').innerHTML = '';
+  document.getElementById('seriesModalTitle').textContent = '📚 إضافة سلسلة جديدة';
+}
+
+// ============================================================
+//  Audios
+// ============================================================
+function renderAudios() {
+  const audios = state.audios;
+  document.getElementById('audiosTable').innerHTML = audios.length
+    ? `<table><thead><tr><th>العنوان</th><th>الشيخ</th><th>القسم</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>
+      ${audios.map(a => {
+        const scholar = state.scholars.find(s => s.id === a.scholar_id);
+        const cat = state.cats.find(c => c.id === a.category_id);
+        return `<tr>
+          <td><strong style="font-size:13px">${esc(a.title)}</strong></td>
+          <td>${esc(scholar?.name || '-')}</td>
+          <td><span class="tag tag-blue">${esc(cat?.name || '-')}</span></td>
+          <td><span class="tag ${a.status==='published'?'tag-green':'tag-red'}">${a.status==='published'?'منشور':'مسودة'}</span></td>
+          <td>
+            <button class="btn btn-outline btn-sm" onclick="editAudio('${a.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="confirmDelete('audio','${a.id}')">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody></table>`
+    : '<div class="empty"><div class="icon">🎵</div><p>لا توجد أشرطة بعد</p></div>';
+}
+
+async function saveAudio() {
+  const id = document.getElementById('audioEditId').value;
+  const title = document.getElementById('audioTitle').value.trim();
+  const url = document.getElementById('audioUrl').value.trim();
+  if (!title) return toast('أدخل عنوان الشريط', 'error');
+  if (!url) return toast('أدخل رابط Archive', 'error');
+
+  const body = {
+    title,
+    scholar_id: document.getElementById('audioScholar').value,
+    category_id: document.getElementById('audioCat').value,
+    sub_category_id: document.getElementById('audioSub').value || null,
+    file_url: url,
+    archive_url: url.includes('archive.org') ? url.replace(/\/download\/.*/, '').replace('/details/', '/details/') : null,
+    duration: parseDuration(document.getElementById('audioDuration').value),
+    status: document.getElementById('audioStatus').value,
+    description: document.getElementById('audioDesc').value.trim() || null,
+  };
+  if (!body.scholar_id) return toast('اختر الشيخ', 'error');
+  if (!body.category_id) return toast('اختر القسم', 'error');
+
+  try {
+    let res;
+    if (id) {
+      res = await api('/api/audios/' + encodeURIComponent(id), { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      res = await api('/api/audios', { method: 'POST', body: JSON.stringify(body) });
+    }
+    const d = await json(res);
+    if (!res.ok) throw new Error(d.error || 'خطأ في الحفظ');
+    toast(id ? 'تم تعديل الشريط بنجاح' : 'تم إضافة الشريط بنجاح 🎉', 'success');
+    closeModal('modalAudio');
+    resetAudioForm();
+    refreshAll();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function editAudio(id) {
+  const a = state.audios.find(x => x.id === id);
+  if (!a) return;
+  editing = 'audio';
+  document.getElementById('audioEditId').value = a.id;
+  document.getElementById('audioTitle').value = a.title;
+  document.getElementById('audioUrl').value = a.file_url || '';
+  document.getElementById('audioDuration').value = a.duration ? Math.floor(a.duration/60) + ':' + String(a.duration%60).padStart(2,'0') : '';
+  document.getElementById('audioStatus').value = a.status;
+  document.getElementById('audioDesc').value = a.description || '';
+  document.getElementById('audioModalTitle').textContent = '✏️ تعديل الشريط';
+
+  fillSelects();
+  document.getElementById('audioScholar').value = a.scholar_id || '';
+  document.getElementById('audioCat').value = a.category_id || '';
+  updateSubOptions('audioCat', 'audioSub');
+  if (a.sub_category_id) setTimeout(() => { document.getElementById('audioSub').value = a.sub_category_id; }, 50);
+
+  openModal('modalAudio');
+}
+
+function resetAudioForm() {
+  document.getElementById('audioEditId').value = '';
+  document.getElementById('audioTitle').value = '';
+  document.getElementById('audioUrl').value = '';
+  document.getElementById('audioDuration').value = '';
+  document.getElementById('audioDesc').value = '';
+  document.getElementById('audioModalTitle').textContent = '🎵 إضافة شريط منفرد';
+  document.getElementById('urlStatus').textContent = '';
+}
+
+// ============================================================
+//  URL Check
+// ============================================================
+async function checkUrl() {
+  const url = document.getElementById('audioUrl').value.trim();
+  const status = document.getElementById('urlStatus');
+  if (!url) { status.textContent = 'أدخل الرابط أولاً'; status.className = 'url-status invalid'; return; }
+
+  status.textContent = '⏳ جاري الفحص...';
+  status.className = 'url-status';
+
+  try {
+    await fetch(url, { method: 'HEAD', mode: 'no-cors' });
+    status.textContent = '✅ الرابط يعمل';
+    status.className = 'url-status valid';
+  } catch {
+    status.textContent = '⚠️ تعذر التحقق - تأكد من الرابط يدوياً';
+    status.className = 'url-status invalid';
+  }
+}
+
+// ============================================================
+//  Fill Selects
+// ============================================================
+function fillSelects() {
+  const scholars = state.scholars;
+  const cats = state.cats.filter(c => !c.parent_id).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+
+  const scholarOpts = scholars.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  const catOpts = cats.map(c => `<option value="${c.id}">${esc(c.icon)} ${esc(c.name)}</option>`).join('');
+
+  ['seriesScholar','audioScholar','bulkScholar'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<option value="">— اختر الشيخ —</option>' + scholarOpts;
+  });
+
+  ['seriesCat','audioCat','bulkCat'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<option value="">— اختر القسم —</option>' + catOpts;
+  });
+}
+
+function updateSubOptions(catSelectId, subSelectId) {
+  const catId = document.getElementById(catSelectId).value;
+  const cats = state.cats;
+  const subs = cats.filter(c => c.parent_id === catId).sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+
+  document.getElementById(subSelectId).innerHTML = '<option value="">— بدون فرع —</option>' +
+    subs.map(s => `<option value="${s.id}">${esc(s.icon)} ${esc(s.name)}</option>`).join('');
+}
+
+document.getElementById('bulkCat')?.addEventListener('change', function() {
+  updateSubOptions('bulkCat', 'bulkSub');
+});
+
+// ============================================================
+//  Bulk Import
+// ============================================================
+async function bulkImport() {
+  const text = document.getElementById('bulkText').value.trim();
+  const scholarId = document.getElementById('bulkScholar').value;
+  const catId = document.getElementById('bulkCat').value;
+  const subId = document.getElementById('bulkSub').value || null;
+
+  if (!text) return toast('الصق الروابط أولاً', 'error');
+  if (!scholarId) return toast('اختر الشيخ', 'error');
+  if (!catId) return toast('اختر القسم', 'error');
+
+  const lines = text.split('\n').filter(l => l.trim());
+  let ok = 0, fail = 0;
+  const btn = event && event.target;
+  if (btn) btn.disabled = true;
+
+  for (const line of lines) {
+    const parts = line.split('|').map(p => p.trim());
+    if (parts.length < 2 || !parts[1].includes('archive.org')) { fail++; continue; }
+    try {
+      const res = await api('/api/audios', { method: 'POST', body: JSON.stringify({
+        title: parts[0],
+        scholar_id: scholarId,
+        category_id: catId,
+        sub_category_id: subId,
+        file_url: parts[1],
+        archive_url: parts[1].replace(/\/download\/.*/, '').replace('/details/', '/details/'),
+        duration: parseDuration(parts[2] || ''),
+        status: 'published',
+        description: null,
+      }) });
+      if (res.ok) ok++; else fail++;
+    } catch { fail++; }
+  }
+
+  if (btn) btn.disabled = false;
+  document.getElementById('bulkText').value = '';
+  toast(`تم استيراد ${ok} شريط${fail ? ' — فشل ' + fail : ''} 🎉`, ok ? 'success' : 'error');
+  refreshAll();
+}
+
+// ============================================================
+//  Delete
+// ============================================================
+let deleteTarget = null;
+function confirmDelete(type, id) {
+  deleteTarget = { type, id };
+  const msgs = { cat:'سيتم حذف القسم (يجب ألا يحتوي أشرطة أو فروع)', scholar:'سيتم حذف الشيخ (يجب ألا يحتوي أشرطة)', series:'سيتم حذف السلسلة (يجب ألا تحتوي حلقات)', audio:'سيتم حذف الشريط' };
+  document.getElementById('confirmMsg').textContent = msgs[type] || 'هل أنت متأكد؟';
+  document.getElementById('confirmBtn').onclick = doDelete;
+  openModal('modalConfirm');
+}
+
+async function doDelete() {
+  if (!deleteTarget) return;
+  const { type, id } = deleteTarget;
+  const paths = { cat: '/api/categories/', scholar: '/api/scholars/', series: '/api/series/', audio: '/api/audios/' };
+  try {
+    const res = await api(paths[type] + encodeURIComponent(id), { method: 'DELETE' });
+    const d = await json(res);
+    if (!res.ok) throw new Error(d.error || 'فشل الحذف');
+    closeModal('modalConfirm');
+    toast('تم الحذف بنجاح', 'success');
+    refreshAll();
+  } catch (e) { closeModal('modalConfirm'); toast(e.message, 'error'); }
+}
+
+// ============================================================
+//  Export / Import
+// ============================================================
+async function exportData() {
+  try {
+    const [cats, schs, sers, aud] = await Promise.all([
+      api('/api/categories').then(r => r.ok ? r.json() : []),
+      api('/api/scholars').then(r => r.ok ? r.json() : []),
+      api('/api/series').then(r => r.ok ? r.json() : []),
+      api('/api/audios?per=100').then(r => r.ok ? r.json() : { items: [] }),
+    ]);
+    const data = { categories: cats, scholars: schs, series: sers, audios: aud.items, exportDate: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'dar-hadith-backup-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    toast('تم تصدير البيانات بنجاح 💾', 'success');
+  } catch { toast('تعذر تصدير البيانات', 'error'); }
+}
+
+async function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    let data;
+    try { data = JSON.parse(e.target.result); } catch { toast('ملف غير صالح', 'error'); return; }
+    let ok = 0, fail = 0;
+    const post = async (path, body) => {
+      const res = await api(path, { method: 'POST', body: JSON.stringify(body) });
+      if (res.ok) ok++;
+      else {
+        const d = await json(res);
+        if (res.status !== 409) fail++;
+      }
+    };
+    try {
+      for (const c of data.categories || []) {
+        await post('/api/categories', { id: c.id, name: c.name, icon: c.icon || 'book', parent_id: c.parent_id || null, sort_order: c.sort_order || c.order || 0, is_active: 1 });
+      }
+      for (const s of data.scholars || []) {
+        await post('/api/scholars', { id: s.id, name: s.name, specialization: s.spec || s.specialization || null, bio: s.bio || null, status: 'active' });
+      }
+      for (const se of data.series || []) {
+        const sid = se.id;
+        await post('/api/series', { id: sid, title: se.title, scholar_id: se.scholarId || se.scholar_id || null, category_id: se.catId || se.category_id || null, description: se.description || null });
+        for (const ep of (se.episodes || [])) {
+          await post('/api/audios', { title: ep.title, scholar_id: se.scholarId || se.scholar_id || null, category_id: se.catId || se.category_id || null, series_id: sid, episode_number: ep.num || ep.episode_number || 0, file_url: ep.url || ep.file_url, status: 'published' });
+        }
+      }
+      for (const a of data.audios || []) {
+        await post('/api/audios', { id: a.id, title: a.title, scholar_id: a.scholarId || a.scholar_id || null, category_id: a.catId || a.category_id || null, sub_category_id: a.subId || a.sub_category_id || null, file_url: a.url || a.file_url, duration: parseDuration(a.duration), status: a.status || 'published', description: a.description || null });
+      }
+      toast(`تم استيراد البيانات: نجح ${ok}${fail ? ' — فشل ' + fail : ''} 📤`, fail ? 'error' : 'success');
+      refreshAll();
+    } catch {
+      toast('تعذر استيراد البيانات', 'error');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ============================================================
+//  AI Transcription (Voice-Pro)
+// ============================================================
+const vp = { url: '', reachable: false, activeId: null, pollTimer: null };
+
+async function refreshTranscribe() {
+  try {
+    const res = await api('/api/ai/config');
+    if (!res.ok) throw new Error('لا يمكن الوصول لإعدادات الذكاء الاصطناعي');
+    const d = await res.json();
+    vp.url = d.voiceproUrl || '';
+    vp.reachable = !!d.reachable;
+    document.getElementById('vpUrlInput').value = vp.url;
+    const status = vp.reachable ? '✅ متصل: ' + vp.url : '⚠️ غير متصل (أدخل الرابط أو تحقق من خادم Voice-Pro)';
+    const el1 = document.getElementById('vpStatus');
+    el1.className = 'tag ' + (vp.reachable ? 'tag-green' : 'tag-red');
+    el1.textContent = status;
+    const el2 = document.getElementById('vpStatus2');
+    el2.className = 'tag ' + (vp.reachable ? 'tag-green' : 'tag-red');
+    el2.textContent = vp.reachable ? '✅ متصل' : '⚠️ غير متصل';
+  } catch {
+    const el1 = document.getElementById('vpStatus');
+    el1.className = 'tag tag-red';
+    el1.textContent = '⚠️ غير متاح';
+  }
+  fillTrAudios();
+  await pollTranscriptions();
+  if (vp.pollTimer) clearInterval(vp.pollTimer);
+  vp.pollTimer = setInterval(async () => {
+    if (document.getElementById('sec-transcribe').style.display === 'none') return;
+    await pollTranscriptions();
+  }, 4000);
+}
+
+async function saveVpConfig() {
+  const url = document.getElementById('vpUrlInput').value.trim();
+  if (!url) return toast('أدخل الرابط أولاً', 'error');
+  try {
+    const res = await api('/api/ai/config', { method: 'PUT', body: JSON.stringify({ voiceproUrl: url }) });
+    const d = await json(res);
+    if (!res.ok) throw new Error(d.error || 'فشل الحفظ');
+    toast('تم حفظ الرابط 🔌', 'success');
+    await refreshTranscribe();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function fillTrAudios() {
+  const opts = state.audios.map(a => `<option value="${a.id}">${esc(a.title)}</option>`).join('');
+  document.getElementById('trAudio').innerHTML = '<option value="">— اختر الشريط —</option>' + opts;
+  document.getElementById('trLinkAudio').innerHTML = '<option value="">— اختر الشريط للربط —</option>' + opts;
+}
+
+function toggleTrSource() {
+  const mode = document.getElementById('trSourceMode').value;
+  document.getElementById('trUploadWrap').style.display = mode === 'upload' ? 'block' : 'none';
+  document.getElementById('trAudio').disabled = mode === 'upload';
+}
+
+async function uploadToVp(file) {
+  if (!vp.url) throw new Error('خادم Voice-Pro غير متصل');
+  const fd = new FormData();
+  fd.append('files', file, file.name);
+  const res = await fetch(vp.url.replace(/\/$/, '') + '/gradio_api/upload', { method: 'POST', body: fd });
+  if (!res.ok) throw new Error('فشل رفع الملف إلى Voice-Pro (HTTP ' + res.status + ')');
+  const arr = await res.json();
+  const f = Array.isArray(arr) ? arr[0] : arr;
+  if (!f || !(f.path || f.url)) throw new Error('استجابة رفع غير صالحة');
+  return { path: f.path || f.url, orig_name: f.orig_name || file.name };
+}
+
+async function startTranscribe() {
+  const btn = document.getElementById('trStartBtn');
+  const mode = document.getElementById('trSourceMode').value;
+  const body = {
+    language: document.getElementById('trLang').value,
+    model: document.getElementById('trModel').value,
+  };
+  try {
+    if (mode === 'library') {
+      const audioId = document.getElementById('trAudio').value;
+      if (!audioId) return toast('اختر الشريط أولاً', 'error');
+      body.audioId = audioId;
+    } else {
+      const file = document.getElementById('trFile').files[0];
+      if (!file) return toast('اختر ملفاً صوتياً', 'error');
+      btn.disabled = true; btn.textContent = '⏳ جاري رفع الملف...';
+      body.mediaPath = await uploadToVp(file);
+      btn.disabled = false; btn.textContent = '🧠 بدء التحويل';
+    }
+    const res = await api('/api/ai/transcribe', { method: 'POST', body: JSON.stringify(body) });
+    const d = await json(res);
+    if (!res.ok) throw new Error(d.error || 'فشل بدء التحويل');
+    vp.activeId = d.id;
+    showTrProgress(d);
+    toast('بدأ التحويل 🧠', 'success');
+    await pollTranscriptions();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = '🧠 بدء التحويل';
+    toast(e.message, 'error');
+  }
+}
+
+function showTrProgress(rec) {
+  document.getElementById('trProgressCard').style.display = 'block';
+  document.getElementById('trResultCard').style.display = 'block';
+  renderTrRecord(rec);
+}
+
+function renderTrRecord(rec) {
+  const bar = document.getElementById('trProgressBar');
+  const tag = document.getElementById('trStatusTag');
+  const msg = document.getElementById('trProgressMsg');
+  bar.style.width = (rec.progress || 0) + '%';
+  const statusMap = { queued:'قيد الانتظار', prep:'تجهيز الصوت', run:'جارٍ التحويل', completed:'اكتمل ✅', failed:'فشل ❌' };
+  tag.textContent = statusMap[rec.status] || rec.status;
+  tag.className = 'tag ' + (rec.status === 'completed' ? 'tag-green' : rec.status === 'failed' ? 'tag-red' : 'tag-gold');
+  msg.textContent = rec.status === 'failed' ? (rec.error || 'حدث خطأ') : (rec.message || '');
+  if (rec.id === vp.activeId) {
+    const text = document.getElementById('trText');
+    if (rec.text_content && rec.text_content !== text.value) text.value = rec.text_content;
+  }
+}
+
+async function pollTranscriptions() {
+  let res;
+  try {
+    res = await api('/api/ai/transcriptions');
+    if (!res.ok) return;
+  } catch { return; }
+  const list = await json(res);
+  const running = list.some(r => ['queued', 'prep', 'run'].includes(r.status));
+  if (!running && vp.pollTimer) { /* نستمر بالاستطلاع — قد تبدأ مهمة جديدة */ }
+  renderTrHistory(list);
+  if (vp.activeId) {
+    const cur = list.find(r => r.id === vp.activeId);
+    if (cur) renderTrRecord(cur);
+  }
+  if (vp.activeId && list.some(r => r.id === vp.activeId && ['completed', 'failed'].includes(r.status))) {
+    const cur = list.find(r => r.id === vp.activeId);
+    if (cur && cur.status === 'completed') { vp.activeId = null; toast('اكتمل التحويل بنجاح 🎉', 'success'); }
+    if (cur && cur.status === 'failed') { vp.activeId = null; toast('فشل التحويل: ' + (cur.error || ''), 'error'); }
+  }
+}
+
+function renderTrHistory(list) {
+  const el = document.getElementById('trHistory');
+  if (!list.length) { el.innerHTML = '<div class="empty"><div class="icon">🗂️</div><p>لا توجد تحويلات بعد</p></div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>التاريخ</th><th>الشريط</th><th>اللغة</th><th>النموذج</th><th>الحالة</th><th>التقدم</th><th>إجراءات</th></tr></thead><tbody>
+    ${list.map(r => {
+      const audio = state.audios.find(a => a.id === r.audio_id);
+      const st = { queued:'قيد الانتظار', prep:'تجهيز الصوت', run:'جارٍ التحويل', completed:'اكتمل ✅', failed:'فشل ❌' }[r.status] || r.status;
+      const cls = r.status === 'completed' ? 'tag-green' : r.status === 'failed' ? 'tag-red' : 'tag-gold';
+      return `<tr>
+        <td style="white-space:nowrap">${esc((r.created_at || '').replace('T',' ').slice(0,16))}</td>
+        <td><strong style="font-size:12px">${esc(audio ? audio.title : (r.audio_id || 'بدون ربط'))}</strong></td>
+        <td><span class="tag tag-blue">${esc(r.language || '-')}</span></td>
+        <td><span class="tag tag-purple">${esc(r.model || '-')}</span></td>
+        <td><span class="tag ${cls}">${st}</span></td>
+        <td>${r.progress || 0}%</td>
+        <td>${r.status === 'completed' ? `<button class="btn btn-outline btn-sm" onclick="openTrResult('${r.id}')">👁️ عرض</button>` : ''}</td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+
+async function openTrResult(id) {
+  let list = [];
+  try { list = await (await api('/api/ai/transcriptions')).json(); } catch { list = []; }
+  const rec = list.find(r => r.id === id);
+  if (!rec) return toast('غير موجود', 'error');
+  vp.activeId = id;
+  document.getElementById('trText').value = rec.text_content || '';
+  document.getElementById('trProgressCard').style.display = 'block';
+  document.getElementById('trResultCard').style.display = 'block';
+  renderTrRecord(rec);
+  document.getElementById('trProgressCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function saveTranscription() {
+  if (!vp.activeId) return toast('اختر تحويلاً أولاً', 'error');
+  const text = document.getElementById('trText').value;
+  try {
+    const res = await api('/api/ai/transcriptions/' + encodeURIComponent(vp.activeId), { method: 'PATCH', body: JSON.stringify({ text_content: text }) });
+    const d = await json(res);
+    if (!res.ok) throw new Error(d.error || 'فشل الحفظ');
+    toast('تم حفظ النص 💾', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function linkTranscription() {
+  if (!vp.activeId) return toast('اختر تحويلاً أولاً', 'error');
+  const audioId = document.getElementById('trLinkAudio').value;
+  if (!audioId) return toast('اختر الشريط للربط', 'error');
+  try {
+    const res = await api('/api/ai/transcriptions/' + encodeURIComponent(vp.activeId) + '/link', { method: 'POST', body: JSON.stringify({ audioId }) });
+    const d = await json(res);
+    if (!res.ok) throw new Error(d.error || 'فشل الربط');
+    toast('تم ربط النص بالشريط 🔗', 'success');
+    await pollTranscriptions();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function copyTranscription() {
+  const text = document.getElementById('trText').value;
+  if (!text) return toast('لا يوجد نص للنسخ', 'error');
+  navigator.clipboard.writeText(text).then(() => toast('تم النسخ 📋', 'success')).catch(() => toast('تعذر النسخ', 'error'));
+}
+
+// ============================================================
+//  Init
+// ============================================================
+init();
+</script>
+</body>
+</html>
