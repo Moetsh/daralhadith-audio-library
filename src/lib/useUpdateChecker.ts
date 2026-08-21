@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
-import { Filesystem, Directory } from "@capacitor/filesystem";
+import { Browser } from "@capacitor/browser";
 
 const API_BASE = "https://daralhadith.vercel.app";
 
@@ -22,35 +22,6 @@ function isNewer(a: string, b: string) {
     if (x < y) return false;
   }
   return false;
-}
-
-async function downloadApk(url: string, onProgress: (p: number) => void): Promise<string> {
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const total = Number(resp.headers.get("content-length")) || 0;
-  const reader = resp.body?.getReader();
-  if (!reader) throw new Error("No reader");
-  const chunks: Uint8Array[] = [];
-  let loaded = 0;
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    loaded += value.length;
-    if (total > 0) onProgress(loaded / total);
-  }
-  const blob = new Blob(chunks, { type: "application/vnd.android.package-archive" });
-  const buf = await blob.arrayBuffer();
-  const bytes = new Uint8Array(buf);
-  let binary = "";
-  const chunkSize = 8192;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const slice = bytes.subarray(i, i + chunkSize);
-    let s = "";
-    for (let j = 0; j < slice.length; j++) s += String.fromCharCode(slice[j]);
-    binary += s;
-  }
-  return btoa(binary);
 }
 
 export function useUpdateChecker(currentVersion: string) {
@@ -89,31 +60,12 @@ export function useUpdateChecker(currentVersion: string) {
     setError(null);
     setDone(false);
     try {
-      const b64 = await downloadApk(apkUrl, setProgress);
-
-      await Filesystem.writeFile({
-        path: "update.apk",
-        data: b64,
-        directory: Directory.Cache,
-      });
-
-      const { uri } = await Filesystem.getUri({
-        path: "update.apk",
-        directory: Directory.Cache,
-      });
-
-      const { ApkInstaller } = await import("@capacitor/core").then((c) =>
-        (c as any).Capacitor.Plugins.ApkInstaller
-          ? { ApkInstaller: (c as any).Capacitor.Plugins.ApkInstaller }
-          : Promise.reject(new Error("Plugin not available"))
-      );
-
-      await ApkInstaller.install({ path: uri });
-
+      await Browser.open({ url: apkUrl });
       setProgress(1);
       setDone(true);
     } catch (e: any) {
-      setError(e?.message || "خطأ في التحميل");
+      window.open(apkUrl, "_system");
+      setDone(true);
     } finally {
       setDownloading(false);
     }

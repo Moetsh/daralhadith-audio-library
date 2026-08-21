@@ -140,7 +140,7 @@ const UpdateCard = () => {
             </button>
           )}
         </div>
-        {u.done && <div className="text-[0.66rem] font-bold c-green">{t.updateDone}</div>}
+        {u.done && <div className="text-[0.66rem] font-bold c-green">{t.installHint || "تم فتح صفحة التحميل. ثبّت الـ APK بعد الانتهاء."}</div>}
         {u.error && <div className="text-[0.66rem] font-bold c-danger">{u.error}</div>}
         {!u.hasUpdate && !u.checking && !u.error && (
           <div className="text-[0.66rem] font-bold ink-3">{t.latestVer}</div>
