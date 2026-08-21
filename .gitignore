@@ -50,3 +50,7 @@ verify_import.py
 want_eps.json
 watch-archive.mjs
 deploy-vercel.mjs
+create_repo.py
+upload_github.py
+upload_apk_firebase.py
+update_firebase_version.py
