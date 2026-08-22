@@ -1,4 +1,4 @@
-/* شاشة الإعدادات */
+/* Ø´Ø§Ø´Ø© Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª */
 import {
   ArrowDownToLine, Bell, Download, Gauge, Languages, Moon, Music2, RefreshCw, Sparkles, Sun, SunMoon, Timer, Type, Upload, Wifi,
 } from "lucide-react";
@@ -11,7 +11,7 @@ import { useSettings, type Theme } from "../store/core";
 import { useServerContent } from "../store/serverContent";
 import { GirihBG, Logo } from "../components/ui";
 
-/* صف إعداد */
+/* ØµÙ Ø¥Ø¹Ø¯Ø§Ø¯ */
 const Row = ({ icon: Icon, title, hint, children }: { icon: LucideIcon; title: string; hint?: string; children: ReactNode }) => (
   <div className="flex items-center gap-3.5 px-4 py-3.5">
     <span className="w-10 h-10 rounded-2xl soft-green c-green flex items-center justify-center shrink-0"><Icon size={17} /></span>
@@ -91,7 +91,7 @@ const SyncCard = () => {
   );
 };
 
-const CURRENT_VERSION = "1.22";
+const CURRENT_VERSION = "1.23";
 
 const UpdateCard = () => {
   const t = useSettings((s) => s.t);
@@ -101,7 +101,7 @@ const UpdateCard = () => {
 
   return (
     <Card>
-      <Row icon={Upload} title={u.hasUpdate ? `${t.updateAvailable} — ${u.latestVersion}` : t.updateH}
+      <Row icon={Upload} title={u.hasUpdate ? `${t.updateAvailable} â€” ${u.latestVersion}` : t.updateH}
         hint={u.hasUpdate ? u.releaseNotes : undefined}>
         {u.hasUpdate ? (
           <span className="w-2 h-2 rounded-full bg-[#e07a22] animate-pulse" />
@@ -124,7 +124,7 @@ const UpdateCard = () => {
               className="h-9 px-4 rounded-full bg-[#e07a22] text-white text-[0.72rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
             >
               {u.downloading ? (
-                <><RefreshCw size={13} className="animate-spin" /> {t.downloading} {Math.round(u.progress * 100)}٪</>
+                <><RefreshCw size={13} className="animate-spin" /> {t.downloading} {Math.round(u.progress * 100)}Ùª</>
               ) : (
                 <><ArrowDownToLine size={13} /> {t.updateNow}</>
               )}
@@ -140,7 +140,7 @@ const UpdateCard = () => {
             </button>
           )}
         </div>
-        {u.done && <div className="text-[0.66rem] font-bold c-green">{t.installHint || "تم فتح صفحة التحميل. ثبّت الـ APK بعد الانتهاء."}</div>}
+        {u.done && <div className="text-[0.66rem] font-bold c-green">{t.installHint || "ØªÙ… ÙØªØ­ ØµÙØ­Ø© Ø§Ù„ØªØ­Ù…ÙŠÙ„. Ø«Ø¨Ù‘Øª Ø§Ù„Ù€ APK Ø¨Ø¹Ø¯ Ø§Ù„Ø§Ù†ØªÙ‡Ø§Ø¡."}</div>}
         {u.error && <div className="text-[0.66rem] font-bold c-danger">{u.error}</div>}
         {!u.hasUpdate && !u.checking && !u.error && (
           <div className="text-[0.66rem] font-bold ink-3">{t.latestVer}</div>
@@ -168,7 +168,7 @@ export const SettingsScreen = () => {
                 opts={[["light", t.light], ["dark", t.dark], ["auto", t.auto]]} />
             </Row>
             <Row icon={Languages} title={t.language}>
-              <Seg value={s.lang} onChange={(v) => set({ lang: v as any })} opts={[["ar", "العربية"], ["en", "English"]]} />
+              <Seg value={s.lang} onChange={(v) => set({ lang: v as any })} opts={[["ar", "Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©"], ["en", "English"]]} />
             </Row>
             <Row icon={Type} title={t.fontSize}>
               <Seg<number> value={s.fsize} onChange={(v) => set({ fsize: v as 0 | 1 | 2 })}
@@ -184,11 +184,11 @@ export const SettingsScreen = () => {
               </Row>
               <Row icon={Gauge} title={t.defSpeed}>
                 <Seg<number> value={s.defSpeed} onChange={(v) => set({ defSpeed: v })}
-                  opts={[[0.75, "0.75×"], [1, "1×"], [1.25, "1.25×"], [1.5, "1.5×"], [2, "2×"]]} />
+                  opts={[[0.75, "0.75Ã—"], [1, "1Ã—"], [1.25, "1.25Ã—"], [1.5, "1.5Ã—"], [2, "2Ã—"]]} />
               </Row>
               <Row icon={Timer} title={t.defSleep}>
                 <Seg<number> value={s.defSleep} onChange={(v) => set({ defSleep: v })}
-                  opts={[[0, t.sleepOff], [15, `${ar(15)}${s.lang === "ar" ? "د" : "m"}`], [30, `${ar(30)}${s.lang === "ar" ? "د" : "m"}`], [60, `${ar(60)}${s.lang === "ar" ? "د" : "m"}`]]} />
+                  opts={[[0, t.sleepOff], [15, `${ar(15)}${s.lang === "ar" ? "Ø¯" : "m"}`], [30, `${ar(30)}${s.lang === "ar" ? "Ø¯" : "m"}`], [60, `${ar(60)}${s.lang === "ar" ? "Ø¯" : "m"}`]]} />
               </Row>
             </Card>
           </div>
@@ -206,7 +206,7 @@ export const SettingsScreen = () => {
 
           <UpdateCard />
 
-          {/* عن التطبيق */}
+          {/* Ø¹Ù† Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ */}
           <div className="rounded-3xl overflow-hidden relative border border-[#d9a13f44]" >
             <div className="absolute inset-0" style={{ background: "#e07a22" }} />
             <div className="absolute inset-0 girih opacity-[0.1]" style={{ color: "#e9d9a6" }} />
@@ -216,10 +216,10 @@ export const SettingsScreen = () => {
               <p className="text-[#c3cdbf] text-[0.74rem] leading-loose mt-2.5">{t.aboutTxt}</p>
               <div className="flex items-center gap-2 mt-4">
                 <span className="text-[0.64rem] font-black text-[#e9d9a6] border border-[#d9a13f55] rounded-full px-3 py-1 flex items-center gap-1.5">
-                  <Sparkles size={11} /> {s.lang === "ar" ? "عمل خيري — بلا إعلانات" : "Charity — No ads"}
+                  <Sparkles size={11} /> {s.lang === "ar" ? "Ø¹Ù…Ù„ Ø®ÙŠØ±ÙŠ â€” Ø¨Ù„Ø§ Ø¥Ø¹Ù„Ø§Ù†Ø§Øª" : "Charity â€” No ads"}
                 </span>
                 <span className="text-[0.64rem] font-black text-[#8fa795] border border-[#ffffff22] rounded-full px-3 py-1">
-                  {t.ver} {CURRENT_VERSION} · Android 15
+                  {t.ver} {CURRENT_VERSION} Â· Android 15
                 </span>
               </div>
               <div className="flex items-center gap-3 mt-4 text-[#d9a13f]">
@@ -232,3 +232,4 @@ export const SettingsScreen = () => {
     </div>
   );
 };
+

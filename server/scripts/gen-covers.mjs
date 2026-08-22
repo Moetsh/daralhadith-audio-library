@@ -7,6 +7,8 @@ import path from "node:path";
 
 const RTDB_URL = "https://daralhadith-8e2c5-default-rtdb.europe-west1.firebasedatabase.app";
 const OUT_DIR = path.join(process.cwd(), "public", "covers");
+/* نسخة يخدمها الخادم على الإنتاج عبر express.static(adminDist) */
+const OUT_DIR_ADMIN = path.join(process.cwd(), "admin", "dist", "covers");
 
 const get = async (p) => {
   const r = await fetch(`${RTDB_URL}/${p}.json`);
@@ -14,18 +16,21 @@ const get = async (p) => {
   return Object.values(await r.json()) || [];
 };
 
-/* ألوان وتصاميم لكل تصنيف — bg: اللون الأساسي، accent: لون الزخرفة، dark: للحدود العلوية */
-const CAT_STYLE = {
-  quran:   { bg: "#1a6b3c", accent: "#b8e6c8", dark: "#0d4a28" },
-  aqeedah: { bg: "#1a3a5c", accent: "#a8c8e8", dark: "#0d2440" },
-  hadith:  { bg: "#6b1a2a", accent: "#e8a8b8", dark: "#4a0d1a" },
-  fiqh:    { bg: "#1a5c5c", accent: "#a8e0e0", dark: "#0d3a3a" },
-  seerah:  { bg: "#7a5a1a", accent: "#e8d0a0", dark: "#5a3d0d" },
-  raqaiq:  { bg: "#4a1a5c", accent: "#d0a8e8", dark: "#2d0d40" },
-  fatawa:  { bg: "#3a5a1a", accent: "#c0e0a0", dark: "#26400d" },
-  khutab:  { bg: "#5c3a1a", accent: "#e0c0a0", dark: "#3d240d" },
+/* ألوان وزخارف كل فئة — من cat-styles.mjs (هوية مميزة لكل قسم وفرع) */
+const { CAT_STYLES, ornamentByType } = await import("./cat-styles.mjs");
+/* ألوان الفئات الأب كاحتياط */
+const PARENT_FALLBACK = {
+  quran: "tafsir", aqeedah: "sharh-aq", hadith: "bukhari", fiqh: "ibadat",
+  seerah: "sahaba", raqaiq: "athkar", fatawa: "ft-salah", lugha: "arab",
+  matn: "matn-tawheed", usul: "usul-rabahiyya", tafsir: "tafsir-araf", sharh_aq: "sharh-tawheed",
 };
-const DEFAULT_STYLE = { bg: "#3a3a3a", accent: "#d0d0d0", dark: "#242424" };
+const DEFAULT_STYLE = { bg: "#3a3a3a", accent: "#d0d0d0", orn: "star8" };
+
+function styleFor(catId) {
+  if (CAT_STYLES[catId]) return CAT_STYLES[catId];
+  if (PARENT_FALLBACK[catId] && CAT_STYLES[PARENT_FALLBACK[catId]]) return CAT_STYLES[PARENT_FALLBACK[catId]];
+  return DEFAULT_STYLE;
+}
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -36,29 +41,24 @@ function hashStr(s) {
   return Math.abs(h);
 }
 
-/* تقسيم العنوان إلى سطر أو سطرين أو ثلاثة */
-function wrapTitle(t, max = 24) {
-  const s = t.trim();
-  if (s.length <= max) return [s];
-  const mid = Math.floor(s.length / 2);
-  const cut = s.slice(0, mid);
-  let best = -1;
-  for (let i = 0; i < cut.length; i++) {
-    if (" -–—".includes(s[mid + i]) || " -–—".includes(s[mid - i])) { best = i; break; }
+/* تقسيم العنوان إلى أسطر متوازنة حسب الطول (حتى 5 أسطر) */
+function wrapTitle(t) {
+  const words = String(t ?? "").trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return [""];
+  const total = words.join(" ").length;
+  const nLines = Math.min(5, Math.max(1, Math.ceil(total / 20)));
+  const target = Math.ceil(total / nLines);
+  const lines = [];
+  let cur = "";
+  for (const w of words) {
+    const cand = cur ? cur + " " + w : w;
+    if (cand.length > target && cur && lines.length < nLines - 1) {
+      lines.push(cur);
+      cur = w;
+    } else cur = cand;
   }
-  const idx = best >= 0 ? mid + best : mid;
-  const line1 = s.slice(0, idx).trim();
-  const line2 = s.slice(idx).trim();
-  if (line2.length > max + 4) {
-    const cut2 = Math.floor(line2.length / 2);
-    let b2 = -1;
-    for (let i = 0; i < cut2; i++) {
-      if (" -–—".includes(line2[cut2 + i]) || " -–—".includes(line2[cut2 - i])) { b2 = i; break; }
-    }
-    const i2 = b2 >= 0 ? cut2 + b2 : cut2;
-    return [line1, line2.slice(0, i2).trim(), line2.slice(i2).trim()];
-  }
-  return [line1, line2];
+  if (cur) lines.push(cur);
+  return lines;
 }
 
 /* ==================== زخارف إسلامية ==================== */
@@ -207,31 +207,39 @@ const CORNER_ORNAMENTS = [
 ];
 
 function makeSvg({ title, scholar, cat, audioId, episode, series, size = 320 }) {
-  const st = CAT_STYLE[cat] || DEFAULT_STYLE;
+  const st = styleFor(cat);
   const bg = st.bg;
   const accent = st.accent;
-  const dark = st.dark;
   const gold = "#e9d9a6";
   const cream = "#f4ecd7";
   const cx = size / 2;
 
   const h = hashStr(audioId || title);
-  const ornIdx = h % ORNAMENTS.length;
   const cornerIdx = (h >> 3) % CORNER_ORNAMENTS.length;
   const hasGeoGrid = (h >> 6) % 3 === 0;
 
   const lines = wrapTitle(title);
   const n = lines.length;
-  const titleFont = n === 1 ? 30 : n === 2 ? 28 : 24;
-  const lineGap = n === 1 ? 0 : n === 2 ? 36 : 30;
+  const maxLen = Math.max(...lines.map((l) => l.length), 1);
+  /* خط متكيّف — Aref Ruqaa عريض: معامل 0.78 من حجم الخط للرمز العربي */
+  const baseFont = [30, 27, 24, 21, 19][Math.min(n - 1, 4)];
+  let titleFont = Math.min(baseFont, Math.floor(215 / (maxLen * 0.78)));
+  if (titleFont < 13) titleFont = 13;
+  const lineGap = n === 1 ? 0 : Math.round(titleFont * 1.3);
   const titleH = n === 1 ? titleFont : titleFont + (n - 1) * lineGap;
-  const titleY = 70 + ((120 - titleH) / 2);
+
+  /* العنوان في منتصف الغلاف عمودياً — البسملة أعلى والشيخ أسفل */
+  const midY = size / 2 + 8;                       /* مركز بصري مُزاح قليلاً للأسفل */
+  const titleTop = midY - titleH / 2;              /* أعلى كتلة العنوان */
+  const titleY = titleTop + titleFont * 0.78;      /* baseline السطر الأول */
   const scholarName = scholar || "";
   const sub = series ? `${series}` : "";
-  const sepY = titleY + titleH + 16;
+  const sepY = Math.min(titleTop + titleH + 18, size - 92);
+  const clamped = sepY >= size - 92;
+  const schOff = clamped ? 21 : 24;
+  const subOff = clamped ? 41 : 48;
 
   const cornerFn = CORNER_ORNAMENTS[cornerIdx];
-  const ornFn = ORNAMENTS[ornIdx];
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
   <rect width="${size}" height="${size}" fill="${bg}"/>
@@ -242,16 +250,21 @@ function makeSvg({ title, scholar, cat, audioId, episode, series, size = 320 }) 
   ${cornerFn(size - 40, 40, 18, accent)}
   ${cornerFn(40, size - 40, 18, accent)}
   ${cornerFn(size - 40, size - 40, 18, accent)}
-  ${ornFn(cx, cx, size * 0.28, accent)}
+  ${ornamentByType(st.orn || "star8", cx, cx, size * 0.30, accent)}
   <text x="${cx}" y="76" font-family="Aref Ruqaa" font-size="17" fill="${gold}" text-anchor="middle" opacity="0.9">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</text>
   <text x="${cx}" y="${titleY}" font-family="Aref Ruqaa" font-size="${titleFont}" fill="${cream}" text-anchor="middle">
     ${lines.map((l, i) => `<tspan x="${cx}" dy="${i === 0 ? 0 : lineGap}">${esc(l)}</tspan>`).join("")}
   </text>
   <line x1="${size * 0.22}" y1="${sepY}" x2="${size * 0.78}" y2="${sepY}" stroke="${accent}" stroke-width="1.2" opacity="0.7"/>
-  <text x="${cx}" y="${sepY + 24}" font-family="Aref Ruqaa" font-size="22" fill="${gold}" text-anchor="middle">${esc(scholarName)}</text>
-  ${sub ? `<text x="${cx}" y="${sepY + 48}" font-family="Aref Ruqaa" font-size="16" fill="${cream}" text-anchor="middle" opacity="0.85">${esc(sub)}</text>` : ""}
+  <text x="${cx}" y="${sepY + schOff}" font-family="Aref Ruqaa" font-size="22" fill="${gold}" text-anchor="middle">${esc(scholarName)}</text>
+  ${sub ? `<text x="${cx}" y="${sepY + subOff}" font-family="Aref Ruqaa" font-size="16" fill="${cream}" text-anchor="middle" opacity="0.85">${esc(sub)}</text>` : ""}
 </svg>`;
 }
+
+export { makeSvg };
+
+if (process.env.COVER_TEST) { /* وضع الاختبار — بدون توليد */ }
+else {
 
 const audios = await get("audios").then((list) => list.filter((a) => a && a.status === "published" && a.title));
 const scholars = await get("scholars");
@@ -262,6 +275,7 @@ const scholarName = (id) => scholars.find((s) => s.id === id)?.name || "";
 const seriesTitle = (id) => series.find((s) => s.id === id)?.title || "";
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
+fs.mkdirSync(OUT_DIR_ADMIN, { recursive: true });
 console.log(`توليد أغلفة لـ ${audios.length} شريطاً...`);
 
 let ok = 0, fail = 0;
@@ -285,6 +299,7 @@ for (const a of audios) {
     });
     const png = resvg.render().asPng();
     fs.writeFileSync(path.join(OUT_DIR, `${a.id}.png`), png);
+    fs.writeFileSync(path.join(OUT_DIR_ADMIN, `${a.id}.png`), png);
     ok++;
     if (ok % 100 === 0) console.log(`  ${ok}/${audios.length}...`);
   } catch (e) {
@@ -293,3 +308,5 @@ for (const a of audios) {
   }
 }
 console.log(`تم: ${ok} غلافاً، فشل: ${fail}`);
+
+} /* نهاية وضع التوليد */

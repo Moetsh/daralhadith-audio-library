@@ -248,10 +248,28 @@ export const scholarColor = (id: string) => {
   const palette = ["#e8842b", "#b07b2e", "#c65c2a", "#8a5a24", "#a86f22", "#d98e2b", "#bf5b25", "#6f4a1e"];
   return palette[h(id) % palette.length];
 };
-export const catColor = (catId: string) => {
-  const m: Record<string, string> = {
-    quran: "#e8842b", aqeedah: "#8a5a24", hadith: "#b07b2e", fiqh: "#c65c2a", seerah: "#a86f22",
-    raqaiq: "#bf5b25", fatawa: "#d98e2b", khutab: "#a8642e",
-  };
-  return m[mainOf(catId).id] ?? "#e8842b";
+/* ألوان الفئات — مطابقة لأغلفة الأقسام (cat-styles) */
+const CAT_COLORS: Record<string, string> = {
+  quran: "#1a6b3c", tilawat: "#2e8b57", tafsir: "#14635a", "tafsir-araf": "#0f7c68",
+  "tafsir-journey": "#5b7028", tajweed: "#3d7a1e",
+  aqeedah: "#1a3a5c", "sharh-aq": "#274b73", "sharh-tawheed": "#1f5f96",
+  "sharh-qawl-mufid": "#17618f", "sharh-wasitiyyah": "#155a86", "sharh-hamawiyah": "#1b5077",
+  "sharh-qawaid": "#20558c", "sharh-usul-3": "#184f80", radd: "#123c63", asmaa: "#24537e",
+  matn: "#44497a", "matn-tawheed": "#4a55a2", "matn-wasitiyyah": "#504a94",
+  "matn-usul-3": "#3f4f95", "matn-usul-6": "#45599e", "matn-qawaid-4": "#4b4494",
+  "matn-kashf": "#39448c", "matn-wajibat": "#4f4f9e",
+  hadith: "#6b1a2a", bukhari: "#8a2338", muslim: "#7a1f33", arbaeen: "#5f1622",
+  mustalah: "#70203a", sunan: "#651d30",
+  fiqh: "#1a5c5c", ibadat: "#17706b", muamalat: "#136a60", usrah: "#207a72",
+  usul: "#0f5e75", "usul-rabahiyya": "#127089", "usul-warqat": "#0d667f",
+  seerah: "#7a5a1a", sirah: "#8a6a22", sahaba: "#6f5218", ulama: "#75581c", tarikh: "#654a14",
+  raqaiq: "#4a1a5c", athkar: "#5a2470", tazkiyah: "#40154f", akhlaq: "#52205f", fadail: "#46185a",
+  fatawa: "#3a5a1a", "ft-salah": "#47701f", "ft-zakah": "#33611a", "ft-hajj": "#40651f", "ft-muam": "#2f5c17",
+  khutab: "#5c3a1a",
+  lugha: "#16607e", arab: "#1a6a88", nahw: "#125873", balagha: "#187087",
+  "jarh-tadil": "#6e2a17", "simh-al-manhaj": "#276734",
+};
+export const catColor = (catId: string): string => {
+  if (CAT_COLORS[catId]) return CAT_COLORS[catId];
+  return CAT_COLORS[mainOf(catId).id] ?? "#e8842b";
 };

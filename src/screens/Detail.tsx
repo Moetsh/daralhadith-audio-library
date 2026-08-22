@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, CheckCircle2, Clock3, Download, ListPlus, Play } from "lucide-react";
 import { useState } from "react";
 import {
-  catById, catColor, itemById, itemsOfSeries, relatedOf, scholarById, seriesById, mainOf,
+  catById, catColor, itemById, itemsOfSeries, missingEpisodesOfSeries, relatedOf, scholarById, seriesById, mainOf,
 } from "../data/library";
 import { ar, fmtAgo, fmtCount, fmtDur } from "../lib/utils";
 import { useApp } from "../store/appStore";
@@ -16,12 +16,14 @@ export const DetailScreen = ({ id }: { id: string }) => {
   const t = useSettings((s) => s.t);
   const lang = useSettings((s) => s.lang);
   const nav = useNav();
+  const [shown, setShown] = useState(30);
   const it = itemById(id);
   if (!it) return null;
   const sch = scholarById(it.scholarId);
   const main = mainOf(it.categoryId);
   const series = seriesById(it.seriesId);
   const eps = series ? itemsOfSeries(series.id) : [];
+  const missing = series ? missingEpisodesOfSeries(series.id) : [];
   const related = relatedOf(it);
   const queueIds = eps.length ? eps.map((x) => x.id) : related.map((x) => x.id);
   const extra = useApp((s) => s.counts[it.id] ?? 0);
@@ -90,9 +92,28 @@ export const DetailScreen = ({ id }: { id: string }) => {
         {eps.length > 1 && (
           <div className="mt-7">
             <SectionHead title={`${t.seriesEps} — ${series!.title}`} />
+            {missing.length > 0 && (
+              <div className="surface bline border rounded-2xl p-3 mb-3">
+                <div className="c-danger text-[0.7rem] font-extrabold flex items-center gap-1.5 flex-wrap">
+                  <span>شرائط ناقصة ({ar(missing.length)})</span>
+                  <span className="ink-3 font-bold">— تُضاف عند صدورها</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {missing.map((n) => (
+                    <span key={n} className="text-[0.66rem] font-black px-2 py-0.5 rounded-full soft-gold c-gold" style={{ fontFamily: "Amiri" }}>{ar(n)}</span>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
-              {eps.map((ep) => <EpRow key={ep.id} epId={ep.id} queueIds={queueIds} />)}
+              {eps.slice(0, shown).map((ep) => <EpRow key={ep.id} epId={ep.id} queueIds={queueIds} />)}
             </div>
+            {eps.length > shown && (
+              <button onClick={() => setShown(shown + 40)}
+                className="mt-3 w-full h-10 rounded-xl surface bline border c-gold text-[0.78rem] font-extrabold active:scale-[0.98] transition">
+                عرض المزيد ({ar(eps.length - shown)})
+              </button>
+            )}
           </div>
         )}
 

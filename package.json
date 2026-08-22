@@ -1,7 +1,7 @@
 {
   "name": "react-vite-tailwind",
   "private": true,
-  "version": "1.22.0",
+  "version": "1.23.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -45,3 +45,4 @@
     "esbuild": true
   }
 }
+

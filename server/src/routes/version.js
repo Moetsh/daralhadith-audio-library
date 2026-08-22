@@ -10,7 +10,7 @@ r.get("/", async (_req, res) => {
       if (data?.version) return res.json(data);
     }
   } catch {}
-  res.json({ version: "1.21", apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.22/DarAlHadith-AudioLibrary-v1.22.apk", release_notes: "تحسين شامل للمظهر، حذف أشرطة al-albany.com" });
+  res.json({ version: "1.23", apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.23/DarAlHadith-AudioLibrary-v1.23.apk", release_notes: "أغلفة جديدة بألوان مميزة لكل قسم، شارات النواقص في السلاسل، تحسين الأداء والترتيب" });
 });
 
 export default r;
