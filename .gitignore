@@ -54,3 +54,21 @@ create_repo.py
 upload_github.py
 upload_apk_firebase.py
 update_firebase_version.py
+
+# ????? ????? ???????? ???????
+upload-batch.py
+fix-deploy.py
+deploy-version.py
+deploy-covers.py
+deploy-covers-v2.py
+deploy_v122.py
+deploy-server.mjs
+deploy-wait.mjs
+diff_deploys.py
+set_version.py
+*-log.txt
+*-err.txt
+release-body.json
+release-res.json
+upload-res.json
+upload-state.txt
