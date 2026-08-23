@@ -62,59 +62,47 @@ export function useUpdateChecker(currentVersion: string) {
   const downloadAndInstall = useCallback(async (apkUrl: string) => {
     if (!apkUrl) return;
     setDownloading(true);
-    setProgress(0);
+    setProgress(0.05);
     setError(null);
     setDone(false);
     try {
-      // Clean old file if exists
       try { await Filesystem.deleteFile({ path: "update.apk", directory: Directory.Cache }); } catch {}
 
-      // Native download with progress — bypasses CORS, no browser shown
-      let lastPct = 0;
-      const progListener = await Filesystem.addListener("progress", (ev: any) => {
-        if (ev?.bytes != null && ev?.contentLength) {
-          const pct = ev.contentLength > 0 ? ev.bytes / ev.contentLength : 0;
-          if (Math.abs(pct - lastPct) > 0.02) { lastPct = pct; setProgress(pct); }
-        }
-      });
+      // Simulate progress while native download runs
+      const progInterval = setInterval(() => setProgress((p) => Math.min(0.9, p + 0.04)), 400);
 
-      const result = await Filesystem.downloadFile({
+      const result: any = await Filesystem.downloadFile({
         url: apkUrl,
         path: "update.apk",
         directory: Directory.Cache,
-        progress: true,
-      } as any);
+      });
 
-      progListener.remove();
-      setProgress(1);
+      clearInterval(progInterval);
+      setProgress(0.95);
 
-      // result.path is the file path, result.uri may not exist — get native path
-      let filePath: string;
-      try {
+      let filePath: string = result?.path || "";
+      if (!filePath) {
         const uriResult = await Filesystem.getUri({ path: "update.apk", directory: Directory.Cache });
-        filePath = uriResult.uri;
-        // Convert content URI to file path if needed — ApkInstaller expects file path
-        // Filesystem.getUri returns file:///data/user/0/.../cache/update.apk on Android
-        if (filePath.startsWith("file://")) filePath = filePath.replace("file://", "");
-        // Also try result.path if available
-        if ((result as any)?.path) {
-          const p = (result as any).path as string;
-          if (p && p.length > filePath.length) filePath = p;
-        }
-      } catch {
-        filePath = (result as any)?.path || "/data/user/0/com.daralhadith.audiolibrary/cache/update.apk";
+        filePath = uriResult.uri.replace("file://", "");
+      } else if (filePath.startsWith("file://")) {
+        filePath = filePath.replace("file://", "");
+      }
+      // Fallback hard-coded cache path
+      if (!filePath || !filePath.includes("update.apk")) {
+        filePath = "/data/user/0/com.daralhadith.audiolibrary/cache/update.apk";
       }
 
+      setProgress(1);
       await (ApkInstaller as any).install({ path: filePath });
       setDone(true);
     } catch (e: any) {
-      setError(e?.message || "فشل التنزيل");
-      // Fallback: open in browser if native install fails
+      const msg = e?.message || String(e);
+      setError(msg);
+      // Fallback: open in browser so user still can update
       try {
         const { Browser } = await import("@capacitor/browser");
         await Browser.open({ url: apkUrl });
         setDone(true);
-        setError(null);
       } catch {}
     } finally {
       setDownloading(false);
