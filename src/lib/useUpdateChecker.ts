@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
-import { Filesystem, Directory } from "@capacitor/filesystem";
 
 const API_BASE = "https://daralhadith.vercel.app";
 
@@ -24,8 +23,7 @@ function isNewer(a: string, b: string) {
   return false;
 }
 
-// Custom native plugin already registered in MainActivity.java
-const ApkInstaller = Capacitor.registerPlugin<{ install(options: { path: string }): Promise<{ ok: boolean }> }>("ApkInstaller");
+const ApkInstaller = Capacitor.registerPlugin<{ downloadAndInstall(options: { url: string }): Promise<{ ok: boolean }> }>("ApkInstaller");
 
 export function useUpdateChecker(currentVersion: string) {
   const [latest, setLatest] = useState<VersionInfo | null>(null);
@@ -65,40 +63,22 @@ export function useUpdateChecker(currentVersion: string) {
     setProgress(0.05);
     setError(null);
     setDone(false);
+
     try {
-      try { await Filesystem.deleteFile({ path: "update.apk", directory: Directory.Cache }); } catch {}
-
-      // Simulate progress while native download runs
-      const progInterval = setInterval(() => setProgress((p) => Math.min(0.9, p + 0.04)), 400);
-
-      const result: any = await Filesystem.downloadFile({
-        url: apkUrl,
-        path: "update.apk",
-        directory: Directory.Cache,
+      const listener = await (ApkInstaller as any).addListener("downloadProgress", (data: { percent: number }) => {
+        setProgress(data.percent / 100);
       });
 
-      clearInterval(progInterval);
-      setProgress(0.95);
-
-      let filePath: string = result?.path || "";
-      if (!filePath) {
-        const uriResult = await Filesystem.getUri({ path: "update.apk", directory: Directory.Cache });
-        filePath = uriResult.uri.replace("file://", "");
-      } else if (filePath.startsWith("file://")) {
-        filePath = filePath.replace("file://", "");
+      try {
+        await (ApkInstaller as any).downloadAndInstall({ url: apkUrl });
+        setProgress(1);
+        setDone(true);
+      } finally {
+        await listener.remove();
       }
-      // Fallback hard-coded cache path
-      if (!filePath || !filePath.includes("update.apk")) {
-        filePath = "/data/user/0/com.daralhadith.audiolibrary/cache/update.apk";
-      }
-
-      setProgress(1);
-      await (ApkInstaller as any).install({ path: filePath });
-      setDone(true);
     } catch (e: any) {
       const msg = e?.message || String(e);
       setError(msg);
-      // Fallback: open in browser so user still can update
       try {
         const { Browser } = await import("@capacitor/browser");
         await Browser.open({ url: apkUrl });
