@@ -10,7 +10,7 @@ r.get("/", async (_req, res) => {
       if (data?.version) return res.json(data);
     }
   } catch {}
-  res.json({ version: "1.26", apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.26/DarAlHadith-AudioLibrary-v1.26.apk", release_notes: "إصلاح التثبيت الصامت: تحميل وتثبيت أصلي بالكامل عبر Java، إصلاح مشاكل مسارات الملفات على Android 10+" });
+  res.json({ version: "1.28", apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.28/DarAlHadith-AudioLibrary-v1.28.apk", release_notes: "تنظيم السلاسل في كل التصنيفات، عرض تلقائي في شاشة التصنيف" });
 });
 
 export default r;

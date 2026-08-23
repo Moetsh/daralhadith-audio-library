@@ -91,7 +91,7 @@ const SyncCard = () => {
   );
 };
 
-const CURRENT_VERSION = "1.26";
+const CURRENT_VERSION = "1.28";
 
 const UpdateCard = () => {
   const t = useSettings((s) => s.t);

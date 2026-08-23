@@ -1,7 +1,7 @@
 /* شاشتا التصنيفات وقائمة الأشرطة */
 import { ArrowDownWideNarrow, Grid2X2, List, SearchX } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { catById, countOfCat, itemsOfCat, mainCats, childCatsOf, allSeries } from "../data/library";
+import { catById, countOfCat, itemsOfCat, mainCats, childCatsOf, subCatsOf, allSeries } from "../data/library";
 import { ar } from "../lib/utils";
 import { useNav, useSettings } from "../store/core";
 import { AudioRow, BackBtn, CatIcon, EmptyState, GirihBG, SectionHead, SeriesCard } from "../components/ui";
@@ -107,10 +107,10 @@ export const CatScreen = ({ id }: { id: string }) => {
     return arr;
   }, [id, sort]);
 
-  const seriesHere = useMemo(
-    () => allSeries().filter((s) => s.categoryId === id || catById(s.categoryId)?.parent === id || (subs.length === 0 && catById(s.categoryId)?.parent === cat.parent)),
-    [id, subs]
-  );
+  const seriesHere = useMemo(() => {
+    const allSubIds = new Set([id, ...subCatsOf(id).map((s) => s.id)]);
+    return allSeries().filter((s) => allSubIds.has(s.categoryId));
+  }, [id]);
 
   useEffect(() => {
     setShown(PAGE);
