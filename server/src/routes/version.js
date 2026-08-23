@@ -10,7 +10,7 @@ r.get("/", async (_req, res) => {
       if (data?.version) return res.json(data);
     }
   } catch {}
-  res.json({ version: "1.28", apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.28/DarAlHadith-AudioLibrary-v1.28.apk", release_notes: "تنظيم السلاسل في كل التصنيفات، عرض تلقائي في شاشة التصنيف" });
+  res.json({ version: "1.29", apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.29/ArrowDXCapacitorAPK-v1.29.apk", release_notes: "تحديث تلقائي: إجبار مزامنة المحتوى من Firebase" });
 });
 
 export default r;

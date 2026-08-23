@@ -21,7 +21,7 @@ interface ServerContentState {
   clearError: () => void;
 }
 
-const SYNC_VERSION = "1.13";
+const SYNC_VERSION = "1.14";
 
 export const useServerContent = create<ServerContentState>()(
   persist(
