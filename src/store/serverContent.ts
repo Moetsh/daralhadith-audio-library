@@ -21,7 +21,7 @@ interface ServerContentState {
   clearError: () => void;
 }
 
-const SYNC_VERSION = "1.14";
+const VERSION_API = "https://daralhadith.vercel.app/api/version";
 
 export const useServerContent = create<ServerContentState>()(
   persist(
@@ -46,6 +46,12 @@ export const useServerContent = create<ServerContentState>()(
           const data = await fetchServerContent();
           const items = data.audios.map(toAudio);
           const now = Date.now();
+          /* جلب sync_version من الخادم وتخزينه محلياً */
+          let remoteSync = "";
+          try {
+            const vr = await fetch(`${VERSION_API}?_t=${Date.now()}`, { cache: "no-store" as RequestCache });
+            if (vr.ok) { const vd = await vr.json(); remoteSync = String(vd.sync_version || ""); }
+          } catch {}
           set({
             items,
             cats: data.cats.map(toCat),
@@ -54,7 +60,7 @@ export const useServerContent = create<ServerContentState>()(
             lastSync: now,
             lastOk: now,
             syncing: false,
-            syncVersion: SYNC_VERSION,
+            syncVersion: remoteSync || "1.16",
           });
           return { ok: true, added: items.length };
         } catch (e) {
@@ -80,17 +86,23 @@ export const useServerContent = create<ServerContentState>()(
   )
 );
 
-/* تزامن تلقائي: يتحقق عند كل تغيير في الـ visibility */
+/* تزامن تلقائي: يتحقق عند كل تغيير في الـ visibility + عند فتح الصفحة */
 if (typeof window !== "undefined") {
-  const trySync = () => {
+  const trySync = async () => {
     const s = useServerContent.getState();
-    if (!s.enabled) return;
-    // إذا تغيّر الإصدار → أ强制 تحديث
-    if (s.syncVersion !== SYNC_VERSION) {
+    if (!s.enabled || s.syncing) return;
+    /* قراءة sync_version من الخادم المنشور */
+    let remoteSync = "";
+    try {
+      const vr = await fetch(`${VERSION_API}?_t=${Date.now()}`, { cache: "no-store" as RequestCache });
+      if (vr.ok) { const vd = await vr.json(); remoteSync = String(vd.sync_version || ""); }
+    } catch {}
+    /* إذا اختلف الإصدار → تحديث فوري */
+    if (remoteSync && remoteSync !== s.syncVersion) {
       s.sync();
       return;
     }
-    // إذا مرّت ساعة منذ آخر مزامنة → حدّث
+    /* إذا مرّت ساعة منذ آخر مزامنة → حدّث */
     if (!s.lastSync || Date.now() - s.lastSync > 3600_000) {
       s.sync();
     }
@@ -99,4 +111,6 @@ if (typeof window !== "undefined") {
     if (document.visibilityState === "visible") trySync();
   });
   window.addEventListener("focus", trySync);
+  /* تشغيل فوري عند تحميل الصفحة */
+  setTimeout(trySync, 1000);
 }

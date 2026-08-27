@@ -42,7 +42,7 @@ export const DetailScreen = ({ id }: { id: string }) => {
           </div>
           <div className="flex flex-col items-center mt-4">
             <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 260, damping: 20 }}>
-              <Cover catId={it.categoryId} icon={catById(it.categoryId)?.icon} size={180} radius={32} src={it.cover} title={it.title} />
+              <Cover catId={it.categoryId} icon={catById(it.categoryId)?.icon} size={260} radius={38} src={it.cover} title={it.title} />
             </motion.div>
             {it.episode && series && (
               <span className="mt-3 text-[0.62rem] font-black text-[#e9d9a6] bg-black/25 backdrop-blur-sm rounded-full px-3 py-1">

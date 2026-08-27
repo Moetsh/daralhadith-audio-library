@@ -207,7 +207,7 @@ const SheetContent = () => {
             transition={playing ? { duration: 2.4, repeat: Infinity } : {}}
             className="relative"
           >
-            <Cover catId={it.categoryId} size={240} radius={36} icon={catById(it.categoryId)?.icon} src={it.cover} title={it.title} />
+            <Cover catId={it.categoryId} size={340} radius={40} icon={catById(it.categoryId)?.icon} src={it.cover} title={it.title} />
             {playing && (
               <div className="absolute -bottom-3 inset-x-0 flex justify-center">
                 <span className="bg-gold text-[#231a05] rounded-full px-3 py-1 shadow-pop flex items-center gap-1.5">
