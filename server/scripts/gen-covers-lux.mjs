@@ -1,6 +1,6 @@
-/* أغلفة الأشرطة — طراز داكن أنيق مطابق للنموذج (React Native reference)
-   مربع 640×640 — خلفية داكنة، إطار بزوايا، شارة "الشريط 01"،
-   السلسلة أعلى، العنوان ذهبي وسط، اسم الشيخ أسفل.
+/* أغلفة الأشرطة — طراز دار الحديث المزخرف المطابق لسكربت React Native (patternUri + tintColor)
+   مربع 640×640 — خلفية داكنة + زخرفة هندسية إسلامية ملوّنة بلون التمييز (شفافية منخفضة)
+   شعار أعلى، شارة الشريط، عنوان (مع بادئة)، فاصل زخرفي، اسم الشيخ أسفل.
    node server/scripts/gen-covers-lux.mjs  (SAMPLE=1 للعينات) */
 import { Resvg } from "@resvg/resvg-js";
 import fs from "node:fs";
@@ -74,6 +74,19 @@ function wrapTitle(t, maxLines = 3) {
   }
 }
 
+/* توتّر زخرفي هندسي إسلامي (نجمة ثمانية) — يحاكي patternUri + tintColor + opacity من سكربت RN */
+function ismicPattern(accent) {
+  const c = accent;
+  // خلية النمط: معيَّن متداخل / نجمة 8 عبر قطعتين معاكستين
+  return `<pattern id="ip" width="96" height="96" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+    <g fill="none" stroke="${c}" stroke-width="1.1">
+      <rect x="18" y="18" width="60" height="60" rx="6"/>
+      <rect x="30" y="30" width="36" height="36" rx="4" opacity="0.75"/>
+      <path d="M48 0 L60 48 L48 96 L36 48 Z" fill="${c}" opacity="0.5"/>
+    </g>
+  </pattern>`;
+}
+
 function makeCoverSvg({ title, scholar, series, cat, audioId, episode, size = 640 }) {
   const th = themeFor(cat);
   const S = size;
@@ -81,63 +94,67 @@ function makeCoverSvg({ title, scholar, series, cat, audioId, episode, size = 64
   const uid = "u" + Math.abs([...(audioId || title)].reduce((a, c) => a + c.charCodeAt(0), 0)) % 9973;
 
   const [prefix, mainTitle] = splitPrefix(title);
-  const lines = wrapTitle(mainTitle, 3);
+  const lines = wrapTitle(mainTitle, 2);
   const n = lines.length;
   const maxLen = Math.max(...lines.map((l) => l.length), prefix.length, 1);
-  /* خط كبير وواضح — يتقلص تلقائياً ليلائم المساحة */
-  let titleFont = Math.min(74, Math.floor(640 / (maxLen * 0.56)));
-  if (titleFont < 38) titleFont = 38;
-  let lineGap, blockH, midY, startY, subY, firstLineY;
+  let titleFont = Math.min(72, Math.floor(640 / (maxLen * 0.6)));
+  if (titleFont < 36) titleFont = 36;
+  let lineGap, blockH, topY, startY, subY, firstLineY;
   for (;;) {
     lineGap = Math.round(titleFont * 1.2);
     blockH = (prefix ? titleFont * 1.12 : 0) + titleFont + (n - 1) * lineGap;
-    midY = 318;
-    startY = midY - blockH / 2;
-    /* يجب أن يبقى الكتلة بين الفاصلين (150 → 462) */
-    if (startY >= 152 && startY + blockH <= 462) break;
+    startY = 300; // مركز الكتلة (مطابق للنص المركزي في RN)
+    startY = startY - blockH / 2;
+    if (startY >= 150 && startY + blockH <= 470) break;
     titleFont -= 2;
-    if (titleFont < 30) { titleFont = 30; break; }
+    if (titleFont < 28) { titleFont = 28; break; }
   }
-
-  subY = prefix ? startY + titleFont * 0.82 : 0;
+  subY = prefix ? startY + titleFont * 0.7 : 0;
   firstLineY = (prefix ? startY + titleFont * 1.12 : startY) + titleFont * 0.8;
 
   const hasEp = Number(episode) > 0;
   const epLabel = hasEp ? `الشريط ${String(episode).padStart(2, "0")}` : "";
-  const top = series ? series : "مَكْتَبَةُ دَارِ الْحَدِيثِ";
-  const topFont = top.length > 34 ? 30 : 36;
+  // "العنوان الفرعي" بين شرطتين = السلسلة/الشارة
+  const subLabel = series ? series : (prefix ? prefix : "");
+  const SHOW_SUB = subLabel && subLabel.length > 2;
+  const logoText = "✦ دار الحديث ✦";
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">
 <defs>
-  <radialGradient id="bg${uid}" cx="50%" cy="30%" r="95%">
+  <radialGradient id="bg${uid}" cx="50%" cy="30%" r="100%">
     <stop offset="0%" stop-color="${th.bg2}"/>
     <stop offset="100%" stop-color="${th.bg}"/>
   </radialGradient>
+  ${ismicPattern(th.accent)}
 </defs>
 
 <rect width="${S}" height="${S}" fill="url(#bg${uid})"/>
 
-<rect x="14" y="14" width="${S - 28}" height="${S - 28}" rx="14" fill="none" stroke="${th.accent}" stroke-width="2.4" opacity="0.85"/>
-<rect x="26" y="26" width="${S - 52}" height="${S - 52}" rx="10" fill="none" stroke="${th.accent}" stroke-width="1" opacity="0.4"/>
+<!-- الزخرفة الملوّنة بلون التمييز (كـ tintColor) بشفافية منخفضة -->
+<rect width="${S}" height="${S}" fill="url(#ip)" opacity="0.16"/>
 
-<g stroke="${th.accent}" stroke-width="2.6" fill="none" opacity="0.95">
-  <path d="M40,74 L40,40 L74,40"/>
-  <path d="M${S - 40},74 L${S - 40},40 L${S - 74},40"/>
-  <path d="M40,${S - 74} L40,${S - 40} L74,${S - 40}"/>
-  <path d="M${S - 40},${S - 74} L${S - 40},${S - 40} L${S - 74},${S - 40}"/>
-</g>
+<!-- إطار خارجي (حواف مستديرة كـ borderRadius) -->
+<rect x="16" y="16" width="${S - 32}" height="${S - 32}" rx="20" fill="none" stroke="${th.accent}" stroke-width="2.2" opacity="0.9"/>
+<rect x="27" y="27" width="${S - 54}" height="${S - 54}" rx="14" fill="none" stroke="${th.accent}" stroke-width="1" opacity="0.45"/>
 
-${epLabel ? `<rect x="50" y="50" width="158" height="48" rx="9" fill="rgba(0,0,0,0.45)" stroke="${th.accent}" stroke-width="1.4"/>
-<text x="129" y="84" font-family="Arabic Typesetting" font-size="33" fill="${th.accent}" text-anchor="middle">${esc(epLabel)}</text>` : ""}
+<!-- الشعار أعلى (مطابق logoText) -->
+<text x="${cx}" y="70" font-family="Arabic Typesetting" font-size="30" fill="${th.accent}" text-anchor="middle" font-weight="bold">${esc(logoText)}</text>
 
-<text x="${cx}" y="120" font-family="Arabic Typesetting" font-size="${topFont}" fill="${th.soft}" text-anchor="middle" opacity="0.92">${esc(top)}</text>
-<rect x="${S * 0.16}" y="138" width="${S * 0.68}" height="1.6" fill="${th.accent}" opacity="0.55"/>
-
-${prefix ? `<text x="${cx}" y="${subY}" font-family="Aref Ruqaa" font-size="${Math.round(titleFont * 0.72)}" fill="${th.soft}" text-anchor="middle" opacity="0.9">${esc(prefix)}</text>` : ""}
+<!-- العنوان -->
+${prefix ? `<text x="${cx}" y="${subY}" font-family="Arabic Typesetting" font-size="${Math.round(titleFont * 0.78)}" fill="${th.soft}" text-anchor="middle" opacity="0.95">${esc(prefix)}</text>` : ""}
 ${lines.map((l, i) => `<text x="${cx}" y="${firstLineY + i * lineGap}" font-family="Aref Ruqaa" font-weight="bold" font-size="${titleFont}" fill="${th.accent}" text-anchor="middle">${esc(l)}</text>`).join("\n")}
 
-<rect x="${S * 0.16}" y="${S - 168}" width="${S * 0.68}" height="1.6" fill="${th.accent}" opacity="0.55"/>
-<text x="${cx}" y="${S - 114}" font-family="Arabic Typesetting" font-size="42" fill="${th.author}" text-anchor="middle">${esc(scholar || "")}</text>
+<!-- فاصل زخرفي بين العنوان واسم الشيخ -->
+<g opacity="0.8">
+  <line x1="${cx - 70}" y1="${S - 170}" x2="${cx + 70}" y2="${S - 170}" stroke="${th.accent}" stroke-width="1.6"/>
+  <path d="M${cx - 16} ${S - 178} L${cx} ${S - 162} L${cx + 16} ${S - 178}" fill="none" stroke="${th.accent}" stroke-width="1.6"/>
+</g>
+
+<!-- اسم الشيخ أسفل -->
+<text x="${cx}" y="${S - 128}" font-family="Arabic Typesetting" font-size="40" fill="${th.author}" text-anchor="middle">${esc(scholar || "")}</text>
+
+<!-- رقم الشريط تحت اسم المؤلف -->
+${epLabel ? `<text x="${cx}" y="${S - 88}" font-family="Arabic Typesetting" font-size="27" fill="${th.soft}" text-anchor="middle" opacity="0.85">${esc(epLabel)}</text>` : ""}
 </svg>`;
 }
 
@@ -190,8 +207,9 @@ if (process.env.SAMPLE) {
     { title: "شرح الورقات", scholar: "محمد بن هادي المدخلي", cat: "usul-warqat", id: "lux-1", series: "سلسلة الدروس والتعليقات", episode: 1 },
     { title: "خطبة الجمعة من أنواع الشرك الأصغر", scholar: "محمد سعيد رسلان", cat: "khutab", id: "lux-2", series: "", episode: 0 },
     { title: "شرح كتاب كشف الشبهات", scholar: "صالح بن فوزان الفوزان", cat: "matn-kashf", id: "lux-3", series: "شرح كشف الشبهات", episode: 3 },
-    { title: "فقه الأمر بالمعروف والنهي عن المنكر", scholar: "محمد سعيد رسلان", cat: "khutab", id: "lux-4", series: "", episode: 0 },
-    { title: "إقامة الدليل على شرعية الجرح والتعديل", scholar: "مقبل بن هادي الوادعي", cat: "jarh-tadil", id: "lux-5", series: "", episode: 0 },
+    { title: "الدرس الأول", scholar: "عبيد بن عبد الله الجابري", cat: "bukhari", id: "lux-4", series: "شرح صحيح البخاري — كتاب الإيمان", episode: 1 },
+    { title: "شرح العقيدة الواسطية", scholar: "محمد ناصر الدين الألباني", cat: "sharh-wasitiyyah", id: "lux-5", series: "شرح العقيدة الواسطية", episode: 8 },
+    { title: "تفسير سورة الفاتحة", scholar: "محمد الأمين الشنقيطي", cat: "tafsir", id: "lux-6", series: "تفسير القرآن العظيم", episode: 2 },
   ];
   for (const s of samples) {
     const svg = makeCoverSvg(s);
