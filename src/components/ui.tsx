@@ -56,16 +56,17 @@ export const Logo = ({ size = 56, radius = 16 }: { size?: number; radius?: numbe
 );
 
 /* شارة غلاف الشريط — تصميم محسّن */
-export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, src, title: _title }: { catId: string; icon?: string; size?: number; radius?: number; playing?: boolean; src?: string; title?: string }) => {
+export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, src, title: _title, fluid = false }: { catId: string; icon?: string; size?: number; radius?: number; playing?: boolean; src?: string; title?: string; fluid?: boolean }) => {
   const [failed, setFailed] = useState(false);
   const showImg = src && !failed;
   const bg = catColor(catId);
   const lighterBg = bg + "30";
+  const disp = fluid ? 340 : size;
   return (
     <div
-      className="relative overflow-hidden shrink-0 flex items-center justify-center"
+      className={`relative overflow-hidden flex items-center justify-center ${fluid ? "w-full aspect-square" : "shrink-0"}`}
       style={{
-        width: size, height: size, borderRadius: radius,
+        width: fluid ? undefined : size, height: fluid ? undefined : size, borderRadius: radius,
         background: showImg ? bg : `linear-gradient(145deg, ${bg} 0%, ${bg}dd 40%, ${bg}99 100%)`,
         boxShadow: "0 8px 24px -6px rgba(10,30,18,.5), 0 2px 8px -2px rgba(10,30,18,.3)",
       }}
@@ -81,12 +82,12 @@ export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, sr
           <div className="absolute inset-[2px] rounded-[inherit] border border-white/15" style={{ borderRadius: radius - 2 }} />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
             {playing ? (
-              <Eq size={Math.max(16, size * 0.28)} />
+              <Eq size={Math.max(16, disp * 0.28)} />
             ) : (
               <>
-                <CatIcon icon={icon ?? "book"} size={Math.max(18, size * 0.32)} className="text-white/90" />
-                {size >= 80 && (
-                  <span className="text-white/60 font-black leading-none" style={{ fontSize: Math.max(9, size * 0.14), fontFamily: "Amiri" }}>
+                <CatIcon icon={icon ?? "book"} size={Math.max(18, disp * 0.32)} className="text-white/90" />
+                {disp >= 80 && (
+                  <span className="text-white/60 font-black leading-none" style={{ fontSize: Math.max(9, disp * 0.14), fontFamily: "Amiri" }}>
                     دار الحديث
                   </span>
                 )}
