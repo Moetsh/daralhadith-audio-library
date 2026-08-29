@@ -1,4 +1,4 @@
-/* الوصول إلى Internet Archive API — جلب بيانات السلاسل والأشرطة */
+/* الوصول إلى واجهة الأرشيف — جلب بيانات السلاسل والأشرطة */
 import { ar } from "./utils";
 
 const EXTRACT = /archive\.org\/(?:details|download)\/([^/?#]+)/i;

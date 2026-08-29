@@ -1,4 +1,4 @@
-/* محتوى المستخدم: سلاسل أضافها من Internet Archive (محفوظة على الجهاز) */
+/* محتوى المستخدم: سلاسل أضافها (محفوظة على الجهاز) */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { AudioItem } from "../data/library";

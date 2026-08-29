@@ -50,6 +50,7 @@ export type Route =
   | { name: "cats" }
   | { name: "cat"; id: string }
   | { name: "series" }
+  | { name: "library-index" }
   | { name: "search" }
   | { name: "detail"; id: string }
   | { name: "scholar"; id: string }

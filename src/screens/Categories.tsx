@@ -1,7 +1,7 @@
 /* شاشتا التصنيفات وقائمة الأشرطة */
 import { ArrowDownWideNarrow, Grid2X2, List, SearchX } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { catById, countOfCat, itemsOfCat, mainCats, childCatsOf, subCatsOf, allSeries } from "../data/library";
+import { catById, countOfCat, itemsOfCat, itemsOfSeries, mainCats, childCatsOf, subCatsOf, allSeries } from "../data/library";
 import { ar } from "../lib/utils";
 import { useNav, useSettings } from "../store/core";
 import { AudioRow, BackBtn, CatIcon, EmptyState, GirihBG, SectionHead, SeriesCard } from "../components/ui";
@@ -18,6 +18,7 @@ export const CatsScreen = () => {
         <div className="grid grid-cols-2 gap-3 mt-5">
           {mainCats().map((c, i) => <MainCatTile key={c.id} id={c.id} i={i} />)}
           <SeriesTile i={mainCats().length} />
+          <LibraryIndexTile i={mainCats().length + 1} />
         </div>
       </div>
     </div>
@@ -74,6 +75,28 @@ const SeriesTile = ({ i }: { i: number }) => {
         <CatIcon icon="list" size={20} className="text-[#231a05] relative" />
       </span>
       <div className="font-extrabold ink text-[0.86rem] mt-3 leading-snug">{lang === "ar" ? "سلاسل" : "Series"}</div>
+      <div className="c-gold text-[0.68rem] font-bold mt-1">{ar(n)} {t.seriesT}</div>
+    </button>
+  );
+};
+
+const LibraryIndexTile = ({ i }: { i: number }) => {
+  const nav = useNav();
+  const t = _us((s) => s.t);
+  const lang = _us((s) => s.lang);
+  const n = allSeries().filter((s) => itemsOfSeries(s.id).length > 0).length;
+  return (
+    <button
+      onClick={() => nav.push({ name: "library-index" })}
+      className="surface bline border rounded-3xl p-4 text-start relative overflow-hidden shadow-card active:scale-[0.97] transition"
+      style={{ animationDelay: `${i * 40}ms` }}
+    >
+      <GirihBG opacity={0.05} />
+      <span className="w-11 h-11 rounded-2xl bg-green flex items-center justify-center relative shadow-card">
+        <span className="absolute inset-0 girih opacity-20" style={{ color: "#e9d9a6" }} />
+        <CatIcon icon="library-big" size={20} className="text-[#e9d9a6] relative" />
+      </span>
+      <div className="font-extrabold ink text-[0.86rem] mt-3 leading-snug">{lang === "ar" ? "فهرس المكتبة" : "Library Index"}</div>
       <div className="c-gold text-[0.68rem] font-bold mt-1">{ar(n)} {t.seriesT}</div>
     </button>
   );

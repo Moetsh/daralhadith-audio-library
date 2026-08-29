@@ -201,7 +201,7 @@ export const HomeScreen = () => {
           «الدَّالُّ عَلَى الْخَيْرِ كَفَاعِلِهِ»
         </p>
         <p className="text-center ink-3 text-[0.6rem] mt-1 flex items-center justify-center gap-1">
-          <Clock3 size={10} /> {ar(allItems().length)} {t.tapes} · Internet Archive
+          <Clock3 size={10} /> {ar(allItems().length)} {t.tapes}
         </p>
       </div>
     </div>

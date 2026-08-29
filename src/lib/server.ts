@@ -91,7 +91,7 @@ export const RTDB_URL =
 const MAX_AUDIOS = 5000;
 const toArray = <T,>(obj: Record<string, T> | null): T[] => Object.values(obj ?? {});
 
-/* يجلب كل الأشرطة المنشورة + التصنيفات + العلماء + السلاسل من Firebase */
+/* يجلب كل الأشرطة المنشورة + التصنيفات + العلماء + السلاسل من الخادم */
 export async function fetchServerContent() {
   const [audiosRes, catsRes, schRes, serRes] = await Promise.all([
     fetch(`${RTDB_URL}/audios.json`),
@@ -100,7 +100,7 @@ export async function fetchServerContent() {
     fetch(`${RTDB_URL}/series.json`),
   ]);
   if (!audiosRes.ok || !catsRes.ok || !schRes.ok || !serRes.ok)
-    throw new Error("تعذّر الاتصال بقاعدة البيانات");
+    throw new Error("تعذّر الاتصال بالخادم");
 
   const audios = (toArray<ServerAudio>(await audiosRes.json().catch(() => null)) || [])
     .filter((a) => a.status == null || a.status === "published")

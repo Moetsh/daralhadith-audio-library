@@ -53,7 +53,6 @@ export const Splash = ({ done }: { done: () => void }) => {
         className="absolute bottom-8 flex flex-col items-center gap-1.5"
       >
         <span className="text-[0.66rem] text-[#8fa795] font-bold">صدقة جارية — مجاناً وبدون إعلانات</span>
-        <span className="text-[0.6rem] text-[#5f7466]">المحتوى مستضاف على Internet Archive</span>
       </motion.div>
     </motion.div>
   );

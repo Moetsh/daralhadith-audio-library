@@ -368,7 +368,7 @@ const SheetContent = () => {
 
         <div className="mt-6 text-center text-[0.64rem] ink-3 font-bold flex items-center justify-center gap-1.5">
           <CatIcon icon="waves" size={12} className="c-gold" />
-          {p.usedAlt ? "بث تجريبي — مصدر احتياطي (Internet Archive)" : t.demoTag}
+          {p.usedAlt ? "بث تجريبي — مصدر احتياطي" : t.demoTag}
         </div>
       </div>
     </motion.div>

@@ -1,9 +1,8 @@
 /* ═══════════════════════════════════════════════════════════
    دار الحديث الصوتية — قاعدة بيانات المحتوى
    المحتوى المدمج: التصنيفات + الشيخ المزوّد من المستخدم فقط.
-   الأشرطة والسلاسل الحقيقية تُجلب من الخادم (Firebase / Internet Archive)
-   تلقائياً عند فتح التطبيق.
-════════════════════════════════════════════════════════════ */
+   الأشرطة والسلاسل الحقيقية تُجلب من الخادم تلقائياً عند فتح التطبيق.
+ ════════════════════════════════════════════════════════════ */
 import { norm } from "../lib/utils";
 import { useUserContent, scholarIdOfSeries } from "../store/userContent";
 import { useServerContent } from "../store/serverContent";
@@ -122,7 +121,7 @@ export const scholarById = (id: string): Scholar => {
   if (id.startsWith("usrsch-")) {
     const uid = id.slice("usrsch-".length);
     const us = useUserContent.getState().asSeries(uid);
-    if (us) return { id, name: us.scholarName, title: "سلسلة مضافة من الأرشيف", era: "", bio: us.desc };
+    if (us) return { id, name: us.scholarName, title: "سلسلة مضافة", era: "", bio: us.desc };
   }
   return SCHOLARS[0];
 };

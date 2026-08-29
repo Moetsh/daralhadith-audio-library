@@ -101,8 +101,8 @@ const UpdateCard = () => {
 
   return (
     <Card>
-      <Row icon={Upload} title={u.hasUpdate ? `${t.updateAvailable} â€” ${u.latestVersion}` : t.updateH}
-        hint={u.hasUpdate ? u.releaseNotes : undefined}>
+      <Row icon={Upload} title={u.hasUpdate ? `${t.updateAvailable} — ${u.latestVersion}` : t.updateH}
+        hint={u.hasUpdate ? u.releaseNotes ?? undefined : undefined}>
         {u.hasUpdate ? (
           <span className="w-2 h-2 rounded-full bg-[#e07a22] animate-pulse" />
         ) : (
@@ -124,7 +124,7 @@ const UpdateCard = () => {
               className="h-9 px-4 rounded-full bg-[#e07a22] text-white text-[0.72rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
             >
               {u.downloading ? (
-                <><RefreshCw size={13} className="animate-spin" /> {t.downloading} {Math.round(u.progress * 100)}Ùª</>
+                <><RefreshCw size={13} className="animate-spin" /> {t.downloading} {Math.round(u.progress * 100)}%</>
               ) : (
                 <><ArrowDownToLine size={13} /> {t.updateNow}</>
               )}
@@ -140,7 +140,7 @@ const UpdateCard = () => {
             </button>
           )}
         </div>
-        {u.done && <div className="text-[0.66rem] font-bold c-green">{t.installHint || "ØªÙ… ÙØªØ­ ØµÙØ­Ø© Ø§Ù„ØªØ­Ù…ÙŠÙ„. Ø«Ø¨Ù‘Øª Ø§Ù„Ù€ APK Ø¨Ø¹Ø¯ Ø§Ù„Ø§Ù†ØªÙ‡Ø§Ø¡."}</div>}
+        {u.done && <div className="text-[0.66rem] font-bold c-green">تم فتح صفحة التحميل. ثبّت ملف الـ APK بعد الانتهاء، ثم عد إلى التطبيق.</div>}
         {u.error && <div className="text-[0.66rem] font-bold c-danger">{u.error}</div>}
         {!u.hasUpdate && !u.checking && !u.error && (
           <div className="text-[0.66rem] font-bold ink-3">{t.latestVer}</div>

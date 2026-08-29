@@ -56,7 +56,7 @@ export const Logo = ({ size = 56, radius = 16 }: { size?: number; radius?: numbe
 );
 
 /* شارة غلاف الشريط — تصميم محسّن */
-export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, src, title }: { catId: string; icon?: string; size?: number; radius?: number; playing?: boolean; src?: string; title?: string }) => {
+export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, src, title: _title }: { catId: string; icon?: string; size?: number; radius?: number; playing?: boolean; src?: string; title?: string }) => {
   const [failed, setFailed] = useState(false);
   const showImg = src && !failed;
   const bg = catColor(catId);

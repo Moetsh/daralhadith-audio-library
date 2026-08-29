@@ -13,6 +13,7 @@ import { useServerContent } from "./store/serverContent";
 import { CatsScreen, CatScreen } from "./screens/Categories";
 import { DetailScreen } from "./screens/Detail";
 import { HomeScreen } from "./screens/Home";
+import { LibraryIndexScreen } from "./screens/LibraryIndex";
 import { LibraryScreen, PlaylistScreen } from "./screens/Library";
 import { ScholarScreen } from "./screens/Scholar";
 import { SearchScreen } from "./screens/Search";
@@ -52,6 +53,7 @@ const ScreenFor = ({ r }: { r: Route }) => {
     case "cats": return <CatsScreen />;
     case "cat": return <CatScreen id={r.id} />;
     case "series": return <SeriesScreen />;
+    case "library-index": return <LibraryIndexScreen />;
     case "search": return <SearchScreen />;
     case "detail": return <DetailScreen id={r.id} />;
     case "scholar": return <ScholarScreen id={r.id} />;
@@ -168,7 +170,7 @@ const DesktopStage = () => {
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
             className="text-[#8fa795] text-[0.84rem] font-bold leading-loose mt-3 max-w-xl">
             تطبيق خيري مجاني بالكامل لنشر العلم الشرعي صوتاً — آلاف الأشرطة من المحاضرات والدروس والتلاوات والفتاوى،
-            مستضافة على Internet Archive، دون إعلانات أو اشتراكات.
+            دون إعلانات أو اشتراكات.
           </motion.p>
 
           <div className="grid grid-cols-2 gap-3.5 mt-8 max-w-xl">
@@ -186,7 +188,7 @@ const DesktopStage = () => {
 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
             className="flex flex-wrap gap-2 mt-8">
-            {["Kotlin", "Jetpack Compose", "ExoPlayer (Media3)", "Room DB", "Hilt", "Retrofit", "Internet Archive API", "MVVM + Clean"].map((x) => (
+            {["Kotlin", "Jetpack Compose", "ExoPlayer (Media3)", "Room DB", "Hilt", "Retrofit", "MVVM + Clean"].map((x) => (
               <span key={x} className="text-[0.64rem] font-black text-[#e9d9a6] border border-[#d9a13f33] rounded-full px-3 py-1.5" dir="ltr">{x}</span>
             ))}
           </motion.div>
