@@ -3,10 +3,10 @@ const RTDB_URL = "https://daralhadith-8e2c5-default-rtdb.europe-west1.firebaseda
 const r = Router();
 
 const FALLBACK = {
-  version: "1.34",
+  version: "1.35",
   sync_version: "1.20",
-  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.34/ArrowDXCapacitorAPK-v1.34.apk",
-  release_notes: "سلسلة شرح الأصول الثلاثة (الشيخ الفوزان) + الغلاف الحقيقي يظهر كاملاً بصورته الطبيعية لجميع الأشرطة وعند التشغيل"
+  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.35/ArrowDXCapacitorAPK-v1.35.apk",
+  release_notes: "سلسلة شرح معارج القبول بشرح سلم الوصول إلى علم الأصول (الشيخ محمد بن هادي المدخلي) ضمن أصول الفقه + الغلاف الحقيقي يظهر كاملاً بصورته الطبيعية"
 };
 
 r.get("/", async (_req, res) => {
