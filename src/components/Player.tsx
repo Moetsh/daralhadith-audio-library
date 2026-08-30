@@ -203,11 +203,11 @@ const SheetContent = () => {
         {/* الغلاف — تصميم محسّن */}
         <div className="flex justify-center mt-4 mb-6">
           <motion.div
-            animate={playing ? { scale: [1, 1.03, 1] } : { scale: 1 }}
+            animate={playing ? { scale: [1, 1.02, 1] } : { scale: 1 }}
             transition={playing ? { duration: 2.4, repeat: Infinity } : {}}
-            className="relative"
+            className="relative w-full"
           >
-            <Cover catId={it.categoryId} size={340} radius={40} icon={catById(it.categoryId)?.icon} src={it.cover} title={it.title} />
+            <Cover catId={it.categoryId} radius={30} icon={catById(it.categoryId)?.icon} src={it.cover} title={it.title} fluid />
             {playing && (
               <div className="absolute -bottom-3 inset-x-0 flex justify-center">
                 <span className="bg-gold text-[#231a05] rounded-full px-3 py-1 shadow-pop flex items-center gap-1.5">
