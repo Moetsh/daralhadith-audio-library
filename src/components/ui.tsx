@@ -58,21 +58,32 @@ export const Logo = ({ size = 56, radius = 16 }: { size?: number; radius?: numbe
 /* شارة غلاف الشريط — تصميم محسّن */
 export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, src, title: _title, fluid = false }: { catId: string; icon?: string; size?: number; radius?: number; playing?: boolean; src?: string; title?: string; fluid?: boolean }) => {
   const [failed, setFailed] = useState(false);
+  const [ratio, setRatio] = useState<number | null>(null);
   const showImg = src && !failed;
   const bg = catColor(catId);
   const lighterBg = bg + "30";
   const disp = fluid ? 340 : size;
+  const aspect = ratio ? `${ratio} / 1` : undefined;
   return (
     <div
-      className={`relative overflow-hidden flex items-center justify-center ${fluid ? "w-full aspect-square" : "shrink-0"}`}
+      className={`relative overflow-hidden flex items-center justify-center ${fluid ? "w-full" : "shrink-0"}`}
       style={{
         width: fluid ? undefined : size, height: fluid ? undefined : size, borderRadius: radius,
+        aspectRatio: fluid ? (aspect ?? "1 / 1") : undefined,
         background: showImg ? bg : `linear-gradient(145deg, ${bg} 0%, ${bg}dd 40%, ${bg}99 100%)`,
         boxShadow: "0 8px 24px -6px rgba(10,30,18,.5), 0 2px 8px -2px rgba(10,30,18,.3)",
       }}
     >
       {showImg ? (
-        <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} className="absolute inset-0 w-full h-full object-cover" />
+        <img
+          src={src} alt="" loading="lazy"
+          onError={() => setFailed(true)}
+          onLoad={(e) => {
+            const el = e.currentTarget;
+            if (el.naturalWidth && el.naturalHeight) setRatio(el.naturalWidth / el.naturalHeight);
+          }}
+          className="absolute inset-0 w-full h-full object-contain"
+        />
       ) : (
         <>
           <div className="absolute inset-0 girih opacity-[0.12]" style={{ color: "#f0e4c4" }} />

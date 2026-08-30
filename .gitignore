@@ -72,3 +72,7 @@ release-body.json
 release-res.json
 upload-res.json
 upload-state.txt
+
+# ملف الوصول الحساس (لا يُرفع إلى GitHub)
+معلومات-الحسابات-والوصول.txt
+ACCESS_INFO*.txt

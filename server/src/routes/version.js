@@ -3,10 +3,10 @@ const RTDB_URL = "https://daralhadith-8e2c5-default-rtdb.europe-west1.firebaseda
 const r = Router();
 
 const FALLBACK = {
-  version: "1.32",
+  version: "1.33",
   sync_version: "1.20",
-  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.32/ArrowDXCapacitorAPK-v1.32.apk",
-  release_notes: "الأغلفة مدمجة مع الأشرطة + الغلاف بعرض الهاتف أثناء التشغيل"
+  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.33/ArrowDXCapacitorAPK-v1.33.apk",
+  release_notes: "إضافة سلسلة شرح الأصول الثلاثة (الشيخ صالح الفوزان) + الغلاف يظهر كاملاً بصورته الطبيعية لجميع الأشرطة"
 };
 
 r.get("/", async (_req, res) => {
