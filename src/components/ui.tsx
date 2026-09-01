@@ -70,7 +70,7 @@ export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, sr
       style={{
         width: fluid ? undefined : size, height: fluid ? undefined : size, borderRadius: radius,
         aspectRatio: fluid ? (aspect ?? "1 / 1") : undefined,
-        background: showImg ? bg : `linear-gradient(145deg, ${bg} 0%, ${bg}dd 40%, ${bg}99 100%)`,
+        background: showImg ? undefined : `linear-gradient(145deg, ${bg} 0%, ${bg}dd 40%, ${bg}99 100%)`,
         boxShadow: "0 8px 24px -6px rgba(10,30,18,.5), 0 2px 8px -2px rgba(10,30,18,.3)",
       }}
     >
