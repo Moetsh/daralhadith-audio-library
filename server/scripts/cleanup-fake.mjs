@@ -1,10 +1,7 @@
 /* تنظيف المحتوى المزيف من Firebase RTDB
    يحتفظ فقط بـ: الأشرطة الحقيقية من archive.org (17) + الشيخ فلاتة + سلاسل الصحابة
    1) نسخة احتياطية كاملة محلياً  2) استبدال العقد بالمحتوى الحقيقي فقط
-   تشغيل: node scripts/cleanup-fake.mjs */
-process.env.FIREBASE_API_KEY = "AIzaSyDJmlirEAsX6e7Ucq1W-_V_SGV3-OVM9RE";
-process.env.FIREBASE_AUTH_EMAIL = "firebase-admin@daralhadith.app";
-process.env.FIREBASE_AUTH_PASSWORD = "Dh_260ed374ead4c4fc9b4ecafe31707656";
+   تشغيل: FIREBASE_API_KEY=... FIREBASE_AUTH_EMAIL=... FIREBASE_AUTH_PASSWORD=... node scripts/cleanup-fake.mjs */
 
 const { listNode, setNode, mapNode } = await import("../src/fb.js");
 const { writeFileSync } = await import("node:fs");

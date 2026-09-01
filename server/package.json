@@ -4,9 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node src/index.js",
-    "seed": "node scripts/seed-app.js",
-    "firebase:push": "node scripts/push-firebase.mjs"
+    "start": "node src/index.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

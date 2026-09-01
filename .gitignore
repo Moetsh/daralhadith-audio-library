@@ -76,3 +76,10 @@ upload-state.txt
 # ملف الوصول الحساس (لا يُرفع إلى GitHub)
 معلومات-الحسابات-والوصول.txt
 ACCESS_INFO*.txt
+
+# ملفات مؤقتة/تجريبية (عينة أغلفة وسكربتات مساعدة)
+covers-sample-lux/
+make_grids.py
+temp_gen_covers.mjs
+temp_gen_covers2.mjs
+server/scripts/cover-sync-report.json
