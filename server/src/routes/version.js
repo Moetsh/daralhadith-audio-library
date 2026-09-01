@@ -3,10 +3,10 @@ const RTDB_URL = "https://daralhadith-8e2c5-default-rtdb.europe-west1.firebaseda
 const r = Router();
 
 const FALLBACK = {
-  version: "1.37",
+  version: "1.38",
   sync_version: "1.20",
-  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.37/ArrowDXCapacitorAPK-v1.37.apk",
-  release_notes: "سلسلة أسئلة وأجوبة في المصطلح للشيخ مقبل بن هادي الوادعي (8 أشرطة) ضمن مصطلح الحديث + سلسلة المستخرجات العقدية من المسائل الطلابية للشيخ محمد علي فركوس (شريطان) ضمن المنهج + شريط السير على منهج السلف للشيخ ربيع بن هادي المدخلي ضمن المنهج + شريط لقاء الشيخ عبد الرزاق البدر مع العلامة الألباني ضمن المنهج + سلسلة قصة الخليل إبراهيم عليه السلام للشيخ عبد الرزاق عفيفي (شريطان) ضمن قصص الأنبياء + الغلاف الحقيقي يظهر كاملاً بصورته الطبيعية لجميع الأشرطة وعند التشغيل"
+  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.38/ArrowDXCapacitorAPK-v1.38.apk",
+  release_notes: "إزالة الخلفية الملونة التي كانت تظهر وراء صورة غلاف الشريط — الآن الغلاف يعرض بصورته الطبيعية على خلفية شفافة دون تعبئة لونية خلفه"
 };
 
 r.get("/", async (_req, res) => {
