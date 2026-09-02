@@ -70,23 +70,26 @@ export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, sr
       style={{
         width: fluid ? undefined : size, height: fluid ? undefined : size, borderRadius: radius,
         aspectRatio: fluid ? (aspect ?? "1 / 1") : undefined,
-        background: showImg ? undefined : `linear-gradient(145deg, ${bg} 0%, ${bg}dd 40%, ${bg}99 100%)`,
+        background: `linear-gradient(145deg, ${bg} 0%, ${bg}dd 40%, ${bg}99 100%)`,
         boxShadow: "0 8px 24px -6px rgba(10,30,18,.5), 0 2px 8px -2px rgba(10,30,18,.3)",
       }}
     >
       {showImg ? (
-        <img
-          src={src} alt="" loading="lazy"
-          onError={() => setFailed(true)}
-          onLoad={(e) => {
-            const el = e.currentTarget;
-            if (el.naturalWidth && el.naturalHeight) setRatio(el.naturalWidth / el.naturalHeight);
-          }}
-          className={`absolute inset-0 w-full h-full ${fluid ? "object-contain" : "object-cover"}`}
-        />
+        <>
+          <div className="absolute inset-0" style={{ background: "var(--cover-veil)" }} />
+          <img
+            src={src} alt="" loading="lazy"
+            onError={() => setFailed(true)}
+            onLoad={(e) => {
+              const el = e.currentTarget;
+              if (el.naturalWidth && el.naturalHeight) setRatio(el.naturalWidth / el.naturalHeight);
+            }}
+            className={`absolute inset-0 w-full h-full ${fluid ? "object-contain" : "object-cover"}`}
+          />
+        </>
       ) : (
         <>
-          <div className="absolute inset-0 girih opacity-[0.12]" style={{ color: "#f0e4c4" }} />
+          <div className="absolute inset-0 girih opacity-[0.12]" style={{ color: "var(--cover-girih)" }} />
           <div className="absolute inset-0 opacity-20" style={{
             background: `radial-gradient(circle at 30% 25%, ${lighterBg} 0%, transparent 50%), radial-gradient(circle at 70% 75%, rgba(0,0,0,.15) 0%, transparent 50%)`,
           }} />
