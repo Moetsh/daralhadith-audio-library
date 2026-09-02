@@ -82,7 +82,7 @@ export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, sr
             const el = e.currentTarget;
             if (el.naturalWidth && el.naturalHeight) setRatio(el.naturalWidth / el.naturalHeight);
           }}
-          className="absolute inset-0 w-full h-full object-contain"
+          className={`absolute inset-0 w-full h-full ${fluid ? "object-contain" : "object-cover"}`}
         />
       ) : (
         <>
