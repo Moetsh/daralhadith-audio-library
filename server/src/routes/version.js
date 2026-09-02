@@ -3,10 +3,10 @@ const RTDB_URL = "https://daralhadith-8e2c5-default-rtdb.europe-west1.firebaseda
 const r = Router();
 
 const FALLBACK = {
-  version: "1.38",
+  version: "1.39",
   sync_version: "1.20",
-  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.38/ArrowDXCapacitorAPK-v1.38.apk",
-  release_notes: "إزالة الخلفية الملونة التي كانت تظهر وراء صورة غلاف الشريط — الآن الغلاف يعرض بصورته الطبيعية على خلفية شفافة دون تعبئة لونية خلفه"
+  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.39/ArrowDXCapacitorAPK-v1.39.apk",
+  release_notes: "خلفية الغلاف أصبحت متكيّفة مع الوضع: داكنة في الوضع الداكن وفاتحة في الوضع الفاتح لتظهر الصورة بوضوح على الخلفية"
 };
 
 r.get("/", async (_req, res) => {
