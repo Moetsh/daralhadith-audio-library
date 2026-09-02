@@ -266,7 +266,7 @@ export { makeSvg };
 if (process.env.COVER_TEST) { /* وضع الاختبار — بدون توليد */ }
 else {
 
-const audios = await get("audios").then((list) => list.filter((a) => a && a.status === "published" && a.title));
+const audios = await get("audios").then((list) => list.filter((a) => a && a.status === "published" && a.title && !a.cover_image_url));
 const scholars = await get("scholars");
 const cats = await get("categories");
 const series = await get("series");

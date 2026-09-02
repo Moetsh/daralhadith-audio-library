@@ -223,13 +223,13 @@ const slugOf = (s) =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 60) || "sr";
 
-const findOrCreateSeries = async (title, { scholar_id, category_id, total_episodes, parent_id }) => {
+const findOrCreateSeries = async (title, { scholar_id, category_id, total_episodes, parent_id, cover_image_url }) => {
   const clean = String(title || "").trim();
   if (!clean) return null;
   const existing = await findOne("series", (s) => s.title === clean && (s.parent_id ?? null) === (parent_id ?? null));
   if (existing) return existing.id;
   const sid = slugOf(clean) + (parent_id ? "-" + parent_id.slice(-6) : "");
-  await setNode("series/" + sid, { id: sid, title: clean, scholar_id, category_id, total_episodes, parent_id });
+  await setNode("series/" + sid, { id: sid, title: clean, scholar_id, category_id, total_episodes, parent_id, cover_image_url: cover_image_url ?? null });
   return sid;
 };
 
@@ -246,19 +246,20 @@ r.post("/bulk-import", authUser, adminOnly, wrap(async (req, res) => {
 
   let mainId = series_id || null;
   const branchIds = new Map();
+  const itemCover = "https://archive.org/services/img/" + insp.identifier;
   if (new_series?.title) {
     mainId = await findOrCreateSeries(new_series.title, {
-      scholar_id, category_id, total_episodes: new_series.total_episodes ?? files.length,
+      scholar_id, category_id, total_episodes: new_series.total_episodes ?? files.length, cover_image_url: itemCover,
     });
     const branches = Array.isArray(new_series.branches) ? new_series.branches.filter((b) => String(b || "").trim()) : [];
     for (const b of branches) {
-      const bid = await findOrCreateSeries(b, { scholar_id, category_id, parent_id: mainId });
+      const bid = await findOrCreateSeries(b, { scholar_id, category_id, parent_id: mainId, cover_image_url: itemCover });
       branchIds.set(b.trim(), bid);
     }
   } else if (mainId && Array.isArray(new_series?.branches)) {
     for (const b of new_series.branches) {
       if (!String(b || "").trim()) continue;
-      const bid = await findOrCreateSeries(b, { scholar_id, category_id, parent_id: mainId });
+      const bid = await findOrCreateSeries(b, { scholar_id, category_id, parent_id: mainId, cover_image_url: itemCover });
       branchIds.set(b.trim(), bid);
     }
   }
@@ -328,6 +329,7 @@ r.post("/bulk-import", authUser, adminOnly, wrap(async (req, res) => {
     await setNode("audios/" + id, {
       id, title: f.title, scholar_id, category_id, series_id: sid || null, episode_number: n,
       description: insp.title ? `من: ${insp.title}` : null,
+      cover_image_url: itemCover,
       archive_url: "https://archive.org/details/" + insp.identifier,
       file_url: f.url, duration: Math.round(f.length), file_size: f.size,
       listen_count: 0, download_count: 0, added_days: 0, tags: "[]",
