@@ -305,7 +305,7 @@ const SheetContent = () => {
                 <div className="flex flex-wrap gap-2 justify-center">
                   {[15, 30, 45, 60].map((m) => (
                     <button key={m} onClick={() => { p.setSleep("min", m); setPanel(null); showToast(`${t.sleep}: ${ar(m)} ${t.min}`); }}
-                      className={`h-9 px-3.5 rounded-full text-[0.8rem] font-extrabold border transition ${p.sleepMode === "min" && p.sleepAt ? "bline ink-2" : "bline ink-2"}`}>
+                      className={`h-9 px-3.5 rounded-full text-[0.8rem] font-extrabold border transition ${p.sleepMode === "min" && p.sleepAt === m ? "bg-gold text-[#231a05] border-transparent" : "bline ink-2"}`}>
                       {ar(m)} {t.min}
                     </button>
                   ))}

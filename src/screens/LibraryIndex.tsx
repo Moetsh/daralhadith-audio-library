@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { allSeries, itemsOfSeries, scholarById } from "../data/library";
 import { ar } from "../lib/utils";
 import { useSettings } from "../store/core";
-import { BackBtn, EmptyState, GirihBG } from "../components/ui";
+import { BackBtn, EmptyState, GirihBG, SeriesCard } from "../components/ui";
 
 export const LibraryIndexScreen = () => {
   const t = useSettings((s) => s.t);
@@ -69,7 +69,7 @@ export const LibraryIndexScreen = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={lang === "ar" ? "ابحث في السلاسل أو الشيوخ..." : "Search series or scholars..."}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl surface bline border ink text-[0.85rem] focus:outline-none focus:border-gold"
+              className="w-full ps-10 pe-4 py-2.5 rounded-xl surface bline border ink text-[0.85rem] focus:outline-none focus:!border-[var(--gold)]"
               dir={lang === "ar" ? "rtl" : "ltr"}
             />
           </div>
@@ -99,33 +99,9 @@ export const LibraryIndexScreen = () => {
           <EmptyState icon={ListMusic} title={t.noResults} hint={t.noResultsHint} />
         ) : (
           <div className="space-y-3">
-            {series.map((sr) => {
-              const sch = scholarById(sr.scholarId);
-              const epsCount = itemsOfSeries(sr.id).length;
-              const totalEps = sr.totalEpisodes || epsCount;
-              return (
-                <button
-                  key={sr.id}
-                  className="surface bline border rounded-2xl p-3 text-start relative shadow-card active:scale-[0.98] transition"
-                  onClick={() => {}}
-                >
-                  <div className="flex gap-3">
-                    <div className="w-14 h-14 shrink-0 rounded-xl relative overflow-hidden bg-gradient-to-br from-gold/20 to-gold/5">
-                      <ListMusic size={24} className="absolute inset-0 flex items-center justify-center text-gold" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <span className="text-[0.6rem] font-black c-gold tracking-wider uppercase">{t.seriesT}</span>
-                      <div className="font-extrabold text-[0.9rem] ink leading-snug line-clamp-2 mt-0.5">{sr.title}</div>
-                      <div className="ink-3 text-[0.7rem] mt-1.5 truncate flex items-center gap-1.5">
-                        <span className="truncate">{sch.name}</span>
-                        <span className="w-1 h-1 rounded-full bg-gold/50 shrink-0" />
-                        <span className="shrink-0">{ar(epsCount)} / {ar(totalEps)} {t.eps}</span>
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+            {series.map((sr) => (
+              <SeriesCard key={sr.id} series={sr} />
+            ))}
           </div>
         )}
       </div>

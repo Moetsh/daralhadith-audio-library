@@ -32,7 +32,7 @@ export const DetailScreen = ({ id }: { id: string }) => {
     <div className="h-full overflow-y-auto no-bar bg-app relative">
       {/* الترويسة الزخرفية — تصميم محسّن */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0" style={{ background: "var(--bg-app)" }} />
+        <div className="absolute inset-0" style={{ background: "var(--bg)" }} />
         <div className="absolute inset-0 girih opacity-[0.06]" style={{ color: "var(--cover-girih)" }} />
         <div className="relative max-w-lg mx-auto px-4 pt-4 pb-6">
           <div className="flex items-center justify-between">

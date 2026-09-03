@@ -4,7 +4,7 @@ import {
   ArrowDown, ArrowUp, Check, Download, HardDrive, Heart, History, ListMusic, Play, Plus, Trash2, X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { itemById, scholarById } from "../data/library";
+import { catById, itemById, scholarById } from "../data/library";
 import type { AudioItem } from "../data/library";
 import { ar, fmtDur, fmtMB } from "../lib/utils";
 import { useApp } from "../store/appStore";
@@ -58,8 +58,8 @@ const LibRow = ({ item, trailing, extra }: { item: AudioItem; trailing?: React.R
   return (
     <motion.div layout whileTap={{ scale: 0.985 }}
       onClick={() => nav.push({ name: "detail", id: item.id })}
-      className={`flex items-center gap-3 p-2.5 rounded-2xl cursor-pointer border transition ${isCur ? "soft-gold border-transparent" : "surface bline"}`}>
-      <Cover catId={item.categoryId} size={50} playing={isCur && status === "playing"} />
+      className={`flex items-center gap-3 p-2.5 rounded-2xl cursor-pointer border transition ${isCur ? "soft-gold border border-[var(--gold)]/30 shadow-card" : "surface bline"}`}>
+      <Cover catId={item.categoryId} icon={catById(item.categoryId)?.icon} size={50} src={item.cover} playing={isCur && status === "playing"} />
       <div className="min-w-0 flex-1">
         <div className={`font-bold text-[0.85rem] leading-snug truncate ${isCur ? "c-gold" : "ink"}`}>{item.title}</div>
         <div className="ink-3 text-[0.7rem] font-bold truncate mt-0.5">{scholarById(item.scholarId).name} · {fmtDur(item.duration, lang)}</div>

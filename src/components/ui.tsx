@@ -56,7 +56,7 @@ export const Logo = ({ size = 56, radius = 16 }: { size?: number; radius?: numbe
 );
 
 /* شارة غلاف الشريط — تصميم محسّن */
-export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, src, title: _title, fluid = false }: { catId: string; icon?: string; size?: number; radius?: number; playing?: boolean; src?: string; title?: string; fluid?: boolean }) => {
+export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, src, title: _title, fluid = false, fill = false }: { catId: string; icon?: string; size?: number; radius?: number; playing?: boolean; src?: string; title?: string; fluid?: boolean; fill?: boolean }) => {
   const [failed, setFailed] = useState(false);
   const [ratio, setRatio] = useState<number | null>(null);
   const showImg = src && !failed;
@@ -66,10 +66,10 @@ export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, sr
   const aspect = ratio ? `${ratio} / 1` : undefined;
   return (
     <div
-      className={`relative overflow-hidden flex items-center justify-center ${fluid ? "w-full" : "shrink-0"}`}
+      className={`relative overflow-hidden flex items-center justify-center ${fluid || fill ? "w-full h-full" : "shrink-0"}`}
       style={{
-        width: fluid ? undefined : size, height: fluid ? undefined : size, borderRadius: radius,
-        aspectRatio: fluid ? (aspect ?? "1 / 1") : undefined,
+        width: fluid || fill ? undefined : size, height: fluid || fill ? undefined : size, borderRadius: radius,
+        aspectRatio: fluid ? (aspect ?? "1 / 1") : fill ? "1 / 1" : undefined,
         background: showImg ? "transparent" : `linear-gradient(145deg, ${bg} 0%, ${bg}dd 40%, ${bg}99 100%)`,
         boxShadow: "0 8px 24px -6px rgba(10,30,18,.5), 0 2px 8px -2px rgba(10,30,18,.3)",
       }}
@@ -216,10 +216,10 @@ export const AudioCardH = ({ item, onOpen }: { item: AudioItem; onOpen?: () => v
     >
       <div className="relative rounded-[18px] overflow-hidden shadow-card group-hover:shadow-lg transition-shadow duration-200">
         <Cover catId={item.categoryId} icon={catById(item.categoryId)?.icon} size={152} radius={18} src={item.cover} title={item.title} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 transition-opacity duration-200" />
         <button
           aria-label="play"
-          className="absolute bottom-2 start-2 w-9 h-9 rounded-full bg-gold text-[#231a05] flex items-center justify-center shadow-lg active:scale-90 transition-all duration-200 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0"
+          className="absolute bottom-2 start-2 w-9 h-9 rounded-full bg-gold text-[#231a05] flex items-center justify-center shadow-lg active:scale-90 transition-all duration-200"
           onClick={(e) => { e.stopPropagation(); play(item.id); }}
         >
           <Play size={15} fill="currentColor" className="translate-x-[1px]" />
