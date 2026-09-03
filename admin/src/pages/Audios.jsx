@@ -154,8 +154,10 @@ export default function Audios() {
                   <button onClick={() => toggleStatus(a)} className="cursor-pointer">{statusBadge(a.status)}</button>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    <Button size="sm" variant="ghost" title="تعديل" onClick={() => setEditing(a)}><Pencil size={14} /></Button>
+                  <div className="flex items-center gap-1.5">
+                    <Button size="sm" variant="outline" onClick={() => setEditing(a)}>
+                      <Pencil size={14} /> تعديل
+                    </Button>
                     <Button size="sm" variant="ghost" className="text-danger hover:text-danger" title="حذف" onClick={() => setConfirmDel(a)}><Trash2 size={14} /></Button>
                   </div>
                 </td>
