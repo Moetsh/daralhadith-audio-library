@@ -53,7 +53,13 @@ export function createApp() {
 
   /* ربط لوحة التحكم المبنيّة (اختياري) */
   if (existsSync(adminDist)) {
-    app.use(express.static(adminDist));
+    app.use(express.static(adminDist, {
+      setHeaders(res) {
+        res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.set("Pragma", "no-cache");
+        res.set("Expires", "0");
+      }
+    }));
     app.get("*", (req, res) => {
       if (req.path.startsWith("/api")) return res.status(404).json({ error: "غير موجود" });
       res.sendFile(join(adminDist, "index.html"));
