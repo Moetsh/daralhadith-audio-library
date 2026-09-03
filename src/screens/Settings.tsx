@@ -1,4 +1,4 @@
-/* Ø´Ø§Ø´Ø© Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª */
+/* شاشة الإعدادات */
 import {
   ArrowDownToLine, Bell, Download, Gauge, Languages, Moon, Music2, RefreshCw, Sparkles, Sun, SunMoon, Timer, Type, Upload, Wifi,
 } from "lucide-react";
@@ -11,7 +11,7 @@ import { useSettings, type Theme } from "../store/core";
 import { useServerContent } from "../store/serverContent";
 import { GirihBG, Logo } from "../components/ui";
 
-/* ØµÙ Ø¥Ø¹Ø¯Ø§Ø¯ */
+/* صف إعداد */
 const Row = ({ icon: Icon, title, hint, children }: { icon: LucideIcon; title: string; hint?: string; children: ReactNode }) => (
   <div className="flex items-center gap-3.5 px-4 py-3.5">
     <span className="w-10 h-10 rounded-2xl soft-green c-green flex items-center justify-center shrink-0"><Icon size={17} /></span>
@@ -91,7 +91,7 @@ const SyncCard = () => {
   );
 };
 
-const CURRENT_VERSION = "1.32";
+const CURRENT_VERSION = "1.40";
 
 const UpdateCard = () => {
   const t = useSettings((s) => s.t);
@@ -168,7 +168,7 @@ export const SettingsScreen = () => {
                 opts={[["light", t.light], ["dark", t.dark], ["auto", t.auto]]} />
             </Row>
             <Row icon={Languages} title={t.language}>
-              <Seg value={s.lang} onChange={(v) => set({ lang: v as any })} opts={[["ar", "Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©"], ["en", "English"]]} />
+              <Seg value={s.lang} onChange={(v) => set({ lang: v as any })} opts={[["ar", "العربية"], ["en", "English"]]} />
             </Row>
             <Row icon={Type} title={t.fontSize}>
               <Seg<number> value={s.fsize} onChange={(v) => set({ fsize: v as 0 | 1 | 2 })}
@@ -184,11 +184,11 @@ export const SettingsScreen = () => {
               </Row>
               <Row icon={Gauge} title={t.defSpeed}>
                 <Seg<number> value={s.defSpeed} onChange={(v) => set({ defSpeed: v })}
-                  opts={[[0.75, "0.75Ã—"], [1, "1Ã—"], [1.25, "1.25Ã—"], [1.5, "1.5Ã—"], [2, "2Ã—"]]} />
+                  opts={[[0.75, "0.75×"], [1, "1×"], [1.25, "1.25×"], [1.5, "1.5×"], [2, "2×"]]} />
               </Row>
               <Row icon={Timer} title={t.defSleep}>
                 <Seg<number> value={s.defSleep} onChange={(v) => set({ defSleep: v })}
-                  opts={[[0, t.sleepOff], [15, `${ar(15)}${s.lang === "ar" ? "Ø¯" : "m"}`], [30, `${ar(30)}${s.lang === "ar" ? "Ø¯" : "m"}`], [60, `${ar(60)}${s.lang === "ar" ? "Ø¯" : "m"}`]]} />
+                  opts={[[0, t.sleepOff], [15, `${ar(15)}${s.lang === "ar" ? "د" : "m"}`], [30, `${ar(30)}${s.lang === "ar" ? "د" : "m"}`], [60, `${ar(60)}${s.lang === "ar" ? "د" : "m"}`]]} />
               </Row>
             </Card>
           </div>
@@ -206,7 +206,7 @@ export const SettingsScreen = () => {
 
           <UpdateCard />
 
-          {/* Ø¹Ù† Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ */}
+          {/* عن التطبيق */}
           <div className="rounded-3xl overflow-hidden relative border border-[#d9a13f44]" >
             <div className="absolute inset-0" style={{ background: "#e07a22" }} />
             <div className="absolute inset-0 girih opacity-[0.1]" style={{ color: "#e9d9a6" }} />
@@ -216,10 +216,10 @@ export const SettingsScreen = () => {
               <p className="text-[#c3cdbf] text-[0.74rem] leading-loose mt-2.5">{t.aboutTxt}</p>
               <div className="flex items-center gap-2 mt-4">
                 <span className="text-[0.64rem] font-black text-[#e9d9a6] border border-[#d9a13f55] rounded-full px-3 py-1 flex items-center gap-1.5">
-                  <Sparkles size={11} /> {s.lang === "ar" ? "Ø¹Ù…Ù„ Ø®ÙŠØ±ÙŠ â€” Ø¨Ù„Ø§ Ø¥Ø¹Ù„Ø§Ù†Ø§Øª" : "Charity â€” No ads"}
+                  <Sparkles size={11} /> {s.lang === "ar" ? "عمل خيري — بدون إعلانات" : "Charity — No ads"}
                 </span>
                 <span className="text-[0.64rem] font-black text-[#8fa795] border border-[#ffffff22] rounded-full px-3 py-1">
-                  {t.ver} {CURRENT_VERSION} Â· Android 15
+                  {t.ver} {CURRENT_VERSION} · Android 15
                 </span>
               </div>
               <div className="flex items-center gap-3 mt-4 text-[#d9a13f]">
