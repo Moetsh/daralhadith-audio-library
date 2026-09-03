@@ -7,12 +7,15 @@ import {
 import { cx } from "./ui";
 
 const NAV = [
+  { section: "عام" },
   { to: "/", label: "لوحة المعلومات", icon: LayoutDashboard, end: true },
+  { section: "المكتبة" },
   { to: "/audios", label: "الأشرطة", icon: Music2 },
   { to: "/categories", label: "التصنيفات", icon: FolderTree },
   { to: "/scholars", label: "العلماء", icon: GraduationCap },
   { to: "/series", label: "السلاسل", icon: ListVideo },
   { to: "/import", label: "استيراد من أرشيف", icon: DownloadCloud },
+  { section: "الإدارة" },
   { to: "/users", label: "المستخدمون", icon: Users },
   { to: "/announcements", label: "التنبيهات", icon: Bell },
   { to: "/activity", label: "سجل النشاط", icon: History },
@@ -21,24 +24,41 @@ const NAV = [
 
 /* قائمة التنقل مشتركة بين الشريط الجانبي (سطح المكتب) وشريط الجوال. */
 function NavMenu({ vertical }) {
-  return NAV.map(({ to, label, icon: Icon, end }) => (
-    <NavLink
-      key={to}
-      to={to}
-      end={end}
-      className={({ isActive }) =>
-        cx(
-          vertical
-            ? "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition"
-            : "flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap",
-          isActive ? "bg-green text-white shadow-card" : vertical ? "text-ink2 hover:bg-bg2" : "text-ink2 bg-card"
-        )
-      }
-    >
-      <Icon size={vertical ? 18 : 14} />
-      {label}
-    </NavLink>
-  ));
+  return NAV.map((item, i) => {
+    if (item.section) {
+      if (!vertical) return null;
+      return (
+        <div key={"sec-" + i} className="px-3.5 pt-4 pb-1 text-[11px] font-black text-ink3">
+          {item.section}
+        </div>
+      );
+    }
+    const { to, label, icon: Icon, end } = item;
+    return (
+      <NavLink
+        key={to}
+        to={to}
+        end={end}
+        className={({ isActive }) =>
+          cx(
+            vertical
+              ? "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition"
+              : "flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap",
+            isActive
+              ? vertical
+                ? "bg-gradient-to-l from-green to-green2 text-white shadow-card"
+                : "bg-green text-white"
+              : vertical
+                ? "text-ink2 hover:bg-bg2"
+                : "text-ink2 bg-card"
+          )
+        }
+      >
+        <Icon size={vertical ? 18 : 14} />
+        {label}
+      </NavLink>
+    );
+  });
 }
 
 export default function Layout() {
@@ -62,6 +82,7 @@ export default function Layout() {
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           <NavMenu vertical />
+          <div className="px-3 pt-4 pb-1 text-center text-[10px] font-bold text-ink3">✦ الجيل الجديد</div>
         </nav>
         <div className="p-3 border-t border-line">
           <div className="flex items-center gap-3 px-2 py-2">

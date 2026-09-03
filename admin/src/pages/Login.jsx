@@ -34,7 +34,9 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-bg relative overflow-hidden">
       <div className="absolute inset-0 girih text-green opacity-[0.05]" />
-      <Card className="relative w-full max-w-sm p-8">
+      <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-gold-soft blur-3xl opacity-60 pointer-events-none" />
+      <div className="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-green-soft blur-3xl opacity-60 pointer-events-none" />
+      <Card className="relative w-full max-w-sm p-8 border-t-4 border-t-gold">
         <div className="flex flex-col items-center mb-6">
           <img src="/logo.png" alt="دار الحديث" className="w-14 h-14 rounded-2xl object-cover mb-3 shadow-card" />
           <h1 className="font-brand text-2xl text-green text-center">لوحة تحكم دار الحديث الصوتية</h1>

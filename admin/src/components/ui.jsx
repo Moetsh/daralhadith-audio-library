@@ -18,7 +18,8 @@ export function PageTitle({ title, subtitle, actions }) {
     <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
       <div>
         <h1 className="font-brand text-2xl md:text-3xl text-green">{title}</h1>
-        {subtitle && <p className="text-ink2 text-sm mt-1">{subtitle}</p>}
+        <span className="block mt-2 h-1 w-14 rounded-full bg-gradient-to-l from-gold to-green" />
+        {subtitle && <p className="text-ink2 text-sm mt-2">{subtitle}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
     </div>
@@ -163,7 +164,7 @@ export function Table({ head, children }) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-right border-b border-line text-ink3 text-xs">
+          <tr className="text-right border-b border-line text-ink3 text-xs bg-bg2/60">
             {head.map((h, i) => (
               <th key={i} className="px-4 py-3 font-bold whitespace-nowrap">
                 {h}

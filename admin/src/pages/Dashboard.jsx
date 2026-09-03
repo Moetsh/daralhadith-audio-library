@@ -55,8 +55,8 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
         {cards.map(({ label, value, icon: Icon, tone }) => (
-          <Card key={label} className="p-4 flex items-center gap-3">
-            <div className={cx("w-11 h-11 rounded-xl flex items-center justify-center shrink-0", tone)}>
+          <Card key={label} className="p-4 flex items-center gap-3 transition-transform hover:-translate-y-0.5">
+            <div className={cx("w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-card", tone)}>
               <Icon size={20} />
             </div>
             <div className="min-w-0">
