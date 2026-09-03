@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { api } from "../api";
+import { useRefs, useForm } from "../hooks";
 import { PageTitle, Button, Card, Input, Select, ErrorBox, cx, Spinner, Badge } from "../components/ui";
-import { Search, DownloadCloud, CheckSquare, Square, Plus, Trash2, Layers, Link } from "lucide-react";
+import { Search, DownloadCloud, CheckSquare, Square, Layers, Link } from "lucide-react";
 
 const BRANCH_COLORS = ["bg-orange-100 text-orange-700", "bg-amber-100 text-amber-700", "bg-sky-100 text-sky-700", "bg-rose-100 text-rose-700", "bg-violet-100 text-violet-700"];
 
@@ -11,10 +12,8 @@ export default function ImportPage() {
   const [insp, setInsp] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
-  const [scholars, setScholars] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [series, setSeries] = useState([]);
-  const [form, setForm] = useState({ scholar_id: "", category_id: "", series_id: "" });
+  const { scholars, categories, series, error: refsError } = useRefs();
+  const { form, set: setF, reset: resetF } = useForm({ scholar_id: "", category_id: "", series_id: "" });
   const [selected, setSelected] = useState(new Set());
   const [importing, setImporting] = useState(false);
   const [done, setDone] = useState(null);
@@ -29,35 +28,17 @@ export default function ImportPage() {
   const [teraCookies, setTeraCookies] = useState("");
   const [teraInsp, setTeraInsp] = useState(null);
 
-  const loadRefs = useCallback(async () => {
-    const [s, c, sr] = await Promise.all([api("/scholars"), api("/categories"), api("/series")]);
-    setScholars(s);
-    setCategories(c);
-    setSeries(sr);
-  }, []);
-
-  useEffect(() => { loadRefs().catch((e) => setError(e)); }, [loadRefs]);
-
-  const inspectArchive = async (e) => {
+  const inspect = async (e) => {
     e.preventDefault();
-    setBusy(true); setError(null); setDone(null); setInsp(null);
+    setBusy(true); setError(null); setDone(null);
+    setInsp(null); setTeraInsp(null);
     try {
-      const r = await api("/archive/inspect", { method: "POST", body: { url } });
+      const r = tab === "archive"
+        ? await api("/archive/inspect", { method: "POST", body: { url } })
+        : await api("/terabox/inspect", { method: "POST", body: { url, cookies: teraCookies } });
       if (!r.ok) { setError(new Error(r.error || "Failed")); return; }
-      setInsp(r);
-      setSelected(new Set(r.files.map((f) => f.name)));
-      setSerName(r.title || "");
-    } catch (e2) { setError(e2); }
-    finally { setBusy(false); }
-  };
-
-  const inspectTeraBox = async (e) => {
-    e.preventDefault();
-    setBusy(true); setError(null); setDone(null); setTeraInsp(null);
-    try {
-      const r = await api("/terabox/inspect", { method: "POST", body: { url, cookies: teraCookies } });
-      if (!r.ok) { setError(new Error(r.error || "Failed")); return; }
-      setTeraInsp(r);
+      if (tab === "archive") setInsp(r);
+      else setTeraInsp(r);
       setSelected(new Set(r.files.map((f) => f.name)));
       setSerName(r.title || "");
     } catch (e2) { setError(e2); }
@@ -75,48 +56,48 @@ export default function ImportPage() {
   const setBranch = (i, v) => { setBranches((bs) => bs.map((x, idx) => (idx === i ? v : x))); };
   const removeBranch = (i) => { setBranches((bs) => bs.filter((_, idx) => idx !== i)); };
 
-  const runImportArchive = async () => {
+  const runImport = async () => {
     setImporting(true); setError(null);
     try {
-      const body = { url, scholar_id: form.scholar_id, category_id: form.category_id, selected: [...selected] };
-      if (wantSeries && serName.trim()) {
-        body.new_series = { title: serName.trim(), total_episodes: parseInt(serCount, 10) || selected.size, branches: branches.map((b) => b.trim()).filter(Boolean) };
-        if (branches.length) body.branch_map = fileBranch;
-      } else if (form.series_id) {
-        body.series_id = form.series_id;
-        const se = parseInt(startEp, 10);
-        if (!Number.isNaN(se) && se > 0) body.start_episode = se;
+      let body;
+      if (tab === "archive") {
+        body = { url, scholar_id: form.scholar_id, category_id: form.category_id, selected: [...selected] };
+        if (wantSeries && serName.trim()) {
+          body.new_series = { title: serName.trim(), total_episodes: parseInt(serCount, 10) || selected.size, branches: branches.map((b) => b.trim()).filter(Boolean) };
+          if (branches.length) body.branch_map = fileBranch;
+        } else if (form.series_id) {
+          body.series_id = form.series_id;
+          const se = parseInt(startEp, 10);
+          if (!Number.isNaN(se) && se > 0) body.start_episode = se;
+        }
+      } else {
+        body = {
+          surl: teraInsp.surl, shareid: teraInsp.shareid, uk: teraInsp.uk,
+          jsToken: teraInsp.jsToken, cookies: teraCookies,
+          scholar_id: form.scholar_id, category_id: form.category_id,
+          selected: [...selected],
+        };
+        if (wantSeries && serName.trim()) {
+          body.new_series = { title: serName.trim(), total_episodes: parseInt(serCount, 10) || selected.size };
+        } else if (form.series_id) {
+          body.series_id = form.series_id;
+          const se = parseInt(startEp, 10);
+          if (!Number.isNaN(se) && se > 0) body.start_episode = se;
+        }
       }
-      const r = await api("/audios/bulk-import", { method: "POST", body });
-      setDone(r); setInsp(null); setUrl(""); resetForm();
-    } catch (e2) { setError(e2); }
-    finally { setImporting(false); }
-  };
-
-  const runImportTeraBox = async () => {
-    setImporting(true); setError(null);
-    try {
-      const body = {
-        surl: teraInsp.surl, shareid: teraInsp.shareid, uk: teraInsp.uk,
-        jsToken: teraInsp.jsToken, cookies: teraCookies,
-        scholar_id: form.scholar_id, category_id: form.category_id,
-        selected: [...selected],
-      };
-      if (wantSeries && serName.trim()) {
-        body.new_series = { title: serName.trim(), total_episodes: parseInt(serCount, 10) || selected.size };
-      } else if (form.series_id) {
-        body.series_id = form.series_id;
-        const se = parseInt(startEp, 10);
-        if (!Number.isNaN(se) && se > 0) body.start_episode = se;
-      }
-      const r = await api("/terabox/bulk-import", { method: "POST", body });
-      setDone(r); setTeraInsp(null); setUrl(""); resetForm();
+      const endpoint = tab === "archive" ? "/audios/bulk-import" : "/terabox/bulk-import";
+      const r = await api(endpoint, { method: "POST", body });
+      setDone(r);
+      if (tab === "archive") setInsp(null);
+      else setTeraInsp(null);
+      setUrl("");
+      resetForm();
     } catch (e2) { setError(e2); }
     finally { setImporting(false); }
   };
 
   const resetForm = () => {
-    setForm({ scholar_id: "", category_id: "", series_id: "" });
+    resetF({ scholar_id: "", category_id: "", series_id: "" });
     setSerName(""); setSerCount(""); setStartEp(""); setBranches([]); setFileBranch({}); setWantSeries(false);
   };
 
@@ -124,6 +105,7 @@ export default function ImportPage() {
   const branchOf = (fname) => fileBranch[fname] || "";
   const currentInsp = tab === "archive" ? insp : teraInsp;
   const files = currentInsp?.files || [];
+  const showError = error || refsError;
 
   return (
     <div>
@@ -141,7 +123,7 @@ export default function ImportPage() {
       </div>
 
       <Card className="p-5 mb-4">
-        <form onSubmit={tab === "archive" ? inspectArchive : inspectTeraBox} className="flex flex-col gap-3">
+        <form onSubmit={inspect} className="flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
               <Input dir="ltr" className="text-left" placeholder={tab === "archive" ? "https://archive.org/details/..." : "https://1024terabox.com/s/..."} value={url} onChange={(e) => setUrl(e.target.value)} required />
@@ -154,7 +136,7 @@ export default function ImportPage() {
             <Input label="Kookies (from DevTools or CDP)" dir="ltr" className="text-left font-mono text-xs" placeholder="ndus=...; browserid=...; csrfToken=..." value={teraCookies} onChange={(e) => setTeraCookies(e.target.value)} />
           )}
         </form>
-        {error && <div className="mt-3"><ErrorBox error={error} /></div>}
+        {showError && <div className="mt-3"><ErrorBox error={showError} /></div>}
       </Card>
 
       {currentInsp && (
@@ -177,15 +159,15 @@ export default function ImportPage() {
 
           <Card className="p-5">
             <div className="grid md:grid-cols-3 gap-4 mb-4">
-              <Select label="Scholar" value={form.scholar_id} onChange={(e) => setForm((f) => ({ ...f, scholar_id: e.target.value }))}>
+              <Select label="Scholar" value={form.scholar_id} onChange={(e) => setF("scholar_id", e.target.value)}>
                 <option value="">-- select --</option>
                 {scholars.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </Select>
-              <Select label="Category" value={form.category_id} onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}>
+              <Select label="Category" value={form.category_id} onChange={(e) => setF("category_id", e.target.value)}>
                 <option value="">-- select --</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.parent_id ? "↳ " : ""}{c.name}</option>)}
               </Select>
-              <Select label="Series" value={wantSeries ? "" : form.series_id} disabled={wantSeries} onChange={(e) => setForm((f) => ({ ...f, series_id: e.target.value }))}>
+              <Select label="Series" value={wantSeries ? "" : form.series_id} disabled={wantSeries} onChange={(e) => setF("series_id", e.target.value)}>
                 <option value="">No series</option>
                 {series.map((s) => <option key={s.id} value={s.id}>{s.parent_title ? "↳ " : ""}{s.title}</option>)}
               </Select>
@@ -236,7 +218,7 @@ export default function ImportPage() {
             </div>
 
             <div className="flex items-center gap-3 mt-5">
-              <Button variant="gold" size="lg" disabled={importing || !form.scholar_id || !form.category_id || selected.size === 0} onClick={tab === "archive" ? runImportArchive : runImportTeraBox}>
+              <Button variant="gold" size="lg" disabled={importing || !form.scholar_id || !form.category_id || selected.size === 0} onClick={runImport}>
                 {importing ? <><Spinner className="w-4 h-4 border-t-white" /> ...</> : <><DownloadCloud size={18} /> Import {selected.size} tracks</>}
               </Button>
               {!form.scholar_id && <span className="text-xs text-ink3 font-bold">Select scholar and category first</span>}

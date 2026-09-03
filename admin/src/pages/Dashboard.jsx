@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import { Card, Loading, ErrorBox, cx } from "../components/ui";
+import { Card, Loading, ErrorBox, PageTitle, cx } from "../components/ui";
 import { AreaChart, HBarList } from "../components/charts";
 import { Music2, GraduationCap, FolderTree, Headphones, PlaySquare, UserPlus, Download, Library } from "lucide-react";
 
@@ -51,10 +51,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-brand text-2xl md:text-3xl text-green">لوحة المعلومات</h1>
-        <p className="text-ink2 text-sm mt-1">نظرة عامة على مكتبة دار الحديث الصوتية</p>
-      </div>
+      <PageTitle title="لوحة المعلومات" subtitle="نظرة عامة على مكتبة دار الحديث الصوتية" />
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
         {cards.map(({ label, value, icon: Icon, tone }) => (

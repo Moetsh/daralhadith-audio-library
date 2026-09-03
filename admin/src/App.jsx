@@ -1,8 +1,7 @@
-import { useEffect } from "react";
-import { HashRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { AuthProvider, useAuth } from "./auth";
+import { HashRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./auth";
 import Layout from "./components/Layout";
-import Login from "./pages/Login";
+import { Guard, LoginGate, NotFound } from "./components/guards";
 import Dashboard from "./pages/Dashboard";
 import Audios from "./pages/Audios";
 import Categories from "./pages/Categories";
@@ -13,34 +12,6 @@ import Users from "./pages/Users";
 import Announcements from "./pages/Announcements";
 import Activity from "./pages/Activity";
 import Settings from "./pages/Settings";
-import { Loading } from "./components/ui";
-
-function Guard({ children }) {
-  const { user, ready } = useAuth();
-  const location = useLocation();
-  useEffect(() => {
-    if (!ready) return;
-    if (!user) window.location.hash = "#/login";
-  }, [ready, user, location.pathname]);
-  if (!ready) return <Loading label="جارٍ التحقق…" />;
-  if (!user) return null;
-  return children;
-}
-
-function LoginGate() {
-  const { user } = useAuth();
-  if (user) return <Navigate to="/" replace />;
-  return <Login />;
-}
-
-function NotFound() {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 text-ink3 gap-3">
-      <span className="font-brand text-6xl text-green">404</span>
-      <span className="text-sm">الصفحة غير موجودة</span>
-    </div>
-  );
-}
 
 export default function App() {
   return (

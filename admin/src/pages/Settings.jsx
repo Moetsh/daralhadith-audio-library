@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "../api";
+import { api, getToken } from "../api";
 import { PageTitle, Button, Card, Input, Loading, ErrorBox, Spinner, Badge } from "../components/ui";
 import { Save, Download, CloudUpload, RefreshCw } from "lucide-react";
 
@@ -58,7 +58,7 @@ export default function Settings() {
   };
 
   const backup = async () => {
-    const blob = await (await fetch("/api/admin/backup", { headers: { authorization: "Bearer " + localStorage.getItem("dh_admin_token") } })).blob();
+    const blob = await (await fetch("/api/admin/backup", { headers: { authorization: "Bearer " + getToken() } })).blob();
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "daralhadith-backup.json";

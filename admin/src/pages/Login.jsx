@@ -5,7 +5,7 @@ import { Button, Input, ErrorBox, Card, cx } from "../components/ui";
 import { Lock, Mail } from "lucide-react";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,6 +19,7 @@ export default function Login() {
     try {
       const u = await login(email, password);
       if (u.role !== "admin") {
+        await logout();
         setError("هذا الحساب لا يملك صلاحيات مشرف");
         return;
       }

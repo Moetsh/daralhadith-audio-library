@@ -1,5 +1,5 @@
 import { twMerge } from "tailwind-merge";
-import { X } from "lucide-react";
+import { Pencil, Trash2, X } from "lucide-react";
 
 export function cx(...parts) {
   return twMerge(parts.filter(Boolean).join(" "));
@@ -174,6 +174,49 @@ export function Table({ head, children }) {
         <tbody>{children}</tbody>
       </table>
     </div>
+  );
+}
+
+export function Check({ label, ...props }) {
+  return (
+    <label className="flex items-center gap-2 text-sm font-bold text-ink2 cursor-pointer">
+      <input type="checkbox" className="accent-[#f58024] w-4 h-4" {...props} />
+      {label}
+    </label>
+  );
+}
+
+export function RowActions({ onEdit, onDelete, editLabel = "تعديل", compact = false }) {
+  if (compact) {
+    return (
+      <div className="flex gap-1">
+        <Button size="sm" variant="ghost" title={editLabel} onClick={onEdit}>
+          <Pencil size={14} />
+        </Button>
+        <Button size="sm" variant="ghost" className="text-danger" title="حذف" onClick={onDelete}>
+          <Trash2 size={14} />
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-1.5">
+      <Button size="sm" variant="outline" onClick={onEdit}>
+        <Pencil size={14} /> {editLabel}
+      </Button>
+      <Button size="sm" variant="ghost" className="text-danger" title="حذف" onClick={onDelete}>
+        <Trash2 size={14} />
+      </Button>
+    </div>
+  );
+}
+
+export function ListCard({ loading, error, empty, emptyText, className, children }) {
+  return (
+    <Card className={className}>
+      {error && <ErrorBox error={error} />}
+      {loading ? <Loading /> : empty ? <Empty text={emptyText} /> : children}
+    </Card>
   );
 }
 

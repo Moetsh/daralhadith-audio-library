@@ -19,9 +19,37 @@ const NAV = [
   { to: "/settings", label: "الإعدادات", icon: Settings },
 ];
 
+/* قائمة التنقل مشتركة بين الشريط الجانبي (سطح المكتب) وشريط الجوال. */
+function NavMenu({ vertical }) {
+  return NAV.map(({ to, label, icon: Icon, end }) => (
+    <NavLink
+      key={to}
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        cx(
+          vertical
+            ? "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition"
+            : "flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap",
+          isActive ? "bg-green text-white shadow-card" : vertical ? "text-ink2 hover:bg-bg2" : "text-ink2 bg-card"
+        )
+      }
+    >
+      <Icon size={vertical ? 18 : 14} />
+      {label}
+    </NavLink>
+  ));
+}
+
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const doLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
   return (
     <div className="min-h-screen flex">
       <aside className="hidden lg:flex flex-col w-64 shrink-0 border-l border-line bg-card shadow-card sticky top-0 h-screen">
@@ -33,22 +61,7 @@ export default function Layout() {
           </div>
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          {NAV.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                cx(
-                  "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold transition",
-                  isActive ? "bg-green text-white shadow-card" : "text-ink2 hover:bg-bg2"
-                )
-              }
-            >
-              <Icon size={18} />
-              {label}
-            </NavLink>
-          ))}
+          <NavMenu vertical />
         </nav>
         <div className="p-3 border-t border-line">
           <div className="flex items-center gap-3 px-2 py-2">
@@ -61,10 +74,7 @@ export default function Layout() {
             </div>
             <button
               title="خروج"
-              onClick={async () => {
-                await logout();
-                navigate("/login");
-              }}
+              onClick={doLogout}
               className="p-2 rounded-lg text-ink3 hover:bg-bg2 hover:text-danger"
             >
               <LogOut size={16} />
@@ -82,10 +92,7 @@ export default function Layout() {
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-ink2 hidden sm:block">{user?.name}</span>
             <button
-              onClick={async () => {
-                await logout();
-                navigate("/login");
-              }}
+              onClick={doLogout}
               className="p-2 rounded-lg text-ink3 hover:bg-bg2 hover:text-danger"
             >
               <LogOut size={16} />
@@ -94,22 +101,7 @@ export default function Layout() {
         </header>
         <div className="lg:hidden sticky top-[57px] z-30 bg-bg border-b border-line overflow-x-auto no-bar">
           <div className="flex gap-1 px-3 py-2 min-w-max">
-            {NAV.map(({ to, label, icon: Icon, end }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                className={({ isActive }) =>
-                  cx(
-                    "flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap",
-                    isActive ? "bg-green text-white" : "text-ink2 bg-card"
-                  )
-                }
-              >
-                <Icon size={14} />
-                {label}
-              </NavLink>
-            ))}
+            <NavMenu />
           </div>
         </div>
         <main className="flex-1 p-4 md:p-7 max-w-[1400px] w-full mx-auto">
