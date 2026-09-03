@@ -315,6 +315,7 @@ function AudioModal({ editing, scholars, categories, series, onClose, onSave }) 
           <Input label="رقم الجزء" type="number" value={form.episode_number} onChange={(e) => set("episode_number", e.target.value)} />
           <Input label="المدة (ثانية)" type="number" value={form.duration} onChange={(e) => set("duration", e.target.value)} />
           <Input label="رابط الأرشيف" dir="ltr" value={form.archive_url || ""} onChange={(e) => set("archive_url", e.target.value)} />
+          <Input label="رابط الغلاف" dir="ltr" value={form.cover_image_url || ""} onChange={(e) => set("cover_image_url", e.target.value)} placeholder="https://…/cover.jpg" />
           <Input label="رابط الملف" dir="ltr" className="md:col-span-2" value={form.file_url || ""} onChange={(e) => set("file_url", e.target.value)} />
           <textarea
             className="md:col-span-2 w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm outline-none focus:border-green2"
