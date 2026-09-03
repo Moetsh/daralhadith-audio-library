@@ -26,9 +26,18 @@ export function createApp() {
   app.use(cors());
   app.use(express.json({ limit: "2mb" }));
 
+  /* ترويسات منع التخزين للوحة التحكم — وإلا يقدّم CDN نسخاً قديمة */
+  const noStore = (res) => {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+  };
+
   app.get("/", (_req, res) => {
-    if (existsSync(join(adminDist, "index.html")))
+    if (existsSync(join(adminDist, "index.html"))) {
+      noStore(res);
       return res.sendFile(join(adminDist, "index.html"));
+    }
     res.json({ name: "دار الحديث الصوتية API", version: "1.0.0" });
   });
 
@@ -48,20 +57,22 @@ export function createApp() {
   /* لوحة التحكم الموحّدة — تتصل بـ Firebase عبر الـ API */
   const legacyFile = join(__dir, "..", "..", "admin", "legacy.html");
   if (existsSync(legacyFile)) {
-    app.get("/admin-legacy", (_req, res) => res.sendFile(legacyFile));
+    app.get("/admin-legacy", (_req, res) => {
+      noStore(res);
+      res.sendFile(legacyFile);
+    });
   }
 
   /* ربط لوحة التحكم المبنيّة (اختياري) */
   if (existsSync(adminDist)) {
     app.use(express.static(adminDist, {
       setHeaders(res) {
-        res.set("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.set("Pragma", "no-cache");
-        res.set("Expires", "0");
+        noStore(res);
       }
     }));
     app.get("*", (req, res) => {
       if (req.path.startsWith("/api")) return res.status(404).json({ error: "غير موجود" });
+      noStore(res);
       res.sendFile(join(adminDist, "index.html"));
     });
   }
