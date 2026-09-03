@@ -10,7 +10,8 @@ import {
 import { EditModal } from "../components/EditModal";
 import { ConfirmDelete } from "../components/ConfirmDelete";
 import { CoverPicker } from "../components/CoverPicker";
-import { Search, Plus, ImageIcon } from "lucide-react";
+import { SeriesModal } from "../components/SeriesModal";
+import { Search, Plus, Pencil, ImageIcon } from "lucide-react";
 
 const EMPTY = {
   title: "", title_en: "", scholar_id: "", category_id: "", sub_category_id: "", series_id: "",
@@ -50,7 +51,8 @@ export default function Audios() {
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
 
-  const { scholars, categories, series, error: refsError } = useRefs();
+  const { scholars, categories, series, error: refsError, reload: reloadRefs } = useRefs();
+  const [editingSeries, setEditingSeries] = useState(null);
   const { rows, loading, error, reload } = useList(async () => {
     const params = { page, per: 25, ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)) };
     const r = await api("/audios", { params });
@@ -63,6 +65,12 @@ export default function Audios() {
   const setFilter = (k, v) => {
     setPage(1);
     setFilters((f) => ({ ...f, [k]: v }));
+  };
+
+  const saveSeries = async (payload) => {
+    await api("/series/" + editingSeries.id, { method: "PUT", body: payload });
+    setEditingSeries(null);
+    await reloadRefs();
   };
 
   const toggleStatus = async (a) => {
@@ -187,10 +195,24 @@ export default function Audios() {
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </Select>
-              <Select label="السلسلة (اختياري)" value={form.series_id || ""} onChange={(e) => set("series_id", e.target.value)}>
-                <option value="">بدون سلسلة</option>
-                {series.map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
-              </Select>
+              <div className="flex items-end gap-2">
+                <div className="flex-1 min-w-0">
+                  <Select label="السلسلة (اختياري)" value={form.series_id || ""} onChange={(e) => set("series_id", e.target.value)}>
+                    <option value="">بدون سلسلة</option>
+                    {series.map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
+                  </Select>
+                </div>
+                {form.series_id && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    title="تعديل السلسلة"
+                    onClick={() => setEditingSeries(series.find((s) => s.id === form.series_id) || null)}
+                  >
+                    <Pencil size={14} /> السلسلة
+                  </Button>
+                )}
+              </div>
               <Input label="رقم الجزء" type="number" value={form.episode_number} onChange={(e) => set("episode_number", e.target.value)} />
               <Input label="المدة (ثانية)" type="number" value={form.duration} onChange={(e) => set("duration", e.target.value)} />
               <Input label="رابط الأرشيف" dir="ltr" value={form.archive_url || ""} onChange={(e) => set("archive_url", e.target.value)} />
@@ -217,6 +239,14 @@ export default function Audios() {
         confirmLabel="حذف نهائي"
         onClose={() => setConfirmDel(null)}
         onConfirm={remove}
+      />
+
+      <SeriesModal
+        editing={editingSeries}
+        scholars={scholars}
+        categories={categories}
+        onClose={() => setEditingSeries(null)}
+        onSave={saveSeries}
       />
     </div>
   );
