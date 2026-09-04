@@ -38,17 +38,23 @@ export function useUpdateChecker(currentVersion: string) {
     if (!isAndroid) return null;
     setChecking(true);
     setError(null);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 15000);
     try {
-      const r = await fetch(`${API_BASE}/api/version?t=${Date.now()}`, { cache: "no-store" as RequestCache });
+      const r = await fetch(`${API_BASE}/api/version?t=${Date.now()}`, {
+        cache: "no-store" as RequestCache,
+        signal: ctrl.signal,
+      });
       if (!r.ok) throw new Error("network");
       const data: VersionInfo = await r.json();
       setLatest(data);
       if (data.version && isNewer(data.version, currentVersion)) return data;
       return null;
-    } catch {
-      setError("تعذر التحقق من التحديث");
+    } catch (e: any) {
+      setError(e?.name === "AbortError" ? "انتهت مهلة التحقق — تحقق من الاتصال وحاول مجددًا" : "تعذر التحقق من التحديث");
       return null;
     } finally {
+      clearTimeout(timer);
       setChecking(false);
     }
   }, [isAndroid, currentVersion]);
