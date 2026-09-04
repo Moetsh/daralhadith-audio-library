@@ -7,7 +7,7 @@ import {
   Play, Pause, Heart as HeartIcon, ArrowRight, ArrowLeft, Search, Check, type LucideIcon,
 } from "lucide-react";
 import type { AudioItem, Scholar, Series } from "../data/library";
-import { catById, catColor, scholarById, scholarColor } from "../data/library";
+import { catById, scholarById, scholarColor } from "../data/library";
 import { ar, fmtAgo, fmtCount, fmtDur, type Strings } from "../lib/utils";
 import { useApp } from "../store/appStore";
 import { useSettings } from "../store/core";
@@ -56,12 +56,10 @@ export const Logo = ({ size = 56, radius = 16 }: { size?: number; radius?: numbe
 );
 
 /* شارة غلاف الشريط — تصميم محسّن */
-export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, src, title: _title, fluid = false, fill = false }: { catId: string; icon?: string; size?: number; radius?: number; playing?: boolean; src?: string; title?: string; fluid?: boolean; fill?: boolean }) => {
+export const Cover = ({ icon, size = 56, radius = 14, playing = false, src, title: _title, fluid = false, fill = false }: { catId: string; icon?: string; size?: number; radius?: number; playing?: boolean; src?: string; title?: string; fluid?: boolean; fill?: boolean }) => {
   const [failed, setFailed] = useState(false);
   const [ratio, setRatio] = useState<number | null>(null);
   const showImg = src && !failed;
-  const bg = catColor(catId);
-  const lighterBg = bg + "30";
   const disp = fluid ? 340 : size;
   const aspect = ratio ? `${ratio} / 1` : undefined;
   return (
@@ -70,7 +68,7 @@ export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, sr
       style={{
         width: fluid || fill ? undefined : size, height: fluid || fill ? undefined : size, borderRadius: radius,
         aspectRatio: fluid ? (aspect ?? "1 / 1") : fill ? "1 / 1" : undefined,
-        background: showImg ? "transparent" : `linear-gradient(145deg, ${bg} 0%, ${bg}dd 40%, ${bg}99 100%)`,
+        background: showImg ? "transparent" : "var(--card-2)",
         boxShadow: "0 8px 24px -6px rgba(10,30,18,.5), 0 2px 8px -2px rgba(10,30,18,.3)",
       }}
     >
@@ -88,18 +86,15 @@ export const Cover = ({ catId, icon, size = 56, radius = 14, playing = false, sr
       ) : (
         <>
           <div className="absolute inset-0 girih opacity-[0.12]" style={{ color: "var(--cover-girih)" }} />
-          <div className="absolute inset-0 opacity-20" style={{
-            background: `radial-gradient(circle at 30% 25%, ${lighterBg} 0%, transparent 50%), radial-gradient(circle at 70% 75%, rgba(0,0,0,.15) 0%, transparent 50%)`,
-          }} />
-          <div className="absolute inset-[2px] rounded-[inherit] border border-white/15" style={{ borderRadius: radius - 2 }} />
+          <div className="absolute inset-[2px] rounded-[inherit] border" style={{ borderRadius: radius - 2, borderColor: "var(--line)" }} />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
             {playing ? (
               <Eq size={Math.max(16, disp * 0.28)} />
             ) : (
               <>
-                <CatIcon icon={icon ?? "book"} size={Math.max(18, disp * 0.32)} className="text-white/90" />
+                <CatIcon icon={icon ?? "book"} size={Math.max(18, disp * 0.32)} className="c-gold" />
                 {disp >= 80 && (
-                  <span className="text-white/60 font-black leading-none" style={{ fontSize: Math.max(9, disp * 0.14), fontFamily: "Amiri" }}>
+                  <span className="ink-3 font-black leading-none" style={{ fontSize: Math.max(9, disp * 0.14), fontFamily: "Amiri" }}>
                     دار الحديث
                   </span>
                 )}
