@@ -10,7 +10,7 @@ import { ar, fmtDur, fmtCount } from "../lib/utils";
 import { useApp } from "../store/appStore";
 import { useSettings } from "../store/core";
 import { usePlayer } from "../store/player";
-import { Cover, Eq, FavBtn, GirihBG, CatIcon } from "./ui";
+import { Cover, Eq, FavBtn, GirihBG } from "./ui";
 
 /* شريط تقدم مخصص متوافق RTL */
 export const SeekBar = ({ value, max, onSeek, gold = true }: { value: number; max: number; onSeek: (v: number) => void; gold?: boolean }) => {
@@ -366,10 +366,6 @@ const SheetContent = () => {
           </div>
         )}
 
-        <div className="mt-6 text-center text-[0.64rem] ink-3 font-bold flex items-center justify-center gap-1.5">
-          <CatIcon icon="waves" size={12} className="c-gold" />
-          {p.usedAlt ? "بث تجريبي — مصدر احتياطي" : t.demoTag}
-        </div>
       </div>
     </motion.div>
   );
