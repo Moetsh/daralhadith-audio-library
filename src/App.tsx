@@ -7,6 +7,7 @@ import {
 import { useEffect, useState } from "react";
 import { MiniPlayer, FullPlayer } from "./components/Player";
 import { GirihBG, Logo, Toast } from "./components/ui";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { useApp } from "./store/appStore";
 import { useNav, useSettings, type Route } from "./store/core";
 import { useServerContent } from "./store/serverContent";
@@ -124,7 +125,9 @@ const AppShell = ({ framed }: { framed: boolean }) => {
           exit={{ x: push ? 52 : -52, opacity: 0.4 }}
           transition={{ type: "spring", stiffness: 340, damping: 34 }}
         >
-          <ScreenFor r={top} />
+          <ErrorBoundary title="تعذّر عرض هذه الشاشة">
+            <ScreenFor r={top} />
+          </ErrorBoundary>
         </motion.div>
       </AnimatePresence>
 
