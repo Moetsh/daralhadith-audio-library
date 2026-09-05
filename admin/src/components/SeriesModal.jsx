@@ -36,24 +36,20 @@ export const seriesToPayload = (f, editing) => ({
   order_direction: f.order_direction,
 });
 
-/* تطبيق غلاف سلسلة على حلقاتها دفعاتٍ (لتفادي مهلة الخادم في السلاسل الضخمة).
+/* تطبيق غلاف سلسلة على حلقاتها من المتصفح مباشرة (حلقة → طلب PUT واحد).
+   يتفادى مهلة الخادم في السلاسل الضخمة لأن كل طلب صغير وسريع.
    onProgress تستقبل { updated, total, done } لعرض التقدم. */
-export async function applySeriesCover(seriesId, { mode = "empty", cover_image_url = null, limit = 200 } = {}, onProgress) {
-  let offset = 0;
+export async function applySeriesCover(seriesId, { mode = "empty", cover_image_url = null } = {}, onProgress) {
+  if (!cover_image_url) throw new Error("لا يوجد غلاف");
+  const eps = await api(`/series/${seriesId}/episode-ids`);
+  const targets = mode === "all" ? eps : eps.filter((e) => !e.hasCover);
   let updated = 0;
-  let total = 0;
-  for (;;) {
-    const r = await api(`/series/${seriesId}/apply-cover`, {
-      method: "POST",
-      body: { mode, cover_image_url, limit, offset },
-    });
-    updated += r.updated;
-    total = r.total;
-    onProgress?.({ updated, total, done: r.done });
-    if (r.done) break;
-    offset = r.nextOffset;
+  for (const ep of targets) {
+    await api("/audios/" + ep.id, { method: "PUT", body: { cover_image_url } });
+    updated++;
+    onProgress?.({ updated, total: targets.length, done: updated >= targets.length });
   }
-  return { updated, total };
+  return { updated, total: targets.length };
 }
 
 /* نافذة إنشاء/تعديل سلسلة — مشتركة بين صفحة السلاسل ونافذة الشريط.

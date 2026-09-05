@@ -52,6 +52,19 @@ r.get("/:id", wrap(async (req, res) => {
   res.json({ ...s, id: req.params.id, branches });
 }));
 
+/* معرفات حلقات سلسلة فقط (خفيف لل تتالي من المتصفح دون مسح كامل متكرر) */
+r.get("/:id/episode-ids", wrap(async (req, res) => {
+  const rows = (await listNode("audios"))
+    .filter(({ value }) => value.series_id === req.params.id)
+    .map(({ id, value }) => ({
+      id,
+      episode_number: value.episode_number ?? null,
+      hasCover: !!value.cover_image_url,
+    }))
+    .sort((a, b) => (a.episode_number || 0) - (b.episode_number || 0));
+  res.json(rows);
+}));
+
 r.get("/:id/episodes", wrap(async (req, res) => {
   const rows = (await listNode("audios"))
     .filter(({ value }) => value.series_id === req.params.id)
