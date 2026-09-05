@@ -4,7 +4,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ar } from "../lib/utils";
 import { useUpdateChecker } from "../lib/useUpdateChecker";
 import { useSettings, type Theme } from "../store/core";
@@ -91,11 +91,21 @@ const SyncCard = () => {
   );
 };
 
-const CURRENT_VERSION = "1.40";
+const FALLBACK_VERSION = "1.40";
 
 const UpdateCard = () => {
   const t = useSettings((s) => s.t);
-  const u = useUpdateChecker(CURRENT_VERSION);
+  const [currentVersion, setCurrentVersion] = useState(FALLBACK_VERSION);
+  useEffect(() => {
+    (async () => {
+      try {
+        const { App } = await import("@capacitor/app");
+        const info = await App.getInfo();
+        if (info?.version) setCurrentVersion(info.version);
+      } catch {}
+    })();
+  }, []);
+  const u = useUpdateChecker(currentVersion);
 
   if (!u.isAndroid) return null;
 
@@ -106,7 +116,7 @@ const UpdateCard = () => {
         {u.hasUpdate ? (
           <span className="w-2 h-2 rounded-full bg-[#e07a22] animate-pulse" />
         ) : (
-          <span className="text-[0.6rem] font-bold c-green">{t.ver} {CURRENT_VERSION}</span>
+          <span className="text-[0.6rem] font-bold c-green">{t.ver} {currentVersion}</span>
         )}
       </Row>
       <div className="px-4 pb-4 pt-1 space-y-2.5">
@@ -118,17 +128,26 @@ const UpdateCard = () => {
         )}
         <div className="flex items-center gap-2.5">
           {u.hasUpdate ? (
-            <button
-              onClick={() => u.apkUrl && u.downloadAndInstall(u.apkUrl)}
-              disabled={u.downloading}
-              className="h-9 px-4 rounded-full bg-[#e07a22] text-white text-[0.72rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
-            >
-              {u.downloading ? (
-                <><RefreshCw size={13} className="animate-spin" /> {t.downloading} {Math.round(u.progress * 100)}%</>
-              ) : (
-                <><ArrowDownToLine size={13} /> {t.updateNow}</>
-              )}
-            </button>
+            <>
+              <button
+                onClick={() => u.apkUrl && u.downloadAndInstall(u.apkUrl)}
+                disabled={u.downloading}
+                className="h-9 px-4 rounded-full bg-[#e07a22] text-white text-[0.72rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
+              >
+                {u.downloading ? (
+                  <><RefreshCw size={13} className="animate-spin" /> {t.downloading} {Math.round(u.progress * 100)}%</>
+                ) : (
+                  <><ArrowDownToLine size={13} /> {t.updateNow}</>
+                )}
+              </button>
+              <button
+                onClick={() => u.apkUrl && u.downloadApk(u.apkUrl)}
+                disabled={u.downloading}
+                className="h-9 px-4 rounded-full surface bline border text-[0.72rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
+              >
+                <Download size={13} /> تحميل APK
+              </button>
+            </>
           ) : (
             <button
               onClick={u.checkForUpdate}

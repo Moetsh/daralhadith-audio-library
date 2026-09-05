@@ -97,6 +97,18 @@ export function useUpdateChecker(currentVersion: string) {
 
   const hasUpdate = latest?.version ? isNewer(latest.version, currentVersion) : false;
 
+  const downloadApk = useCallback(async (apkUrl: string) => {
+    if (!apkUrl) return;
+    setError(null);
+    try {
+      const { Browser } = await import("@capacitor/browser");
+      await Browser.open({ url: apkUrl });
+      setDone(true);
+    } catch (e: any) {
+      setError(e?.message || String(e));
+    }
+  }, []);
+
   return {
     hasUpdate,
     latestVersion: latest?.version || null,
@@ -110,5 +122,6 @@ export function useUpdateChecker(currentVersion: string) {
     isAndroid,
     checkForUpdate,
     downloadAndInstall,
+    downloadApk,
   };
 }
