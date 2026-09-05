@@ -247,6 +247,7 @@ export default function Audios() {
         categories={categories}
         onClose={() => setEditingSeries(null)}
         onSave={saveSeries}
+        onSaved={reloadRefs}
       />
     </div>
   );

@@ -55,6 +55,7 @@ export default function Series() {
         categories={categories}
         onClose={() => setEditing(null)}
         onSave={save}
+        onSaved={reload}
       />
 
       <ConfirmDelete

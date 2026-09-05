@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getNode, setNode, removeNode, listNode, wrap } from "../fb.js";
+import { getNode, setNode, updateNode, removeNode, listNode, wrap } from "../fb.js";
 import { authUser, adminOnly, logAction } from "../auth.js";
 
 const r = Router();
@@ -90,6 +90,23 @@ r.put("/:id", authUser, adminOnly, wrap(async (req, res) => {
   });
   logAction(req, "update", "series", req.params.id, `عدّل سلسلة «${d.title}»`);
   res.json({ ...(await getNode("series/" + req.params.id)), id: req.params.id });
+}));
+
+r.post("/:id/apply-cover", authUser, adminOnly, wrap(async (req, res) => {
+  const s = await getNode("series/" + req.params.id);
+  if (!s) return res.status(404).json({ error: "غير موجود" });
+  const cover = s.cover_image_url;
+  if (!cover) return res.status(400).json({ error: "لا يوجد غلاف محفوظ لهذه السلسلة" });
+  const mode = req.body?.mode === "all" ? "all" : "empty";
+  const eps = (await listNode("audios")).filter(({ value }) => value.series_id === req.params.id);
+  let updated = 0;
+  for (const { id, value } of eps) {
+    if (mode === "empty" && value.cover_image_url) continue;
+    await updateNode("audios/" + id, { cover_image_url: cover });
+    updated++;
+  }
+  logAction(req, "update", "series", req.params.id, `طبّق غلاف السلسلة على ${updated} من ${eps.length} حلقة`);
+  res.json({ ok: true, updated, total: eps.length });
 }));
 
 r.delete("/:id", authUser, adminOnly, wrap(async (req, res) => {
