@@ -1,13 +1,13 @@
 import { ImageIcon, Upload } from "lucide-react";
 
-/* تصغير صورة الغلاف إلى 600px (JPEG بجودة 0.82) عبر canvas ثم إرجاع DataURL. */
+/* تصغير صورة الغلاف إلى 1000px (JPEG بجودة 0.90) عبر canvas ثم إرجاع DataURL. */
 function fileToCoverDataUrl(file) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
       try {
-        const MAX = 600;
+        const MAX = 1000;
         const scale = Math.min(1, MAX / Math.max(img.width, img.height));
         const w = Math.max(1, Math.round(img.width * scale));
         const h = Math.max(1, Math.round(img.height * scale));
@@ -15,7 +15,7 @@ function fileToCoverDataUrl(file) {
         cv.width = w;
         cv.height = h;
         cv.getContext("2d").drawImage(img, 0, 0, w, h);
-        resolve(cv.toDataURL("image/jpeg", 0.82));
+        resolve(cv.toDataURL("image/jpeg", 0.9));
       } catch (e) {
         reject(e);
       } finally {
@@ -72,7 +72,7 @@ export function CoverPicker({ value, onChange }) {
               </button>
             </div>
           )}
-          <p className="text-[11px] text-ink3">تُقلَّص الصورة تلقائياً إلى 600px وتُخزّن مع الشريط.</p>
+          <p className="text-[11px] text-ink3">تُقلَّص الصورة تلقائياً إلى 1000px بجودة عالية وتُخزّن مع الشريط.</p>
         </div>
       </div>
     </div>

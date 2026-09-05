@@ -1,5 +1,5 @@
 ﻿import { Router } from "express";
-import { getNode, setNode, removeNode, pushNode, mapNode, listNode, wrap, nowISO } from "../fb.js";
+import { getNode, setNode, updateNode, removeNode, pushNode, mapNode, listNode, wrap, nowISO } from "../fb.js";
 import { authUser, adminOnly, logAction } from "../auth.js";
 
 const r = Router();
@@ -101,6 +101,90 @@ r.get("/admins", wrap(async (req, res) => {
     .filter(({ value }) => value.role === "admin")
     .map(({ id, value }) => ({ id, name: value.name, email: value.email, role: value.role, created_at: value.created_at }));
   res.json(rows);
+}));
+
+/* ترقية أغلفة services/img (منخفضة الدقة) إلى الصورة الأصلية الكاملة.
+   يعمل دفعاتٍ عبر cursor/limit، ويحدّث كل السجلات (أشرطة/سلاسل/تصنيفات)
+   بطلب PATCH واحد متعدد المسارات. */
+const ARCH_IMG_RE = /^https:\/\/archive\.org\/services\/img\/([^/?#]+)\/?$/;
+
+async function archiveLargestImage(identifier) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const r = await fetch(`https://archive.org/metadata/${encodeURIComponent(identifier)}`, { signal: ctrl.signal });
+    if (!r.ok) return null;
+    const meta = await r.json();
+    const files = Array.isArray(meta?.files) ? meta.files : [];
+    const imgs = files.filter((f) =>
+      /jpe?g|png|gif/i.test(String(f.format || "")) &&
+      !/thumb|small|tiles|_djvu|_meta/i.test(String(f.name || ""))
+    );
+    if (!imgs.length) return null;
+    imgs.sort((a, b) => (Number(b.size) || 0) - (Number(a.size) || 0));
+    return `https://archive.org/download/${encodeURIComponent(identifier)}/${encodeURIComponent(imgs[0].name).replace(/%2F/g, "/")}`;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/* قائمة المعرفات التي ما زالت أغلفتها منخفضة الدقة (للترقية الصريحة دفعاتٍ). */
+r.get("/upgrade-covers/pending", wrap(async (_req, res) => {
+  const idents = new Map();
+  const push = (url) => {
+    const m = String(url || "").match(ARCH_IMG_RE);
+    if (!m) return;
+    const cur = idents.get(m[1]) || 0;
+    idents.set(m[1], cur + 1);
+  };
+  const [audios, series, categories] = await Promise.all([
+    mapNode("audios"), mapNode("series"), mapNode("categories"),
+  ]);
+  for (const a of Object.values(audios)) push(a.cover_image_url);
+  for (const s of Object.values(series)) push(s.cover_image_url);
+  for (const c of Object.values(categories)) push(c.cover_image_url);
+  const list = [...idents.entries()]
+    .map(([ident, records]) => ({ ident, records }))
+    .sort((a, b) => b.records - a.records);
+  res.json({ ok: true, count: list.length, idents: list });
+}));
+
+r.post("/upgrade-covers", wrap(async (req, res) => {
+  const idents = Array.isArray(req.body?.idents) ? req.body.idents.map(String).slice(0, 25) : [];
+  if (!idents.length) return res.status(400).json({ error: "لا توجد معرفات" });
+  const targets = new Map();
+  const push = (url, t, id) => {
+    const m = String(url || "").match(ARCH_IMG_RE);
+    if (!m || !idents.includes(m[1])) return;
+    if (!targets.has(url)) targets.set(url, { ident: m[1], refs: [] });
+    targets.get(url).refs.push({ t, id });
+  };
+  const [audios, series, categories] = await Promise.all([
+    mapNode("audios"), mapNode("series"), mapNode("categories"),
+  ]);
+  for (const [id, a] of Object.entries(audios)) push(a.cover_image_url, "audios", id);
+  for (const [id, s] of Object.entries(series)) push(s.cover_image_url, "series", id);
+  for (const [id, c] of Object.entries(categories)) push(c.cover_image_url, "categories", id);
+  const byIdent = new Map();
+  for (const { ident, refs } of targets.values()) {
+    if (!byIdent.has(ident)) byIdent.set(ident, []);
+    byIdent.get(ident).push(...refs);
+  }
+  const multi = {};
+  let upgraded = 0;
+  const results = [];
+  for (const [ident, refs] of byIdent) {
+    const full = await archiveLargestImage(ident);
+    if (!full) { results.push({ ident, ok: false, records: 0 }); continue; }
+    for (const { t, id } of refs) multi[`${t}/${id}/cover_image_url`] = full;
+    upgraded += refs.length;
+    results.push({ ident, ok: true, records: refs.length });
+  }
+  if (Object.keys(multi).length) await updateNode("", multi);
+  logAction(req, "update", "settings", null, `ترقية أغلفة الأرشيف للدقة الكاملة (${upgraded} سجلاً)`);
+  res.json({ ok: true, upgraded, results });
 }));
 
 /* المزامنة أصبحت تلقائية (Firebase هو قاعدة البيانات نفسها) — تُرجع الإحصائيات فقط */
