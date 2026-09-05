@@ -35,6 +35,26 @@ export const seriesToPayload = (f, editing) => ({
   order_direction: f.order_direction,
 });
 
+/* تطبيق غلاف سلسلة على حلقاتها دفعاتٍ (لتفادي مهلة الخادم في السلاسل الضخمة).
+   onProgress تستقبل { updated, total, done } لعرض التقدم. */
+export async function applySeriesCover(seriesId, { mode = "empty", cover_image_url = null, limit = 200 } = {}, onProgress) {
+  let offset = 0;
+  let updated = 0;
+  let total = 0;
+  for (;;) {
+    const r = await api(`/series/${seriesId}/apply-cover`, {
+      method: "POST",
+      body: { mode, cover_image_url, limit, offset },
+    });
+    updated += r.updated;
+    total = r.total;
+    onProgress?.({ updated, total, done: r.done });
+    if (r.done) break;
+    offset = r.nextOffset;
+  }
+  return { updated, total };
+}
+
 /* نافذة إنشاء/تعديل سلسلة — مشتركة بين صفحة السلاسل ونافذة الشريط.
    تتضمن رفع غلاف السلسلة وتطبيقه على كل حلقاتها. */
 export function SeriesModal({ editing, scholars, categories, onClose, onSave, onSaved }) {
@@ -69,11 +89,14 @@ export function SeriesModal({ editing, scholars, categories, onClose, onSave, on
           try {
             const payload = seriesToPayload(form, editing);
             if (editing?.id) await api("/series/" + editing.id, { method: "PUT", body: payload });
-            const r = await api(`/series/${editing.id}/apply-cover`, {
-              method: "POST",
-              body: { mode: overwrite ? "all" : "empty" },
-            });
-            setApplyMsg({ ok: true, text: `تم تطبيق الغلاف على ${r.updated} من ${r.total} حلقة` });
+            const { updated, total } = await applySeriesCover(
+              editing.id,
+              { mode: overwrite ? "all" : "empty" },
+              ({ updated: u, total: t, done }) => {
+                if (!done) setApplyMsg({ ok: true, text: `جارٍ التطبيق… ${u} من ${t} حلقة` });
+              }
+            );
+            setApplyMsg({ ok: true, text: `تم تطبيق الغلاف على ${updated} من ${total} حلقة` });
             await onSaved?.();
           } catch (e) {
             setApplyMsg({ ok: false, text: e.message || "حدث خطأ" });

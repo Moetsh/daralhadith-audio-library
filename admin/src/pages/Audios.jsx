@@ -10,7 +10,7 @@ import {
 import { EditModal } from "../components/EditModal";
 import { ConfirmDelete } from "../components/ConfirmDelete";
 import { CoverPicker } from "../components/CoverPicker";
-import { SeriesModal } from "../components/SeriesModal";
+import { SeriesModal, applySeriesCover } from "../components/SeriesModal";
 import { Search, Plus, Pencil, ImageIcon } from "lucide-react";
 
 const EMPTY = {
@@ -191,11 +191,14 @@ export default function Audios() {
             setCMsg(null);
             try {
               await api("/audios/" + editing.id, { method: "PUT", body: toPayload(form) });
-              const r = await api(`/series/${form.series_id}/apply-cover`, {
-                method: "POST",
-                body: { mode: cOverwrite ? "all" : "empty", cover_image_url: form.cover_image_url || null },
-              });
-              setCMsg({ ok: true, text: `تم تطبيق الغلاف على ${r.updated} من ${r.total} حلقة` });
+              const { updated, total } = await applySeriesCover(
+                form.series_id,
+                { mode: cOverwrite ? "all" : "empty", cover_image_url: form.cover_image_url || null },
+                ({ updated: u, total: t, done }) => {
+                  if (!done) setCMsg({ ok: true, text: `جارٍ التطبيق… ${u} من ${t} حلقة` });
+                }
+              );
+              setCMsg({ ok: true, text: `تم تطبيق الغلاف على ${updated} من ${total} حلقة` });
               reload();
             } catch (e) {
               setCMsg({ ok: false, text: e.message || "حدث خطأ" });

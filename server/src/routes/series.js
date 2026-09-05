@@ -101,15 +101,20 @@ r.post("/:id/apply-cover", authUser, adminOnly, wrap(async (req, res) => {
     await updateNode("series/" + req.params.id, { cover_image_url: req.body.cover_image_url });
   }
   const mode = req.body?.mode === "all" ? "all" : "empty";
+  const limit = Math.min(Math.max(parseInt(req.body?.limit, 10) || 200, 1), 500);
+  const offset = Math.max(parseInt(req.body?.offset, 10) || 0, 0);
   const eps = (await listNode("audios")).filter(({ value }) => value.series_id === req.params.id);
+  const batch = eps.slice(offset, offset + limit);
   let updated = 0;
-  for (const { id, value } of eps) {
+  for (const { id, value } of batch) {
     if (mode === "empty" && value.cover_image_url) continue;
     await updateNode("audios/" + id, { cover_image_url: cover });
     updated++;
   }
-  logAction(req, "update", "series", req.params.id, `طبّق غلاف السلسلة على ${updated} من ${eps.length} حلقة`);
-  res.json({ ok: true, updated, total: eps.length });
+  const nextOffset = offset + batch.length;
+  const done = nextOffset >= eps.length;
+  if (done) logAction(req, "update", "series", req.params.id, `طبّق غلاف السلسلة (وضع ${mode === "all" ? "الكل" : "الفارغ فقط"})`);
+  res.json({ ok: true, updated, total: eps.length, offset, limit, nextOffset, done });
 }));
 
 r.delete("/:id", authUser, adminOnly, wrap(async (req, res) => {
