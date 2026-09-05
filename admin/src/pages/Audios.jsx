@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api";
 import { useList } from "../hooks";
 import { useCrud } from "../hooks";
@@ -72,6 +72,18 @@ export default function Audios() {
     setEditingSeries(null);
     await reloadRefs();
   };
+
+  const [cApply, setCApply] = useState(false);
+  const [cOverwrite, setCOverwrite] = useState(false);
+  const [cBusy, setCBusy] = useState(false);
+  const [cMsg, setCMsg] = useState(null);
+
+  useEffect(() => {
+    setCApply(false);
+    setCOverwrite(false);
+    setCMsg(null);
+    setCBusy(false);
+  }, [editing?.id]);
 
   const toggleStatus = async (a) => {
     const next = a.status === "published" ? "hidden" : "published";
@@ -173,7 +185,26 @@ export default function Audios() {
         onClose={() => setEditing(null)}
         onSave={save}
       >
-        {({ form, set }) => (
+        {({ form, set }) => {
+          const applyAudioCover = async () => {
+            setCBusy(true);
+            setCMsg(null);
+            try {
+              await api("/audios/" + editing.id, { method: "PUT", body: toPayload(form) });
+              const r = await api(`/series/${form.series_id}/apply-cover`, {
+                method: "POST",
+                body: { mode: cOverwrite ? "all" : "empty", cover_image_url: form.cover_image_url || null },
+              });
+              setCMsg({ ok: true, text: `تم تطبيق الغلاف على ${r.updated} من ${r.total} حلقة` });
+              reload();
+            } catch (e) {
+              setCMsg({ ok: false, text: e.message || "حدث خطأ" });
+            } finally {
+              setCBusy(false);
+            }
+          };
+
+          return (
           <>
             <CoverPicker value={form.cover_image_url || ""} onChange={(v) => set("cover_image_url", v)} />
             <div className="grid md:grid-cols-2 gap-4">
@@ -229,8 +260,47 @@ export default function Audios() {
                 <Check label="يُسمح بالتحميل" checked={!!form.allow_download} onChange={(e) => set("allow_download", e.target.checked)} />
               </div>
             </div>
+            {editing?.id && form.series_id && (
+              <div className="rounded-2xl border border-line p-4 space-y-3 bg-bg2/40">
+                <Check
+                  label="تطبيق غلاف هذا الشريط على كل حلقات السلسلة"
+                  checked={cApply}
+                  onChange={(e) => { setCApply(e.target.checked); setCMsg(null); }}
+                />
+                {cApply && (
+                  <>
+                    <Check
+                      label="استبدال أغلفة الحلقات الموجودة أيضًا"
+                      checked={cOverwrite}
+                      onChange={(e) => setCOverwrite(e.target.checked)}
+                    />
+                    <p className="text-[11px] text-ink3">
+                      {cOverwrite
+                        ? "سيُستبدل غلاف كل الحلقات (والسلسلة) بهذا الغلاف."
+                        : "سيُطبَّق الغلاف فقط على الحلقات التي بلا غلاف."}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="gold"
+                        disabled={cBusy || !form.cover_image_url}
+                        onClick={applyAudioCover}
+                      >
+                        {cBusy ? "جارٍ التطبيق…" : "حفظ الغلاف وتطبيقه الآن"}
+                      </Button>
+                    </div>
+                    {cMsg && (
+                      <div>
+                        <Badge tone={cMsg.ok ? "green" : "danger"}>{cMsg.text}</Badge>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </>
-        )}
+          );
+        }}
       </EditModal>
 
       <ConfirmDelete

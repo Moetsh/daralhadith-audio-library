@@ -95,8 +95,11 @@ r.put("/:id", authUser, adminOnly, wrap(async (req, res) => {
 r.post("/:id/apply-cover", authUser, adminOnly, wrap(async (req, res) => {
   const s = await getNode("series/" + req.params.id);
   if (!s) return res.status(404).json({ error: "غير موجود" });
-  const cover = s.cover_image_url;
+  const cover = req.body?.cover_image_url || s.cover_image_url;
   if (!cover) return res.status(400).json({ error: "لا يوجد غلاف محفوظ لهذه السلسلة" });
+  if (req.body?.cover_image_url && req.body.cover_image_url !== s.cover_image_url) {
+    await updateNode("series/" + req.params.id, { cover_image_url: req.body.cover_image_url });
+  }
   const mode = req.body?.mode === "all" ? "all" : "empty";
   const eps = (await listNode("audios")).filter(({ value }) => value.series_id === req.params.id);
   let updated = 0;
