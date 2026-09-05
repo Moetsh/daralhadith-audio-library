@@ -5,9 +5,10 @@ import { EditModal } from "../components/EditModal";
 import { ConfirmDelete } from "../components/ConfirmDelete";
 import { Plus, Star } from "lucide-react";
 
-const EMPTY = { name: "", name_en: "", bio: "", specialization: "", country: "", status: "active", is_featured: false };
+const EMPTY = { id: "", name: "", name_en: "", bio: "", specialization: "", country: "", status: "active", is_featured: false };
 
 const toForm = (s) => ({
+  id: s.id || "",
   name: s.name || "",
   name_en: s.name_en || "",
   bio: s.bio || "",
@@ -18,7 +19,7 @@ const toForm = (s) => ({
 });
 
 const toPayload = (f, editing) => ({
-  id: editing?.id || undefined,
+  id: f.id || editing?.id || undefined,
   name: f.name,
   name_en: f.name_en || null,
   bio: f.bio || null,
@@ -76,7 +77,7 @@ export default function Scholars() {
         {({ form, set }) => (
           <>
             <div className="grid md:grid-cols-2 gap-4">
-              <Input label="المعرف (لاتيني بلا مسافات)" required dir="ltr" className="text-left" value={editing?.id || ""} disabled={!!editing?.id} placeholder="مثال: albani" />
+              <Input label="المعرف (لاتيني بلا مسافات)" required dir="ltr" className="text-left" value={form.id} disabled={!!editing?.id} onChange={(e) => set("id", e.target.value)} placeholder="مثال: albani" />
               <Input label="الاسم (عربي)" required value={form.name} onChange={(e) => set("name", e.target.value)} />
               <Input label="الاسم (إنجليزي)" dir="ltr" value={form.name_en} onChange={(e) => set("name_en", e.target.value)} />
               <Input label="التخصص" value={form.specialization} onChange={(e) => set("specialization", e.target.value)} />

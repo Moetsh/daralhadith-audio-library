@@ -4,8 +4,6 @@ import { useRefs, useForm } from "../hooks";
 import { PageTitle, Button, Card, Input, Select, ErrorBox, cx, Spinner, Badge } from "../components/ui";
 import { Search, DownloadCloud, CheckSquare, Square, Layers, Link } from "lucide-react";
 
-const BRANCH_COLORS = ["bg-orange-100 text-orange-700", "bg-amber-100 text-amber-700", "bg-sky-100 text-sky-700", "bg-rose-100 text-rose-700", "bg-violet-100 text-violet-700"];
-
 export default function ImportPage() {
   const [tab, setTab] = useState("archive");
   const [url, setUrl] = useState("");
@@ -21,8 +19,6 @@ export default function ImportPage() {
   const [wantSeries, setWantSeries] = useState(false);
   const [serName, setSerName] = useState("");
   const [serCount, setSerCount] = useState("");
-  const [branches, setBranches] = useState([]);
-  const [fileBranch, setFileBranch] = useState({});
   const [startEp, setStartEp] = useState("");
 
   const [teraCookies, setTeraCookies] = useState("");
@@ -52,10 +48,6 @@ export default function ImportPage() {
     setSelected((s) => (s.size === files.length ? new Set() : new Set(files.map((f) => f.name))));
   };
 
-  const addBranch = () => { if (branches.length < BRANCH_COLORS.length) setBranches((b) => [...b, ""]); };
-  const setBranch = (i, v) => { setBranches((bs) => bs.map((x, idx) => (idx === i ? v : x))); };
-  const removeBranch = (i) => { setBranches((bs) => bs.filter((_, idx) => idx !== i)); };
-
   const runImport = async () => {
     setImporting(true); setError(null);
     try {
@@ -63,8 +55,7 @@ export default function ImportPage() {
       if (tab === "archive") {
         body = { url, scholar_id: form.scholar_id, category_id: form.category_id, selected: [...selected] };
         if (wantSeries && serName.trim()) {
-          body.new_series = { title: serName.trim(), total_episodes: parseInt(serCount, 10) || selected.size, branches: branches.map((b) => b.trim()).filter(Boolean) };
-          if (branches.length) body.branch_map = fileBranch;
+          body.new_series = { title: serName.trim(), total_episodes: parseInt(serCount, 10) || selected.size };
         } else if (form.series_id) {
           body.series_id = form.series_id;
           const se = parseInt(startEp, 10);
@@ -98,11 +89,9 @@ export default function ImportPage() {
 
   const resetForm = () => {
     resetF({ scholar_id: "", category_id: "", series_id: "" });
-    setSerName(""); setSerCount(""); setStartEp(""); setBranches([]); setFileBranch({}); setWantSeries(false);
+    setSerName(""); setSerCount(""); setStartEp(""); setWantSeries(false);
   };
 
-  const fmtLen = (s) => { const m = Math.floor(s / 60); const ss = Math.floor(s % 60); return m ? `${m}:${String(ss).padStart(2, "0")}` : `${ss}s`; };
-  const branchOf = (fname) => fileBranch[fname] || "";
   const currentInsp = tab === "archive" ? insp : teraInsp;
   const files = currentInsp?.files || [];
   const showError = error || refsError;

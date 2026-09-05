@@ -18,6 +18,7 @@ import { LibraryScreen, PlaylistScreen } from "./screens/Library";
 import { ScholarScreen } from "./screens/Scholar";
 import { SearchScreen } from "./screens/Search";
 import { SeriesScreen } from "./screens/Series";
+import { AddSeriesScreen } from "./screens/AddSeries";
 import { SettingsScreen } from "./screens/Settings";
 import { Splash } from "./screens/Splash";
 import { UserSeriesScreen } from "./screens/UserSeries";
@@ -59,6 +60,7 @@ const ScreenFor = ({ r }: { r: Route }) => {
     case "scholar": return <ScholarScreen id={r.id} />;
     case "library": return <LibraryScreen tab={r.tab} />;
     case "playlist": return <PlaylistScreen id={r.id} />;
+    case "add-series": return <AddSeriesScreen />;
     case "user-series": return <UserSeriesScreen id={r.id} />;
     case "settings": return <SettingsScreen />;
   }

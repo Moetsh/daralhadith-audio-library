@@ -5,12 +5,13 @@ import { EditModal } from "./EditModal";
 import { CoverPicker } from "./CoverPicker";
 
 export const SERIES_EMPTY = {
-  title: "", title_en: "", scholar_id: "", category_id: "",
+  id: "", title: "", title_en: "", scholar_id: "", category_id: "",
   description: "", cover_image_url: "",
   total_episodes: 0, is_complete: false, order_direction: "asc",
 };
 
 export const seriesToForm = (s) => ({
+  id: s.id || "",
   title: s.title || "",
   title_en: s.title_en || "",
   scholar_id: s.scholar_id || "",
@@ -23,7 +24,7 @@ export const seriesToForm = (s) => ({
 });
 
 export const seriesToPayload = (f, editing) => ({
-  id: editing?.id || undefined,
+  id: f.id || editing?.id || undefined,
   title: f.title,
   title_en: f.title_en || null,
   scholar_id: f.scholar_id || null,
@@ -109,7 +110,7 @@ export function SeriesModal({ editing, scholars, categories, onClose, onSave, on
           <>
             <CoverPicker value={form.cover_image_url || ""} onChange={(v) => set("cover_image_url", v)} />
             <div className="grid md:grid-cols-2 gap-4">
-              <Input label="المعرف (لاتيني بلا مسافات)" required dir="ltr" className="text-left" value={editing?.id || ""} disabled={!!editing?.id} placeholder="مثال: fiqh-course" />
+              <Input label="المعرف (لاتيني بلا مسافات)" required dir="ltr" className="text-left" value={form.id} disabled={!!editing?.id} onChange={(e) => set("id", e.target.value)} placeholder="مثال: fiqh-course" />
               <Input label="العنوان" required value={form.title} onChange={(e) => set("title", e.target.value)} />
               <Input label="العنوان (إنجليزي)" dir="ltr" value={form.title_en} onChange={(e) => set("title_en", e.target.value)} />
               <Select label="الشيخ" value={form.scholar_id} onChange={(e) => set("scholar_id", e.target.value)}>

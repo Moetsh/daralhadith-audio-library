@@ -187,6 +187,27 @@ r.post("/upgrade-covers", wrap(async (req, res) => {
   res.json({ ok: true, upgraded, results });
 }));
 
+/* نسخ احتياطي تلقائي (Cron يومي): لقطة كاملة داخل قاعدة البيانات نفسها مع احتفاظ بآخر 5.
+   الحماية عبر CRON_SECRET الذي تولّده Vercel تلقائياً لمهام cron. */
+r.get("/backup-cron", wrap(async (req, res) => {
+  const secret = process.env.CRON_SECRET;
+  const given = req.headers["x-cron-secret"] || String(req.headers.authorization || "").replace(/^Bearer /i, "");
+  if (!secret || given !== secret) return res.status(401).json({ error: "غير مصرح" });
+  const dump = {};
+  const tables = ["users", "categories", "scholars", "series", "audios", "announcements", "activity"];
+  for (const t of tables) {
+    const base = t === "users" || t === "announcements" || t === "activity" ? "admin/" + t : t;
+    dump[t] = (await listNode(base)).map(({ id, value }) => ({ ...value, id }));
+  }
+  const key = nowISO().slice(0, 10);
+  await setNode("admin/backups/" + key, { created_at: nowISO(), tables: dump });
+  const all = (await listNode("admin/backups")).map(({ id }) => id).sort();
+  const olds = all.slice(0, Math.max(0, all.length - 5));
+  for (const o of olds) await removeNode("admin/backups/" + o);
+  await pushNode("admin/activity", { admin_name: "النظام", action: "backup", entity_type: "settings", details: "نسخة احتياطية تلقائية", created_at: nowISO() });
+  res.json({ ok: true, date: key, kept: all.length - olds.length });
+}));
+
 /* المزامنة أصبحت تلقائية (Firebase هو قاعدة البيانات نفسها) — تُرجع الإحصائيات فقط */
 r.post("/firebase-sync", wrap(async (req, res) => {
   const [audios, scholars, categories, series] = await Promise.all([

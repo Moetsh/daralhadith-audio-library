@@ -26,6 +26,18 @@ export function createApp() {
   app.use(cors());
   app.use(express.json({ limit: "2mb" }));
 
+  /* تخزين حافة 30 ثانية للكتالوج العام فقط (بدون توكن) — يخفف المسح الكامل المتكرر */
+  app.use("/api", (req, res, next) => {
+    if (
+      req.method === "GET" &&
+      !req.headers.authorization &&
+      /^\/(audios|series|scholars|categories|search|version)(\/|$)/.test(req.path)
+    ) {
+      res.set("Cache-Control", "public, s-maxage=30, stale-while-revalidate=300");
+    }
+    next();
+  });
+
   /* ترويسات منع التخزين للوحة التحكم — وإلا يقدّم CDN نسخاً قديمة */
   const noStore = (res) => {
     res.set("Cache-Control", "no-store, no-cache, must-revalidate");

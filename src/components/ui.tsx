@@ -7,7 +7,7 @@ import {
   Play, Pause, Heart as HeartIcon, ArrowRight, ArrowLeft, Search, Check, type LucideIcon,
 } from "lucide-react";
 import type { AudioItem, Scholar, Series } from "../data/library";
-import { catById, scholarById, scholarColor } from "../data/library";
+import { catById, itemsOfSeries, missingEpisodesOfSeries, scholarById, scholarColor } from "../data/library";
 import { ar, fmtAgo, fmtCount, fmtDur, type Strings } from "../lib/utils";
 import { useApp } from "../store/appStore";
 import { useSettings } from "../store/core";
@@ -238,7 +238,6 @@ export const SeriesCard = ({ series, wide = false }: { series: Series; wide?: bo
   const sch = scholarById(series.scholarId);
   const eps = useSeriesEps(series.id);
   const missing = missingEpisodesOfSeries(series.id);
-  void lang;
   return (
     <motion.div whileTap={{ scale: 0.97 }} className={`${wide ? "w-[280px]" : "w-full"} shrink-0 surface bline border rounded-2xl p-3 cursor-pointer relative overflow-hidden shadow-card hover:shadow-lg transition-shadow duration-200`}
       onClick={() => eps.length && nav.push({ name: "detail", id: eps[0].id })}>
@@ -273,7 +272,6 @@ export const SeriesCard = ({ series, wide = false }: { series: Series; wide?: bo
   );
 };
 
-import { itemsOfSeries, missingEpisodesOfSeries } from "../data/library";
 const useSeriesEps = (id: string) => itemsOfSeries(id);
 
 /* رقاقة اختيار — تصميم محسّن */

@@ -1,14 +1,15 @@
 /* شاشة فهرس المكتبة — كشف شامل بالسلاسل والشيوخ والأعداد */
-import { ListMusic, Search } from "lucide-react";
+import { ListMusic, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { allSeries, itemsOfSeries, scholarById } from "../data/library";
 import { ar } from "../lib/utils";
-import { useSettings } from "../store/core";
+import { useNav, useSettings } from "../store/core";
 import { BackBtn, EmptyState, GirihBG, SeriesCard } from "../components/ui";
 
 export const LibraryIndexScreen = () => {
   const t = useSettings((s) => s.t);
   const lang = useSettings((s) => s.lang);
+  const nav = useNav();
   const [search, setSearch] = useState("");
   const [filterScholar, setFilterScholar] = useState<string | null>(null);
 
@@ -58,6 +59,14 @@ export const LibraryIndexScreen = () => {
               {ar(totalSeries)} {t.seriesT} • {ar(totalEps)} {t.tapes}
             </p>
           </div>
+          <button
+            onClick={() => nav.push({ name: "add-series" })}
+            aria-label={lang === "ar" ? "أضف سلسلة" : "Add series"}
+            title={lang === "ar" ? "أضف سلسلة" : "Add series"}
+            className="w-10 h-10 rounded-full soft-green c-green flex items-center justify-center shrink-0 active:scale-90 transition shadow-card"
+          >
+            <Plus size={18} />
+          </button>
         </div>
 
         {/* بحث وفلترة */}

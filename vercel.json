@@ -10,5 +10,8 @@
   ],
   "routes": [
     { "src": "/(.*)", "dest": "/api/index.js" }
+  ],
+  "crons": [
+    { "path": "/api/admin/backup-cron", "schedule": "0 3 * * *" }
   ]
 }

@@ -6,9 +6,10 @@ import { EditModal } from "../components/EditModal";
 import { ConfirmDelete } from "../components/ConfirmDelete";
 import { Plus, ChevronLeft } from "lucide-react";
 
-const EMPTY = { name: "", parent_id: "", icon: "book", sort_order: 0, is_active: true };
+const EMPTY = { id: "", name: "", parent_id: "", icon: "book", sort_order: 0, is_active: true };
 
 const toForm = (c) => ({
+  id: c.id || "",
   name: c.name || "",
   parent_id: c.parent_id || "",
   icon: c.icon || "book",
@@ -17,7 +18,7 @@ const toForm = (c) => ({
 });
 
 const toPayload = (f, editing) => ({
-  id: editing?.id || undefined,
+  id: f.id || editing?.id || undefined,
   name: f.name,
   parent_id: f.parent_id || null,
   icon: f.icon,
@@ -61,7 +62,7 @@ export default function Categories() {
       >
         {({ form, set }) => (
           <>
-            <Input label="المعرف (لاتيني بلا مسافات)" required dir="ltr" className="text-left" value={editing?.id || ""} disabled={!!editing?.id} placeholder="مثال: fadail" />
+            <Input label="المعرف (لاتيني بلا مسافات)" required dir="ltr" className="text-left" value={form.id} disabled={!!editing?.id} onChange={(e) => set("id", e.target.value)} placeholder="مثال: fadail" />
             <Input label="الاسم (عربي)" required value={form.name} onChange={(e) => set("name", e.target.value)} />
             <Select label="التصنيف الأب (اتركه فارغاً ليصبح رئيسياً)" value={form.parent_id} onChange={(e) => set("parent_id", e.target.value)}>
               <option value="">— تصنيف رئيسي —</option>
