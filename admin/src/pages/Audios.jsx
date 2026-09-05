@@ -67,12 +67,6 @@ export default function Audios() {
     setFilters((f) => ({ ...f, [k]: v }));
   };
 
-  const saveSeries = async (payload) => {
-    await api("/series/" + editingSeries.id, { method: "PUT", body: payload });
-    setEditingSeries(null);
-    await reloadRefs();
-  };
-
   const [cApply, setCApply] = useState(false);
   const [cOverwrite, setCOverwrite] = useState(false);
   const [cBusy, setCBusy] = useState(false);
@@ -319,7 +313,6 @@ export default function Audios() {
         scholars={scholars}
         categories={categories}
         onClose={() => setEditingSeries(null)}
-        onSave={saveSeries}
         onSaved={reloadRefs}
       />
     </div>

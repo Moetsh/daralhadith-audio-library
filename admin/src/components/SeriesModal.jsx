@@ -57,8 +57,21 @@ export async function applySeriesCover(seriesId, { mode = "empty", cover_image_u
 }
 
 /* نافذة إنشاء/تعديل سلسلة — مشتركة بين صفحة السلاسل ونافذة الشريط.
-   تتضمن رفع غلاف السلسلة وتطبيقه على كل حلقاتها. */
-export function SeriesModal({ editing, scholars, categories, onClose, onSave, onSaved }) {
+   تتضمن رفع غلاف السلسلة وتطبيقه على كل حلقاتها.
+   الحفظ موحّد: حفظ السلسلة + تطبيق الغلاف الجديد تلقائياً على الحلقات بلا غلاف. */
+export function SeriesModal({ editing, scholars, categories, onClose, onSaved }) {
+  const handleSave = async (payload) => {
+    const coverChanged = (payload.cover_image_url || null) !== (editing?.cover_image_url || null);
+    if (editing?.id) await api("/series/" + editing.id, { method: "PUT", body: payload });
+    else await api("/series", { method: "POST", body: payload });
+    const sid = editing?.id || payload.id;
+    if (coverChanged && payload.cover_image_url && sid) {
+      await applySeriesCover(sid, { mode: "empty", cover_image_url: payload.cover_image_url });
+    }
+    onClose();
+    await onSaved?.();
+  };
+
   const [apply, setApply] = useState(false);
   const [overwrite, setOverwrite] = useState(false);
   const [applyBusy, setApplyBusy] = useState(false);
@@ -81,7 +94,7 @@ export function SeriesModal({ editing, scholars, categories, onClose, onSave, on
       newTitle="سلسلة جديدة"
       width="max-w-2xl"
       onClose={onClose}
-      onSave={onSave}
+      onSave={handleSave}
     >
       {({ form, set }) => {
         const applyCover = async () => {

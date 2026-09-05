@@ -8,7 +8,7 @@ import { Plus } from "lucide-react";
 export default function Series() {
   const { scholars, categories } = useRefs();
   const { rows, loading, error, reload } = useList(() => api("/series"));
-  const { editing, setEditing, confirmDel, setConfirmDel, save, remove } = useCrud("/series", { reload });
+  const { editing, setEditing, confirmDel, setConfirmDel, remove } = useCrud("/series", { reload });
 
   const scholarName = (id) => scholars.find((s) => s.id === id)?.name || "—";
   const catName = (id) => categories.find((c) => c.id === id)?.name || "—";
@@ -54,7 +54,6 @@ export default function Series() {
         scholars={scholars}
         categories={categories}
         onClose={() => setEditing(null)}
-        onSave={save}
         onSaved={reload}
       />
 
