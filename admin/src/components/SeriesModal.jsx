@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { Pencil } from "lucide-react";
 import { api } from "../api";
-import { Input, Select, Textarea, Check, Button, Badge } from "./ui";
+import { Input, Select, Textarea, Check, Button, Badge, ErrorBox, Spinner } from "./ui";
 import { EditModal } from "./EditModal";
 import { CoverPicker } from "./CoverPicker";
 
@@ -50,6 +51,91 @@ export async function applySeriesCover(seriesId, { mode = "empty", cover_image_u
     onProgress?.({ updated, total: targets.length, done: updated >= targets.length });
   }
   return { updated, total: targets.length };
+}
+
+/* حلقات السلسلة مع نبذة كل شريط (كما تظهر في التطبيق) — قابلة للتحرير. */
+function SeriesEpisodes({ seriesId }) {
+  const [eps, setEps] = useState(null);
+  const [err, setErr] = useState(null);
+  const [editId, setEditId] = useState(null);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setEps(null);
+    setErr(null);
+    setEditId(null);
+    api(`/series/${seriesId}/episodes`).then(setEps).catch(setErr);
+  }, [seriesId]);
+
+  const saveDesc = async (id) => {
+    setBusy(true);
+    try {
+      await api("/audios/" + id, { method: "PUT", body: { description: text || null } });
+      setEps((list) => list.map((e) => (e.id === id ? { ...e, description: text || null } : e)));
+      setEditId(null);
+    } catch (e2) {
+      setErr(e2);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-line p-4 space-y-3 bg-bg2/40">
+      <h4 className="text-sm font-black text-ink">
+        حلقات السلسلة ونبذتها {eps && <span className="text-ink3 font-bold">({eps.length})</span>}
+      </h4>
+      <ErrorBox error={err} />
+      {eps === null ? (
+        <div className="flex justify-center py-4"><Spinner /></div>
+      ) : eps.length === 0 ? (
+        <p className="text-xs text-ink3 font-bold">لا توجد حلقات بعد.</p>
+      ) : (
+        <div className="space-y-2 max-h-72 overflow-y-auto thin-bar pl-1">
+          {eps.map((ep) => (
+            <div key={ep.id} className="rounded-xl bg-card border border-line p-3">
+              <div className="flex items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-bold truncate">
+                    {ep.episode_number ? <span className="text-ink3">({ep.episode_number}) </span> : null}
+                    {ep.title}
+                  </div>
+                  {editId === ep.id ? (
+                    <div className="mt-2 space-y-2">
+                      <Textarea rows={2} placeholder="نبذة الشريط…" value={text} onChange={(e) => setText(e.target.value)} />
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" disabled={busy} onClick={() => saveDesc(ep.id)}>
+                          {busy ? "جارٍ الحفظ…" : "حفظ النبذة"}
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={busy} onClick={() => setEditId(null)}>
+                          إلغاء
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${ep.description ? "text-ink2" : "text-ink3"}`}>
+                      {ep.description || "بلا نبذة"}
+                    </p>
+                  )}
+                </div>
+                {editId !== ep.id && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    title="تعديل النبذة"
+                    onClick={() => { setEditId(ep.id); setText(ep.description || ""); setErr(null); }}
+                  >
+                    <Pencil size={14} />
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /* نافذة إنشاء/تعديل سلسلة — مشتركة بين صفحة السلاسل ونافذة الشريط.
@@ -139,6 +225,7 @@ export function SeriesModal({ editing, scholars, categories, onClose, onSaved })
               <Textarea label="الوصف" className="md:col-span-2" rows={3} value={form.description} onChange={(e) => set("description", e.target.value)} />
             </div>
             <Check label="سلسلة مكتملة" checked={!!form.is_complete} onChange={(e) => set("is_complete", e.target.checked)} />
+            {editing?.id && <SeriesEpisodes seriesId={editing.id} />}
             {editing?.id && (
               <div className="rounded-2xl border border-line p-4 space-y-3 bg-bg2/40">
                 <Check
