@@ -10,6 +10,9 @@ export default function Settings() {
   const [ok, setOk] = useState(false);
   const [fbBusy, setFbBusy] = useState(false);
   const [fbMsg, setFbMsg] = useState(null);
+  const [bkBusy, setBkBusy] = useState(false);
+  const [bkMsg, setBkMsg] = useState(null);
+  const [backups, setBackups] = useState([]);
 
   const fbSync = async () => {
     setFbBusy(true);
@@ -24,6 +27,26 @@ export default function Settings() {
     }
   };
 
+  const loadBackups = async () => {
+    try {
+      setBackups(await api("/admin/backups"));
+    } catch {}
+  };
+
+  const snapNow = async () => {
+    setBkBusy(true);
+    setBkMsg(null);
+    try {
+      const r = await api("/admin/backup-now", { method: "POST" });
+      setBkMsg({ ok: true, text: `حُفظت لقطة ${r.date} (${r.tables?.audios ?? "?"} شريطاً)` });
+      await loadBackups();
+    } catch (e2) {
+      setBkMsg({ ok: false, text: e2.message });
+    } finally {
+      setBkBusy(false);
+    }
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -32,6 +55,7 @@ export default function Settings() {
         setError(e);
       }
     })();
+    loadBackups();
   }, []);
 
   if (error) return <ErrorBox error={error} />;
@@ -75,9 +99,33 @@ export default function Settings() {
 
   return (
     <div>
-      <PageTitle title="الإعدادات" subtitle="إعدادات التطبيق العامة" actions={
+      <PageTitle title="الإعدادات" subtitle="إعدادات التطبيق العامة" actions={<>
         <Button variant="outline" onClick={backup}><Download size={16} /> نسخة احتياطية</Button>
-      } />
+        <Button variant="gold" disabled={bkBusy} onClick={snapNow}>
+          {bkBusy ? <><Spinner className="w-4 h-4 border-t-white" /> جارٍ الحفظ…</> : "لقطة خادم فورية"}
+        </Button>
+      </>} />
+      {bkMsg && (
+        <div className="mb-4 max-w-3xl">
+          <Badge tone={bkMsg.ok ? "green" : "danger"}>{bkMsg.ok ? "✓ " + bkMsg.text : "✗ " + bkMsg.text}</Badge>
+        </div>
+      )}
+      {backups.length > 0 && (
+        <Card className="p-5 mb-4 max-w-3xl">
+          <h2 className="font-bold text-green mb-3">لقطات الخادم المحفوظة ({backups.length})</h2>
+          <div className="space-y-2">
+            {backups.map((b) => (
+              <div key={b.id} className="flex items-center justify-between gap-3 text-sm">
+                <span className="font-bold" dir="ltr">{b.id}</span>
+                <span className="text-xs text-ink3 font-bold">
+                  {b.tables?.audios ?? "?"} شريطاً • {b.tables?.series ?? "?"} سلسلة
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-ink3 mt-3">لقطة تلقائية كل يوم 3 فجراً مع احتفاظ بآخر 5.</p>
+        </Card>
+      )}
 
       <Card className="p-5 mb-4 max-w-3xl">
         <div className="flex flex-wrap items-center justify-between gap-3">

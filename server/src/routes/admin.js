@@ -206,12 +206,8 @@ r.post("/upgrade-covers", wrap(async (req, res) => {
   res.json({ ok: true, upgraded, results });
 }));
 
-/* نسخ احتياطي تلقائي (Cron يومي): لقطة كاملة داخل قاعدة البيانات نفسها مع احتفاظ بآخر 5.
-   الحماية عبر CRON_SECRET الذي تولّده Vercel تلقائياً لمهام cron. */
-r.get("/backup-cron", wrap(async (req, res) => {
-  const secret = process.env.CRON_SECRET;
-  const given = req.headers["x-cron-secret"] || String(req.headers.authorization || "").replace(/^Bearer /i, "");
-  if (!secret || given !== secret) return res.status(401).json({ error: "غير مصرح" });
+/* محرك النسخ الاحتياطي: لقطة كاملة داخل قاعدة البيانات نفسها مع احتفاظ بآخر 5. */
+async function runBackup(actor) {
   const dump = {};
   const tables = ["users", "categories", "scholars", "series", "audios", "announcements", "activity"];
   for (const t of tables) {
@@ -223,8 +219,23 @@ r.get("/backup-cron", wrap(async (req, res) => {
   const all = (await listNode("admin/backups")).map(({ id }) => id).sort();
   const olds = all.slice(0, Math.max(0, all.length - 5));
   for (const o of olds) await removeNode("admin/backups/" + o);
-  await pushNode("admin/activity", { admin_name: "النظام", action: "backup", entity_type: "settings", details: "نسخة احتياطية تلقائية", created_at: nowISO() });
-  res.json({ ok: true, date: key, kept: all.length - olds.length });
+  await pushNode("admin/activity", { admin_name: actor || "النظام", action: "backup", entity_type: "settings", details: "نسخة احتياطية", created_at: nowISO() });
+  return { date: key, kept: all.length - olds.length, tables: Object.fromEntries(Object.entries(dump).map(([k, v]) => [k, v.length])) };
+}
+
+/* نسخ احتياطي تلقائي (Cron يومي). الحماية عبر CRON_SECRET الذي تولّده Vercel تلقائياً لمهام cron. */
+r.get("/backup-cron", wrap(async (req, res) => {
+  const secret = process.env.CRON_SECRET;
+  const given = req.headers["x-cron-secret"] || String(req.headers.authorization || "").replace(/^Bearer /i, "");
+  if (!secret || given !== secret) return res.status(401).json({ error: "غير مصرح" });
+  res.json({ ok: true, ...(await runBackup()) });
+}));
+
+/* نسخ احتياطي فوري يدوي (للمشرف من اللوحة). */
+r.post("/backup-now", wrap(async (req, res) => {
+  const out = await runBackup(req.user?.name || req.user?.email);
+  logAction(req, "backup", "settings", null, `أنشأ نسخة احتياطية يدوية (${out.date})`);
+  res.json({ ok: true, ...out });
 }));
 
 /* المزامنة أصبحت تلقائية (Firebase هو قاعدة البيانات نفسها) — تُرجع الإحصائيات فقط */
