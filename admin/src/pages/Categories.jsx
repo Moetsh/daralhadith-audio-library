@@ -111,8 +111,8 @@ function CategoryRows({ c, rows, depth, open, onToggle, onEdit, onDelete }) {
           </div>
         </td>
         <td className="px-4 py-3">{depth === 0 ? <Badge tone="green">رئيسي</Badge> : <Badge tone="gold">فرعي</Badge>}</td>
-        <td className="px-4 py-3 text-ink2 tabular-nums">{Number(c.audio_count).toLocaleString("ar-EG")}</td>
-        <td className="px-4 py-3 text-ink2 tabular-nums">{Number(c.series_count).toLocaleString("ar-EG")}</td>
+        <td className="px-4 py-3 text-ink2 tabular-nums">{Number(c.audio_count || 0).toLocaleString("ar-EG")}</td>
+        <td className="px-4 py-3 text-ink2 tabular-nums">{Number(c.series_count || 0).toLocaleString("ar-EG")}</td>
         <td className="px-4 py-3">{c.is_active ? <Badge tone="green">مفعل</Badge> : <Badge tone="gray">معطل</Badge>}</td>
         <td className="px-4 py-3">
           <RowActions compact onEdit={() => onEdit(c)} onDelete={() => onDelete(c)} />

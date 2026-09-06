@@ -1,6 +1,6 @@
 import { useList } from "../hooks";
 import { api } from "../api";
-import { PageTitle, ListCard } from "../components/ui";
+import { PageTitle, ListCard, fmtTime } from "../components/ui";
 import { History } from "lucide-react";
 
 const ACTIONS = {
@@ -9,12 +9,13 @@ const ACTIONS = {
   delete: "حذف",
   "bulk-import": "استيراد جماعي",
   backup: "نسخ احتياطي",
+  "firebase-sync": "مزامنة",
   "change-password": "تغيير كلمة مرور",
   ban: "حظر",
   login: "تسجيل دخول",
 };
 
-const ENTITIES = { audio: "شريط", category: "تصنيف", scholar: "شيخ", series: "سلسلة", user: "مستخدم", announcement: "تنبيه", settings: "إعدادات" };
+const ENTITIES = { audio: "شريط", category: "تصنيف", scholar: "شيخ", series: "سلسلة", user: "مستخدم", announcement: "تنبيه", settings: "إعدادات", catalog: "كتالوج" };
 
 export default function Activity() {
   const { rows, loading, error } = useList(() => api("/admin/activity"));
@@ -37,7 +38,7 @@ export default function Activity() {
                 </div>
                 {r.details && <div className="text-sm text-ink2 mt-0.5">{r.details}</div>}
               </div>
-              <span className="text-xs text-ink3 shrink-0">{r.created_at}</span>
+                <span className="text-xs text-ink3 shrink-0">{fmtTime(r.created_at)}</span>
             </div>
           ))}
         </div>

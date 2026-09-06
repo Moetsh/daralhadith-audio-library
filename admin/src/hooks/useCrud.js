@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "../api";
+import { bustRefsCache } from "./useRefs";
 
 /* آلة حالة CRUD الموحدة لصفحات الإدارة:
    editing/confirmDel + save (POST أو PUT حسب وجود id) + remove (DELETE).
@@ -12,12 +13,15 @@ export function useCrud(base, { reload } = {}) {
     if (editing?.id) await api(base + "/" + editing.id, { method: "PUT", body: payload });
     else await api(base, { method: "POST", body: payload });
     setEditing(null);
+    bustRefsCache();
     await reload?.();
   };
 
   const remove = async () => {
+    if (!confirmDel?.id) return;
     await api(base + "/" + confirmDel.id, { method: "DELETE" });
     setConfirmDel(null);
+    bustRefsCache();
     await reload?.();
   };
 

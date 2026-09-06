@@ -5,6 +5,15 @@ export function cx(...parts) {
   return twMerge(parts.filter(Boolean).join(" "));
 }
 
+export function fmtTime(s) {
+  if (!s) return "—";
+  try {
+    return new Date(s).toLocaleString("ar-EG", { dateStyle: "medium", timeStyle: "short" });
+  } catch {
+    return String(s);
+  }
+}
+
 export function Card({ className, children }) {
   return (
     <div className={cx("rounded-2xl bg-card border border-line shadow-card", className)}>

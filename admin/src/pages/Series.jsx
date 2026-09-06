@@ -30,11 +30,11 @@ export default function Series() {
               </td>
               <td className="px-4 py-3 text-ink2">{scholarName(s.scholar_id)}</td>
               <td className="px-4 py-3 text-ink2">{catName(s.category_id)}</td>
-              <td className="px-4 py-3 text-ink2 tabular-nums">{Number(s.episodes).toLocaleString("ar-EG")}{s.total_episodes ? ` / ${Number(s.total_episodes).toLocaleString("ar-EG")}` : ""}</td>
+              <td className="px-4 py-3 text-ink2 tabular-nums">{Number(s.episodes || 0).toLocaleString("ar-EG")}{s.total_episodes ? ` / ${Number(s.total_episodes).toLocaleString("ar-EG")}` : ""}</td>
               <td className="px-4 py-3">
-                {s.missing_count > 0 ? (
-                  <span className="text-danger text-xs font-bold" title={s.missing_episodes.join("، ")}>
-                    {s.missing_count.toLocaleString("ar-EG")} ({s.missing_episodes.slice(0, 5).join("، ")}{s.missing_episodes.length > 5 ? "…" : ""})
+                {(s.missing_episodes || []).length > 0 || s.missing_count > 0 ? (
+                  <span className="text-danger text-xs font-bold" title={(s.missing_episodes || []).join("، ")}>
+                    {Number(s.missing_count || 0).toLocaleString("ar-EG")} ({(s.missing_episodes || []).slice(0, 5).join("، ")}{(s.missing_episodes || []).length > 5 ? "…" : ""})
                   </span>
                 ) : (
                   <span className="text-green text-xs font-bold">لا شيء</span>

@@ -32,7 +32,7 @@ export default function ImportPage() {
       const r = tab === "archive"
         ? await api("/archive/inspect", { method: "POST", body: { url } })
         : await api("/terabox/inspect", { method: "POST", body: { url, cookies: teraCookies } });
-      if (!r.ok) { setError(new Error(r.error || "Failed")); return; }
+      if (!r.ok || !Array.isArray(r.files)) { setError(new Error(r.error || "فشل الفحص")); return; }
       if (tab === "archive") setInsp(r);
       else setTeraInsp(r);
       setSelected(new Set(r.files.map((f) => f.name)));
@@ -148,36 +148,36 @@ export default function ImportPage() {
 
           <Card className="p-5">
             <div className="grid md:grid-cols-3 gap-4 mb-4">
-              <Select label="Scholar" value={form.scholar_id} onChange={(e) => setF("scholar_id", e.target.value)}>
-                <option value="">-- select --</option>
+              <Select label="الشيخ" required value={form.scholar_id} onChange={(e) => setF("scholar_id", e.target.value)}>
+                <option value="">— اختر الشيخ —</option>
                 {scholars.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </Select>
-              <Select label="Category" value={form.category_id} onChange={(e) => setF("category_id", e.target.value)}>
-                <option value="">-- select --</option>
+              <Select label="التصنيف" required value={form.category_id} onChange={(e) => setF("category_id", e.target.value)}>
+                <option value="">— اختر التصنيف —</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.parent_id ? "↳ " : ""}{c.name}</option>)}
               </Select>
-              <Select label="Series" value={wantSeries ? "" : form.series_id} disabled={wantSeries} onChange={(e) => setF("series_id", e.target.value)}>
-                <option value="">No series</option>
+              <Select label="السلسلة" value={wantSeries ? "" : form.series_id} disabled={wantSeries} onChange={(e) => setF("series_id", e.target.value)}>
+                <option value="">بدون سلسلة</option>
                 {series.map((s) => <option key={s.id} value={s.id}>{s.parent_title ? "↳ " : ""}{s.title}</option>)}
               </Select>
             </div>
 
             {!wantSeries && form.series_id && (
               <div className="mt-3">
-                <Input label="Start episode from" type="number" min={1} value={startEp} onChange={(e) => setStartEp(e.target.value)} placeholder="Auto-continue from last episode" />
+                <Input label="بدء الترقيم من" type="number" min={1} value={startEp} onChange={(e) => setStartEp(e.target.value)} placeholder="تكملة تلقائية من آخر حلقة" />
               </div>
             )}
 
             <div className={cx("rounded-2xl border transition-colors mt-3", wantSeries ? "border-green/40 bg-green-soft/40" : "border-line")}>
               <button type="button" onClick={() => setWantSeries((w) => !w)} className="w-full flex items-center justify-between px-4 py-3">
-                <span className="flex items-center gap-2 text-sm font-bold text-green"><Layers size={16} />{wantSeries ? "Cancel new series" : "Create new series"}</span>
-                <Badge tone={wantSeries ? "green" : "outline"}>Name + episodes</Badge>
+                <span className="flex items-center gap-2 text-sm font-bold text-green"><Layers size={16} />{wantSeries ? "إلغاء السلسلة الجديدة" : "إنشاء سلسلة جديدة"}</span>
+                <Badge tone={wantSeries ? "green" : "outline"}>الاسم + الحلقات</Badge>
               </button>
               {wantSeries && (
                 <div className="px-4 pb-4 space-y-3">
                   <div className="grid md:grid-cols-2 gap-3">
-                    <Input label="Series name" value={serName} onChange={(e) => setSerName(e.target.value)} />
-                    <Input label="Total episodes" type="number" min={1} value={serCount} onChange={(e) => setSerCount(e.target.value)} placeholder={String(selected.size)} />
+                    <Input label="اسم السلسلة" value={serName} onChange={(e) => setSerName(e.target.value)} />
+                    <Input label="عدد الحلقات" type="number" min={1} value={serCount} onChange={(e) => setSerCount(e.target.value)} placeholder={String(selected.size)} />
                   </div>
                 </div>
               )}
@@ -186,7 +186,7 @@ export default function ImportPage() {
             <div className="flex items-center justify-between mt-4 mb-3">
               <button onClick={toggleAll} className="flex items-center gap-2 text-sm font-bold text-green">
                 {selected.size === files.length ? <CheckSquare size={16} /> : <Square size={16} />}
-                Select all
+                تحديد الكل
               </button>
               <span className="text-sm text-ink3 font-bold">{selected.size} / {files.length}</span>
             </div>
@@ -208,9 +208,9 @@ export default function ImportPage() {
 
             <div className="flex items-center gap-3 mt-5">
               <Button variant="gold" size="lg" disabled={importing || !form.scholar_id || !form.category_id || selected.size === 0} onClick={runImport}>
-                {importing ? <><Spinner className="w-4 h-4 border-t-white" /> ...</> : <><DownloadCloud size={18} /> Import {selected.size} tracks</>}
+                {importing ? <><Spinner className="w-4 h-4 border-t-white" /> ...</> : <><DownloadCloud size={18} /> استيراد {selected.size} شريطاً</>}
               </Button>
-              {!form.scholar_id && <span className="text-xs text-ink3 font-bold">Select scholar and category first</span>}
+              {!form.scholar_id && <span className="text-xs text-ink3 font-bold">اختر الشيخ والتصنيف أولاً</span>}
             </div>
           </Card>
         </div>
@@ -219,9 +219,9 @@ export default function ImportPage() {
       {done && (
         <Card className="p-6 text-center">
           <div className="w-12 h-12 rounded-2xl bg-green text-white flex items-center justify-center mx-auto mb-3 text-2xl">✓</div>
-          <h2 className="font-bold text-green text-lg">Import complete</h2>
-          <p className="text-sm text-ink2 mt-1">{done.imported} tracks imported{done.skipped ? ` (${done.skipped} skipped)` : ""}</p>
-          <Button className="mt-4" variant="outline" onClick={() => setDone(null)}>Import another</Button>
+          <h2 className="font-bold text-green text-lg">اكتمل الاستيراد</h2>
+          <p className="text-sm text-ink2 mt-1">استُورد {done.imported} شريطاً{done.skipped ? ` (تُجاوز ${done.skipped} مكرراً)` : ""}</p>
+          <Button className="mt-4" variant="outline" onClick={() => setDone(null)}>استيراد آخر</Button>
         </Card>
       )}
     </div>

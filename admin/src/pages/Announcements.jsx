@@ -1,9 +1,9 @@
 import { useList, useCrud } from "../hooks";
 import { api } from "../api";
-import { PageTitle, Button, Input, Textarea, Select, Badge, ListCard, Check } from "../components/ui";
+import { PageTitle, Button, Input, Textarea, Select, Badge, ListCard, Check, RowActions } from "../components/ui";
 import { EditModal } from "../components/EditModal";
 import { ConfirmDelete } from "../components/ConfirmDelete";
-import { Plus, Trash2, Megaphone } from "lucide-react";
+import { Plus, Megaphone } from "lucide-react";
 
 const EMPTY = { title: "", content: "", type: "banner", target_audience: "all", is_active: true, starts_at: "", expires_at: "" };
 
@@ -52,9 +52,9 @@ export default function Announcements() {
                   {a.is_active ? <Badge tone="green">مفعّل</Badge> : <Badge tone="gray">معطل</Badge>}
                 </div>
                 <p className="text-sm text-ink2 mt-1 line-clamp-2">{a.content}</p>
+                </div>
+                <RowActions compact onEdit={() => setEditing(a)} onDelete={() => setConfirmDel(a)} />
               </div>
-              <Button size="sm" variant="ghost" className="text-danger" onClick={() => setConfirmDel(a)}><Trash2 size={15} /></Button>
-            </div>
           ))}
         </div>
       </ListCard>
@@ -64,7 +64,7 @@ export default function Announcements() {
         initial={EMPTY}
         toForm={toForm}
         toPayload={toPayload}
-        title="تنبيه جديد"
+        title="تعديل تنبيه"
         newTitle="تنبيه جديد"
         submitLabel="نشر"
         onClose={() => setEditing(null)}

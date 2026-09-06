@@ -53,7 +53,7 @@ export default function Audios() {
 
   const { scholars, categories, series, error: refsError, reload: reloadRefs } = useRefs();
   const [editingSeries, setEditingSeries] = useState(null);
-  const { rows, loading, error, reload } = useList(async () => {
+  const { rows, loading, error, setError, reload } = useList(async () => {
     const params = { page, per: 25, ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)) };
     const r = await api("/audios", { params });
     setTotal(r.total);
@@ -80,9 +80,13 @@ export default function Audios() {
   }, [editing?.id]);
 
   const toggleStatus = async (a) => {
-    const next = a.status === "published" ? "hidden" : "published";
-    await api("/audios/" + a.id, { method: "PUT", body: { status: next } });
-    reload();
+    try {
+      const next = a.status === "published" ? "hidden" : "published";
+      await api("/audios/" + a.id, { method: "PUT", body: { status: next } });
+      reload();
+    } catch (e) {
+      setError(e);
+    }
   };
 
   const statusBadge = (s) =>
@@ -155,7 +159,7 @@ export default function Audios() {
                 {a.sub_category_name ? <span className="text-xs text-ink3">↳ {a.sub_category_name}</span> : a.category_name || "—"}
               </td>
               <td className="px-4 py-3 text-ink2 max-w-[180px] truncate">{a.series_title || "—"}</td>
-              <td className="px-4 py-3 text-ink2 tabular-nums">{Number(a.listen_count).toLocaleString("ar-EG")}</td>
+              <td className="px-4 py-3 text-ink2 tabular-nums">{Number(a.listen_count || 0).toLocaleString("ar-EG")}</td>
               <td className="px-4 py-3">
                 <button onClick={() => toggleStatus(a)} className="cursor-pointer">{statusBadge(a.status)}</button>
               </td>
@@ -203,7 +207,7 @@ export default function Audios() {
 
           return (
           <>
-            <CoverPicker value={form.cover_image_url || ""} onChange={(v) => set("cover_image_url", v)} />
+            <CoverPicker value={form.cover_image_url || ""} onChange={(v) => { set("cover_image_url", v); setCMsg(null); }} />
             <div className="grid md:grid-cols-2 gap-4">
               <Input label="العنوان (عربي)" required value={form.title} onChange={(e) => set("title", e.target.value)} />
               <Input label="العنوان (إنجليزي)" dir="ltr" value={form.title_en || ""} onChange={(e) => set("title_en", e.target.value)} />
@@ -244,7 +248,7 @@ export default function Audios() {
               <Input label="رقم الجزء" type="number" value={form.episode_number} onChange={(e) => set("episode_number", e.target.value)} />
               <Input label="المدة (ثانية)" type="number" value={form.duration} onChange={(e) => set("duration", e.target.value)} />
               <Input label="رابط الأرشيف" dir="ltr" value={form.archive_url || ""} onChange={(e) => set("archive_url", e.target.value)} />
-              <Input label="رابط الغلاف" dir="ltr" value={form.cover_image_url || ""} onChange={(e) => set("cover_image_url", e.target.value)} placeholder="https://…/cover.jpg" />
+              <Input label="رابط الغلاف" dir="ltr" value={form.cover_image_url || ""} onChange={(e) => { set("cover_image_url", e.target.value); setCMsg(null); }} placeholder="https://…/cover.jpg" />
               <Input label="رابط الملف" dir="ltr" className="md:col-span-2" value={form.file_url || ""} onChange={(e) => set("file_url", e.target.value)} />
               <Textarea label="الوصف" className="md:col-span-2" rows={3} placeholder="الوصف…" value={form.description || ""} onChange={(e) => set("description", e.target.value)} />
               <Select label="الحالة" value={form.status} onChange={(e) => set("status", e.target.value)}>
@@ -313,7 +317,7 @@ export default function Audios() {
         scholars={scholars}
         categories={categories}
         onClose={() => setEditingSeries(null)}
-        onSaved={reloadRefs}
+        onSaved={() => { reloadRefs(); reload(); }}
       />
     </div>
   );

@@ -53,7 +53,7 @@ export default function Scholars() {
               </td>
               <td className="px-4 py-3 text-ink2">{s.specialization || "—"}</td>
               <td className="px-4 py-3 text-ink2">{s.country || "—"}</td>
-              <td className="px-4 py-3 text-ink2 tabular-nums">{Number(s.audio_count).toLocaleString("ar-EG")}</td>
+              <td className="px-4 py-3 text-ink2 tabular-nums">{Number(s.audio_count || 0).toLocaleString("ar-EG")}</td>
               <td className="px-4 py-3">{s.status === "active" ? <Badge tone="green">نشط</Badge> : <Badge tone="gray">موقوف</Badge>}</td>
               <td className="px-4 py-3">
                 <RowActions compact onEdit={() => setEditing(s)} onDelete={() => setConfirmDel(s)} />

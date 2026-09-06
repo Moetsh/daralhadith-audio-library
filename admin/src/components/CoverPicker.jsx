@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ImageIcon, Upload } from "lucide-react";
 
 /* تصغير صورة الغلاف إلى 1000px (JPEG بجودة 0.90) عبر canvas ثم إرجاع DataURL. */
@@ -32,9 +33,15 @@ function fileToCoverDataUrl(file) {
 
 /* منتقي غلاف الشريط: معاينة + رفع صورة + إزالة. value/onChange على cover_image_url. */
 export function CoverPicker({ value, onChange }) {
+  const [err, setErr] = useState(null);
   const pick = async (file) => {
     if (!file) return;
-    onChange(await fileToCoverDataUrl(file));
+    setErr(null);
+    try {
+      onChange(await fileToCoverDataUrl(file));
+    } catch (e) {
+      setErr(e.message || "تعذّر قراءة الصورة");
+    }
   };
 
   return (
@@ -73,6 +80,7 @@ export function CoverPicker({ value, onChange }) {
             </div>
           )}
           <p className="text-[11px] text-ink3">تُقلَّص الصورة تلقائياً إلى 1000px بجودة عالية وتُخزّن مع الشريط.</p>
+          {err && <p className="text-[11px] font-bold text-danger">{err}</p>}
         </div>
       </div>
     </div>

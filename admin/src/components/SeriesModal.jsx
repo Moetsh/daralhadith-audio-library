@@ -72,7 +72,7 @@ function SeriesEpisodes({ seriesId }) {
     setBusy(true);
     try {
       await api("/audios/" + id, { method: "PUT", body: { description: text || null } });
-      setEps((list) => list.map((e) => (e.id === id ? { ...e, description: text || null } : e)));
+      setEps((list) => (list || []).map((e) => (e.id === id ? { ...e, description: text || null } : e)));
       setEditId(null);
     } catch (e2) {
       setErr(e2);
@@ -148,7 +148,7 @@ export function SeriesModal({ editing, scholars, categories, onClose, onSaved })
     else await api("/series", { method: "POST", body: payload });
     const sid = editing?.id || payload.id;
     if (coverChanged && payload.cover_image_url && sid) {
-      await applySeriesCover(sid, { mode: "empty", cover_image_url: payload.cover_image_url });
+      await applySeriesCover(sid, { mode: overwrite ? "all" : "empty", cover_image_url: payload.cover_image_url });
     }
     onClose();
     await onSaved?.();
@@ -187,7 +187,7 @@ export function SeriesModal({ editing, scholars, categories, onClose, onSaved })
             if (editing?.id) await api("/series/" + editing.id, { method: "PUT", body: payload });
             const { updated, total } = await applySeriesCover(
               editing.id,
-              { mode: overwrite ? "all" : "empty" },
+              { mode: overwrite ? "all" : "empty", cover_image_url: form.cover_image_url || null },
               ({ updated: u, total: t, done }) => {
                 if (!done) setApplyMsg({ ok: true, text: `جارٍ التطبيق… ${u} من ${t} حلقة` });
               }
@@ -203,7 +203,7 @@ export function SeriesModal({ editing, scholars, categories, onClose, onSaved })
 
         return (
           <>
-            <CoverPicker value={form.cover_image_url || ""} onChange={(v) => set("cover_image_url", v)} />
+            <CoverPicker value={form.cover_image_url || ""} onChange={(v) => { set("cover_image_url", v); setApplyMsg(null); }} />
             <div className="grid md:grid-cols-2 gap-4">
               <Input label="المعرف (لاتيني بلا مسافات)" required dir="ltr" className="text-left" value={form.id} disabled={!!editing?.id} onChange={(e) => set("id", e.target.value)} placeholder="مثال: fiqh-course" />
               <Input label="العنوان" required value={form.title} onChange={(e) => set("title", e.target.value)} />
@@ -216,7 +216,7 @@ export function SeriesModal({ editing, scholars, categories, onClose, onSaved })
                 <option value="">— بدون —</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.parent_id ? "↳ " + c.name : c.name}</option>)}
               </Select>
-              <Input label="رابط الغلاف" dir="ltr" value={form.cover_image_url || ""} onChange={(e) => set("cover_image_url", e.target.value)} placeholder="https://…/cover.jpg" />
+              <Input label="رابط الغلاف" dir="ltr" value={form.cover_image_url || ""} onChange={(e) => { set("cover_image_url", e.target.value); setApplyMsg(null); }} placeholder="https://…/cover.jpg" />
               <Input label="عدد الحلقات" type="number" value={form.total_episodes} onChange={(e) => set("total_episodes", e.target.value)} />
               <Select label="اتجاه الترتيب" value={form.order_direction} onChange={(e) => set("order_direction", e.target.value)}>
                 <option value="asc">من الأول للأخير</option>

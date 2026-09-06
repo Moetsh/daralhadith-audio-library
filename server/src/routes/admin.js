@@ -93,6 +93,20 @@ r.post("/announcements", wrap(async (req, res) => {
   res.status(201).json({ ok: true });
 }));
 
+r.put("/announcements/:id", wrap(async (req, res) => {
+  const cur = await getNode("admin/announcements/" + req.params.id);
+  if (!cur) return res.status(404).json({ error: "غير موجود" });
+  const { title, content, type, target_audience, is_active, starts_at, expires_at } = req.body || {};
+  if (!title) return res.status(400).json({ error: "العنوان مطلوب" });
+  await setNode("admin/announcements/" + req.params.id, {
+    title, content: content ?? null, type: type ?? "banner", target_audience: target_audience ?? "all",
+    is_active: is_active === false ? 0 : 1, starts_at: starts_at ?? null, expires_at: expires_at ?? null,
+    created_at: cur.created_at ?? nowISO(),
+  });
+  logAction(req, "update", "announcement", req.params.id, `عدّل تنبيهاً «${title}»`);
+  res.json({ ok: true });
+}));
+
 r.delete("/announcements/:id", wrap(async (req, res) => {
   await removeNode("admin/announcements/" + req.params.id);
   logAction(req, "delete", "announcement", req.params.id, "حذف تنبيهاً");
@@ -214,7 +228,7 @@ async function runBackup(actor) {
     const base = t === "users" || t === "announcements" || t === "activity" ? "admin/" + t : t;
     dump[t] = (await listNode(base)).map(({ id, value }) => ({ ...value, id }));
   }
-  const key = nowISO().slice(0, 10);
+  const key = nowISO().slice(0, 16);
   await setNode("admin/backups/" + key, { created_at: nowISO(), tables: dump });
   const all = (await listNode("admin/backups")).map(({ id }) => id).sort();
   const olds = all.slice(0, Math.max(0, all.length - 5));

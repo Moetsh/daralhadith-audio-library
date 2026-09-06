@@ -1,14 +1,18 @@
 import { useList } from "../hooks";
 import { api } from "../api";
-import { PageTitle, Button, Badge, Table, ListCard } from "../components/ui";
+import { PageTitle, Button, Badge, Table, ListCard, fmtTime } from "../components/ui";
 import { Ban, CheckCircle2 } from "lucide-react";
 
 export default function Users() {
-  const { rows, loading, error, reload } = useList(() => api("/admin/users"));
+  const { rows, loading, error, setError, reload } = useList(() => api("/admin/users"));
 
   const toggleBan = async (u) => {
-    await api("/admin/users/" + u.id + "/ban", { method: "PUT", body: { ban: !u.is_banned } });
-    reload();
+    try {
+      await api("/admin/users/" + u.id + "/ban", { method: "PUT", body: { ban: !u.is_banned } });
+      reload();
+    } catch (e) {
+      setError(e);
+    }
   };
 
   return (
@@ -21,8 +25,8 @@ export default function Users() {
               <td className="px-4 py-3 font-bold">{u.name}</td>
               <td className="px-4 py-3 text-ink2" dir="ltr">{u.email}</td>
               <td className="px-4 py-3">{u.role === "admin" ? <Badge tone="gold">مشرف</Badge> : <Badge tone="green">مستخدم</Badge>}</td>
-              <td className="px-4 py-3 text-ink2 text-xs">{u.created_at}</td>
-              <td className="px-4 py-3 text-ink2 text-xs">{u.last_login_at || "—"}</td>
+                <td className="px-4 py-3 text-ink2 text-xs">{fmtTime(u.created_at)}</td>
+                <td className="px-4 py-3 text-ink2 text-xs">{fmtTime(u.last_login_at)}</td>
               <td className="px-4 py-3">{u.is_banned ? <Badge tone="danger">محظور</Badge> : <Badge tone="green">نشط</Badge>}</td>
               <td className="px-4 py-3">
                 {u.role !== "admin" && (

@@ -30,7 +30,9 @@ export default function Settings() {
   const loadBackups = async () => {
     try {
       setBackups(await api("/admin/backups"));
-    } catch {}
+    } catch (e) {
+      setBkMsg({ ok: false, text: e.message });
+    }
   };
 
   const snapNow = async () => {
@@ -82,7 +84,13 @@ export default function Settings() {
   };
 
   const backup = async () => {
-    const blob = await (await fetch("/api/admin/backup", { headers: { authorization: "Bearer " + getToken() } })).blob();
+    let blob;
+    try {
+      blob = await (await fetch("/api/admin/backup", { headers: { authorization: "Bearer " + getToken() } })).blob();
+    } catch (e2) {
+      setError(e2);
+      return;
+    }
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "daralhadith-backup.json";

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import { Card, Loading, ErrorBox, PageTitle, cx } from "../components/ui";
+import { Button, Card, Loading, ErrorBox, PageTitle, cx } from "../components/ui";
 import { AreaChart, HBarList } from "../components/charts";
 import { Music2, GraduationCap, FolderTree, Headphones, PlaySquare, UserPlus, Download, Library } from "lucide-react";
 
@@ -11,30 +11,66 @@ export default function Dashboard() {
   const [topAudios, setTopAudios] = useState([]);
   const [topScholars, setTopScholars] = useState([]);
   const [terms, setTerms] = useState([]);
+  const [downloads, setDownloads] = useState([]);
   const [error, setError] = useState(null);
+  const [expBusy, setExpBusy] = useState(false);
 
   useEffect(() => {
+    let on = true;
+    const safe = async (p, fb) => {
+      try {
+        return await p;
+      } catch {
+        return fb;
+      }
+    };
     (async () => {
       try {
-        const [ov, ls, cd, ta, ts, st] = await Promise.all([
-          api("/admin/overview"),
-          api("/admin/listens"),
-          api("/admin/categories"),
-          api("/admin/popular?n=6"),
-          api("/admin/top-scholars"),
-          api("/admin/search-terms"),
-        ]);
+        const ov = await api("/admin/overview");
+        if (!on) return;
         setData(ov);
-        setListens(ls);
-        setCatDist(cd);
-        setTopAudios(ta);
-        setTopScholars(ts);
-        setTerms(st);
+        setError(null);
       } catch (e) {
-        setError(e);
+        if (on) setError(e);
+        return;
       }
+      const [ls, cd, ta, ts, st, dl] = await Promise.all([
+        safe(api("/admin/listens"), []),
+        safe(api("/admin/categories"), []),
+        safe(api("/admin/popular?n=6"), []),
+        safe(api("/admin/top-scholars"), []),
+        safe(api("/admin/search-terms"), []),
+        safe(api("/admin/downloads"), []),
+      ]);
+      if (!on) return;
+      setListens(ls);
+      setCatDist(cd);
+      setTopAudios(ta);
+      setTopScholars(ts);
+      setTerms(st);
+      setDownloads(dl);
     })();
+    return () => {
+      on = false;
+    };
   }, []);
+
+  const exportCsv = async () => {
+    setExpBusy(true);
+    try {
+      const csv = await api("/admin/export");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "audios.csv";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setExpBusy(false);
+    }
+  };
 
   if (error) return <ErrorBox error={error} />;
   if (!data) return <Loading />;
@@ -51,7 +87,15 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <PageTitle title="لوحة المعلومات" subtitle="نظرة عامة على مكتبة دار الحديث الصوتية" />
+      <PageTitle
+        title="لوحة المعلومات"
+        subtitle="نظرة عامة على مكتبة دار الحديث الصوتية"
+        actions={
+          <Button size="sm" variant="outline" disabled={expBusy} onClick={exportCsv}>
+            <Download size={14} /> {expBusy ? "جارٍ التصدير…" : "تصدير CSV"}
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
         {cards.map(({ label, value, icon: Icon, tone }) => (
@@ -60,7 +104,7 @@ export default function Dashboard() {
               <Icon size={20} />
             </div>
             <div className="min-w-0">
-              <div className="text-lg font-black tabular-nums truncate">{Number(value).toLocaleString("ar-EG")}</div>
+              <div className="text-lg font-black tabular-nums truncate">{Number(value || 0).toLocaleString("ar-EG")}</div>
               <div className="text-xs text-ink3 font-bold">{label}</div>
             </div>
           </Card>
@@ -78,6 +122,11 @@ export default function Dashboard() {
           {terms.length === 0 && <p className="text-sm text-ink3">لا توجد عمليات بحث بعد</p>}
         </Card>
       </div>
+
+      <Card className="p-5">
+        <h2 className="font-bold text-green mb-4">التحميلات — آخر 30 يوماً</h2>
+        <AreaChart data={downloads} />
+      </Card>
 
       <div className="grid lg:grid-cols-2 gap-4">
         <Card className="p-5">
@@ -109,7 +158,7 @@ export default function Dashboard() {
                 <div className="text-xs text-ink3">{a.scholar_name}</div>
               </div>
               <span className="text-xs font-bold text-ink2 tabular-nums shrink-0">
-                {Number(a.listen_count).toLocaleString("ar-EG")} استماع
+                {Number(a.listen_count || 0).toLocaleString("ar-EG")} استماع
               </span>
             </div>
           ))}

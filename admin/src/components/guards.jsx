@@ -3,18 +3,19 @@ import { useAuth } from "../auth";
 import { Loading } from "./ui";
 import Login from "../pages/Login";
 
-/* حارس المصادقة: يعرض تحميلاً حتى الجاهزية، ثم يُحوّل غير المسجل إلى /login. */
+/* حارس المصادقة: يعرض تحميلاً حتى الجاهزية، ثم يُحوّل غير المشرف إلى /login. */
 export function Guard({ children }) {
   const { user, ready } = useAuth();
   if (!ready) return <Loading label="جارٍ التحقق…" />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user || user.role !== "admin") return <Navigate to="/login" replace />;
   return children;
 }
 
-/* بوابة الدخول: المسجل يُحوَّل للرئيسية، وإلا تُعرض صفحة الدخول. */
+/* بوابة الدخول: المشرف المسجل يُحوَّل للرئيسية، وإلا تُعرض صفحة الدخول. */
 export function LoginGate() {
-  const { user } = useAuth();
-  if (user) return <Navigate to="/" replace />;
+  const { user, ready } = useAuth();
+  if (!ready) return <Loading label="جارٍ التحقق…" />;
+  if (user && user.role === "admin") return <Navigate to="/" replace />;
   return <Login />;
 }
 
