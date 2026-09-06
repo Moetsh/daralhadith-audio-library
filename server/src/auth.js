@@ -4,6 +4,9 @@ import bcrypt from "bcryptjs";
 import { getNode, setNode, removeNode, pushNode, nowISO } from "./fb.js";
 
 export const JWT_SECRET = process.env.JWT_SECRET || "daralhadith-dev-secret-change-me";
+if (process.env.VERCEL && JWT_SECRET === "daralhadith-dev-secret-change-me") {
+  throw new Error("FATAL: JWT_SECRET must be set in production");
+}
 export const JWT_EXP = process.env.JWT_EXP || "7d";
 
 export const hashPw = (pw) => bcrypt.hashSync(pw, 10);

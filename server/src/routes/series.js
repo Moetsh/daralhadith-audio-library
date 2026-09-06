@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getNode, setNode, updateNode, removeNode, listNode, wrap } from "../fb.js";
+import { getNode, setNode, updateNode, removeNode, listNode, validId, wrap } from "../fb.js";
 import { authUser, adminOnly, logAction } from "../auth.js";
 
 const r = Router();
@@ -83,6 +83,7 @@ r.get("/:id/episodes", wrap(async (req, res) => {
 r.post("/", authUser, adminOnly, wrap(async (req, res) => {
   const { id, title, title_en, scholar_id, category_id, description, cover_image_url, total_episodes, is_complete, order_direction, parent_id } = req.body || {};
   if (!id || !title) return res.status(400).json({ error: "المعرف والعنوان مطلوبان" });
+  if (!validId(id)) return res.status(400).json({ error: "معرف غير صالح" });
   if (await getNode("series/" + id)) return res.status(409).json({ error: "المعرف مستخدم" });
   await setNode("series/" + id, {
     id, title, title_en: title_en ?? null, scholar_id: scholar_id ?? null, category_id: category_id ?? null,

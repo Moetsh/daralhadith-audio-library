@@ -26,6 +26,14 @@ export function createApp() {
   app.use(cors());
   app.use(express.json({ limit: "2mb" }));
 
+  /* ترويسات أمنية أساسية */
+  app.use((req, res, next) => {
+    res.set("X-Content-Type-Options", "nosniff");
+    res.set("Referrer-Policy", "same-origin");
+    res.set("X-Frame-Options", "SAMEORIGIN");
+    next();
+  });
+
   /* تخزين حافة 30 ثانية للكتالوج العام فقط (بدون توكن) — يخفف المسح الكامل المتكرر */
   app.use("/api", (req, res, next) => {
     if (

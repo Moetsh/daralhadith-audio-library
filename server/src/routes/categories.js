@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { mapNode, getNode, setNode, removeNode, listNode, wrap } from "../fb.js";
+import { mapNode, getNode, setNode, removeNode, listNode, validId, wrap } from "../fb.js";
 import { authUser, adminOnly, logAction } from "../auth.js";
 
 const r = Router();
@@ -61,6 +61,7 @@ r.get("/:id", wrap(async (req, res) => {
 r.post("/", authUser, adminOnly, wrap(async (req, res) => {
   const { id, name, name_en, parent_id, icon, description, cover_image_url, sort_order, is_active } = req.body || {};
   if (!id || !name) return res.status(400).json({ error: "المعرف والاسم مطلوبان" });
+  if (!validId(id)) return res.status(400).json({ error: "معرف غير صالح" });
   if (await getNode("categories/" + id)) return res.status(409).json({ error: "المعرف مستخدم" });
   if (parent_id && !(await getNode("categories/" + parent_id)))
     return res.status(400).json({ error: "التصنيف الأب غير موجود" });

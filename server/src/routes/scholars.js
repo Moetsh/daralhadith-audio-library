@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getNode, setNode, removeNode, listNode, wrap } from "../fb.js";
+import { getNode, setNode, removeNode, listNode, validId, wrap } from "../fb.js";
 import { authUser, adminOnly, logAction } from "../auth.js";
 
 const r = Router();
@@ -42,6 +42,7 @@ r.get("/:id/audios", wrap(async (req, res) => {
 r.post("/", authUser, adminOnly, wrap(async (req, res) => {
   const { id, name, name_en, bio, bio_en, image_url, specialization, country, status, is_featured } = req.body || {};
   if (!id || !name) return res.status(400).json({ error: "المعرف والاسم مطلوبان" });
+  if (!validId(id)) return res.status(400).json({ error: "معرف غير صالح" });
   if (await getNode("scholars/" + id)) return res.status(409).json({ error: "المعرف مستخدم" });
   await setNode("scholars/" + id, {
     id, name, name_en: name_en ?? null, bio: bio ?? null, bio_en: bio_en ?? null,

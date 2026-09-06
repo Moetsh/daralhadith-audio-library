@@ -8,9 +8,11 @@ import {
 const r = Router();
 
 const loginSchema = z.object({ email: z.string().email(), password: z.string().min(1) });
-const registerSchema = z.object({ name: z.string().min(2), email: z.string().email(), password: z.string().min(6) });
+const registerSchema = z.object({ name: z.string().min(2), email: z.string().email(), password: z.string().min(8) });
 
+/* التسجيل العام معطّل: لا يستهلكه أي عميل (التطبيق بلا حسابات) وكان باباً لحسابات مزعجة */
 r.post("/register", wrap(async (req, res) => {
+  return res.status(403).json({ error: "التسجيل مغلق حالياً" });
   const p = registerSchema.safeParse(req.body);
   if (!p.success) return res.status(400).json({ error: "بيانات غير صحيحة" });
   const { name, email, password } = p.data;
@@ -66,7 +68,7 @@ r.post("/logout", wrap(async (req, res) => {
 
 r.post("/change-password", authUser, wrap(async (req, res) => {
   const { current, next } = req.body || {};
-  if (!current || !next || String(next).length < 6)
+  if (!current || !next || String(next).length < 8)
     return res.status(400).json({ error: "كلمة المرور الجديدة قصيرة" });
   if (!verifyPw(current, req.user.password_hash))
     return res.status(401).json({ error: "كلمة المرور الحالية غير صحيحة" });

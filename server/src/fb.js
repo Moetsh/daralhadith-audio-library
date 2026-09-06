@@ -61,6 +61,9 @@ export const pushNode = async (path, val) => {
   return out?.name;
 };
 
+/* معرفات صالحة: نص غير فارغ بلا محارف Firebase المحظورة (منع حقن المسارات) */
+export const validId = (id) => typeof id === "string" && id.length > 0 && id.length <= 120 && !/[.$#[\]/]/.test(id);
+
 /* كل العقد كقائمة { id, value } */
 export const listNode = async (path) => {
   const obj = await getNode(path);
