@@ -3,7 +3,44 @@ import { Component, type ReactNode } from "react";
 
 interface Props {
   title: string;
+  route?: string;
   children: ReactNode;
+}
+
+const REPORT_URL = "https://daralhadith.vercel.app/api/version/client-errors";
+
+async function reportCrash(route: string, error: Error) {
+  let appVersion = "?";
+  let platform = "?";
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    platform = Capacitor.getPlatform();
+  } catch {}
+  try {
+    const { App } = await import("@capacitor/app");
+    const info = await App.getInfo();
+    if (info?.version) appVersion = info.version;
+  } catch {}
+  const payload = {
+    message: String(error?.message || error).slice(0, 500),
+    stack: String(error?.stack || "").slice(0, 3000),
+    route,
+    appVersion,
+    platform,
+  };
+  try {
+    if (navigator.sendBeacon) {
+      const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+      if (navigator.sendBeacon(REPORT_URL, blob)) return;
+    }
+  } catch {}
+  try {
+    await fetch(REPORT_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch {}
 }
 
 interface State {
@@ -15,6 +52,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    reportCrash(this.props.route || "?", error);
   }
 
   private retry = () => this.setState({ error: null });

@@ -47,6 +47,14 @@ r.get("/backup", wrap(async (req, res) => {
   res.json(dump);
 }));
 
+r.get("/client-errors", wrap(async (_req, res) => {
+  const rows = (await listNode("admin/client-errors"))
+    .sort((a, b) => (b.value.created_at || "").localeCompare(a.value.created_at || ""))
+    .slice(0, 50)
+    .map(({ id, value }) => ({ ...value, id }));
+  res.json(rows);
+}));
+
 r.get("/activity", wrap(async (req, res) => {
   const rows = (await listNode("admin/activity"))
     .sort((a, b) => (b.value.created_at || "").localeCompare(a.value.created_at || ""))

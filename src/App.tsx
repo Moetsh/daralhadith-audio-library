@@ -125,7 +125,7 @@ const AppShell = ({ framed }: { framed: boolean }) => {
           exit={{ x: push ? 52 : -52, opacity: 0.4 }}
           transition={{ type: "spring", stiffness: 340, damping: 34 }}
         >
-          <ErrorBoundary title="تعذّر عرض هذه الشاشة">
+          <ErrorBoundary title="تعذّر عرض هذه الشاشة" route={top.name}>
             <ScreenFor r={top} />
           </ErrorBoundary>
         </motion.div>
