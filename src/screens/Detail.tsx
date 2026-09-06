@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, CheckCircle2, Clock3, Download, ListPlus, Play } from "lucide-react";
 import { useState } from "react";
 import {
-  catById, catColor, itemById, itemsOfSeries, missingEpisodesOfSeries, relatedOf, scholarById, seriesById, mainOf,
+  catById, itemById, itemsOfSeries, missingEpisodesOfSeries, relatedOf, scholarById, seriesById, mainOf,
 } from "../data/library";
 import { ar, fmtAgo, fmtCount, fmtDur } from "../lib/utils";
 import { useApp } from "../store/appStore";
@@ -168,7 +168,11 @@ const DlBtn = ({ id }: { id: string }) => {
   if (rec?.status === "active")
     return (
       <button className="w-12 h-12 rounded-2xl soft-gold c-gold flex items-center justify-center" aria-label={t.downloading}>
-        <span className="text-[0.6rem] font-black">{ar(Math.round(rec.p * 100))}٪</span>
+        {rec.p > 0 ? (
+          <span className="text-[0.6rem] font-black">{ar(Math.round(rec.p * 100))}٪</span>
+        ) : (
+          <Download size={16} className="animate-pulse" />
+        )}
       </button>
     );
   if (rec?.status === "queued")

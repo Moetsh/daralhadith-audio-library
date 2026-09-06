@@ -1,8 +1,23 @@
 /* محرك المشغل الصوتي — ExoPlayer (محاكاة ويب بعنصر Audio + MediaSession) */
 import { create } from "zustand";
+import { Capacitor } from "@capacitor/core";
+import { Filesystem, Directory } from "@capacitor/filesystem";
 import { itemById, scholarById } from "../data/library";
 import { useApp } from "./appStore";
 import { useSettings } from "./core";
+
+/* مسار التشغيل: ملف محمّل محلياً إن وُجد، وإلا البث المباشر */
+async function localSrc(id: string, fallback: string): Promise<string> {
+  try {
+    const dl = useApp.getState().downloads[id];
+    if (dl?.status === "done" && dl.path) {
+      await Filesystem.stat({ path: dl.path, directory: Directory.Data });
+      const uri = await Filesystem.getUri({ path: dl.path, directory: Directory.Data });
+      return Capacitor.convertFileSrc(uri.uri);
+    }
+  } catch {}
+  return fallback;
+}
 
 const audio = new Audio();
 audio.preload = "auto";
@@ -147,7 +162,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
     sheetOpen: false,
     usedAlt: false,
 
-    playItem: (id, queueIds) => {
+    playItem: async (id, queueIds) => {
       const st = get();
       if (id === st.currentId) return st.toggle();
       const it = itemById(id);
@@ -159,7 +174,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
       if (bumpId === id) useApp.getState().bumpCount(id);
       useApp.getState().pushHistory(id);
       audio.playbackRate = useSettings.getState().defSpeed || get().speed || 1;
-      audio.src = it.streamUrl;
+      audio.src = await localSrc(id, it.streamUrl);
       set({
         currentId: id, queue, qIndex: idx, status: "loading",
         position: 0, duration: it.duration, usedAlt: false,

@@ -47,6 +47,17 @@ r.get("/backup", wrap(async (req, res) => {
   res.json(dump);
 }));
 
+r.get("/backups", wrap(async (_req, res) => {
+  const rows = (await listNode("admin/backups"))
+    .sort((a, b) => (b.value.created_at || "").localeCompare(a.value.created_at || ""))
+    .map(({ id, value }) => ({
+      id,
+      created_at: value.created_at || null,
+      tables: value.tables ? Object.fromEntries(Object.entries(value.tables).map(([k, v]) => [k, Array.isArray(v) ? v.length : 0])) : {},
+    }));
+  res.json(rows);
+}));
+
 r.get("/client-errors", wrap(async (_req, res) => {
   const rows = (await listNode("admin/client-errors"))
     .sort((a, b) => (b.value.created_at || "").localeCompare(a.value.created_at || ""))

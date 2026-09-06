@@ -49,30 +49,39 @@ public class ApkInstaller extends Plugin {
             try {
                 File cacheDir = getContext().getCacheDir();
                 File apkFile = new File(cacheDir, "update.apk");
-                if (apkFile.exists()) apkFile.delete();
+                long existing = apkFile.exists() ? apkFile.length() : 0;
 
                 conn = (HttpURLConnection) new URL(url).openConnection();
                 conn.setConnectTimeout(15000);
                 conn.setReadTimeout(60000);
                 conn.setInstanceFollowRedirects(true);
+                if (existing > 0) conn.setRequestProperty("Range", "bytes=" + existing + "-");
                 conn.connect();
 
                 int code = conn.getResponseCode();
-                if (code < 200 || code >= 300) {
+                if (code != 200 && code != 206) {
                     call.reject("HTTP " + code);
                     return;
                 }
+                boolean resume = (code == 206 && existing > 0);
+                if (!resume && existing > 0) {
+                    apkFile.delete();
+                    existing = 0;
+                }
 
-                int total = conn.getContentLength();
+                int remain = conn.getContentLength();
+                long fullTotal = remain > 0 ? existing + remain : 0;
                 InputStream in = conn.getInputStream();
-                FileOutputStream out = new FileOutputStream(apkFile);
+                FileOutputStream out = new FileOutputStream(apkFile, resume);
                 byte[] buf = new byte[8192];
-                int read, bytes = 0, lastPct = 0;
+                int read;
+                long bytes = existing;
+                int lastPct = fullTotal > 0 ? (int) (bytes * 100L / fullTotal) : 0;
                 while ((read = in.read(buf)) > 0) {
                     out.write(buf, 0, read);
                     bytes += read;
-                    if (total > 0) {
-                        int pct = (int) (bytes * 100L / total);
+                    if (fullTotal > 0) {
+                        int pct = (int) (bytes * 100L / fullTotal);
                         if (pct > lastPct) {
                             lastPct = pct;
                             JSObject ev = new JSObject();

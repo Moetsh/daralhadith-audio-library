@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
 import {
   LayoutDashboard, Music2, FolderTree, GraduationCap, ListVideo,
-  DownloadCloud, Users, Bell, Settings, History, LogOut,
+  DownloadCloud, Users, Bell, Settings, History, Bug, LogOut,
 } from "lucide-react";
 import { cx } from "./ui";
 
@@ -19,6 +19,7 @@ const NAV = [
   { to: "/users", label: "المستخدمون", icon: Users },
   { to: "/announcements", label: "التنبيهات", icon: Bell },
   { to: "/activity", label: "سجل النشاط", icon: History },
+  { to: "/crashes", label: "تقارير الأعطال", icon: Bug },
   { to: "/settings", label: "الإعدادات", icon: Settings },
 ];
 

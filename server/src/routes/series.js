@@ -37,7 +37,8 @@ r.get("/", wrap(async (req, res) => {
   const nums = await episodeNumbers();
   const rows = (await listNode("series")).map(({ id, value }) => {
     const eps = nums[id] || [];
-    const total = Number(value.total_episodes) || 0;
+    const actualMax = eps.length ? Math.max(...eps) : 0;
+    const total = Math.max(Number(value.total_episodes) || 0, actualMax);
     const missing = missingOf(total, eps);
     return { ...value, id, episodes: eps.length, total_episodes: total, missing_count: missing.length, missing_episodes: missing };
   });
@@ -49,7 +50,10 @@ r.get("/:id", wrap(async (req, res) => {
   const s = await getNode("series/" + req.params.id);
   if (!s) return res.status(404).json({ error: "غير موجود" });
   const branches = (await listNode("series")).filter(({ value }) => value.parent_id === req.params.id).map(({ value }) => value);
-  res.json({ ...s, id: req.params.id, branches });
+  const nums = await episodeNumbers();
+  const eps = nums[req.params.id] || [];
+  const actualMax = eps.length ? Math.max(...eps) : 0;
+  res.json({ ...s, id: req.params.id, total_episodes: Math.max(Number(s.total_episodes) || 0, actualMax), branches });
 }));
 
 /* معرفات حلقات سلسلة فقط (خفيف لل تتالي من المتصفح دون مسح كامل متكرر) */

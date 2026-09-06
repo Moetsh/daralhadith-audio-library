@@ -1,13 +1,26 @@
 /* مخزن المكتبة: مفضلة، تحميلات، قوائم تشغيل، سجل، مواضع الاستماع */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { Filesystem, Directory } from "@capacitor/filesystem";
 
 export interface Playlist { id: string; name: string; ids: string[] }
-export interface DownloadRec { p: number; status: "active" | "done" | "queued" }
+export interface DownloadRec { p: number; status: "active" | "done" | "queued" | "error"; path?: string }
 export interface PosRec { pos: number; dur: number; done: boolean }
 
-const timers: Record<string, number> = {};
 let toastTimer: number | undefined;
+
+const DL_DIR = "dh-audio";
+export const dlPath = (id: string) => `${DL_DIR}/${id}.mp3`;
+
+async function wifiOk(): Promise<boolean> {
+  try {
+    const { Network } = await import("@capacitor/network");
+    const st = await Network.getStatus();
+    return !!st.connected && (!st.connectionType || st.connectionType === "wifi");
+  } catch {
+    return true;
+  }
+}
 
 interface AppState {
   favs: string[];
@@ -94,54 +107,57 @@ export const useApp = create<AppState>()(
           }),
         })),
 
-      startDownload: (id, wifiOnly, note) => {
+      startDownload: async (id, wifiOnly, note) => {
         const rec = get().downloads[id];
-        if (rec && rec.status !== "done") return;
-        const run = () => {
-          window.clearInterval(timers[id]);
-          set((s) => ({ downloads: { ...s.downloads, [id]: { p: 0, status: "active" } } }));
-          timers[id] = window.setInterval(() => {
-            const cur = get().downloads[id];
-            if (!cur || cur.status !== "active") return window.clearInterval(timers[id]);
-            const np = cur.p + 0.03 + Math.random() * 0.05;
-            if (np >= 1) {
-              window.clearInterval(timers[id]);
-              set((s) => ({ downloads: { ...s.downloads, [id]: { p: 1, status: "done" } } }));
-              get().showToast("تم التحميل — يعمل دون اتصال");
-            } else {
-              set((s) => ({ downloads: { ...s.downloads, [id]: { p: np, status: "active" } } }));
-            }
-          }, 350);
-        };
-        if (wifiOnly) {
+        if (rec && (rec.status === "done" || rec.status === "active")) return;
+        const { itemById } = await import("../data/library");
+        const it = itemById(id);
+        if (!it?.streamUrl) {
+          get().showToast("تعذّر بدء التحميل");
+          return;
+        }
+        if (wifiOnly && !(await wifiOk())) {
           set((s) => ({ downloads: { ...s.downloads, [id]: { p: 0, status: "queued" } } }));
           get().showToast(note);
-          // محاكاة وصول WiFi بعد ثوانٍ
-          window.setTimeout(() => {
-            const cur = get().downloads[id];
-            if (cur?.status === "queued") run();
-          }, 6000);
-        } else run();
+          return;
+        }
+        set((s) => ({ downloads: { ...s.downloads, [id]: { p: 0, status: "active" } } }));
+        try {
+          await Filesystem.downloadFile({ path: dlPath(id), url: it.streamUrl, directory: Directory.Data });
+          set((s) => ({ downloads: { ...s.downloads, [id]: { p: 1, status: "done", path: dlPath(id) } } }));
+          get().showToast("تم التحميل — يعمل دون اتصال");
+        } catch {
+          set((s) => ({ downloads: { ...s.downloads, [id]: { p: 0, status: "error" } } }));
+          get().showToast("فشل التحميل — حاول مجددًا");
+        }
       },
-      removeDownload: (id) => {
-        window.clearInterval(timers[id]);
+      removeDownload: async (id) => {
+        const rec = get().downloads[id];
+        if (rec?.path) {
+          try {
+            await Filesystem.deleteFile({ path: rec.path, directory: Directory.Data });
+          } catch {}
+        }
         set((s) => {
           const d = { ...s.downloads };
           delete d[id];
           return { downloads: d };
         });
       },
-      resumeDownloads: () => {
+      resumeDownloads: async () => {
         for (const [id, rec] of Object.entries(get().downloads)) {
-          if (rec.status === "active") {
-            window.clearInterval(timers[id]);
-            timers[id] = window.setInterval(() => {
-              const cur = get().downloads[id];
-              if (!cur || cur.status !== "active") return window.clearInterval(timers[id]);
-              const np = cur.p + 0.03 + Math.random() * 0.05;
-              set((s) => ({ downloads: { ...s.downloads, [id]: { p: np >= 1 ? 1 : np, status: np >= 1 ? "done" : "active" } } }));
-              if (np >= 1) window.clearInterval(timers[id]);
-            }, 350);
+          if (rec.status === "done" && rec.path) {
+            try {
+              await Filesystem.stat({ path: rec.path, directory: Directory.Data });
+            } catch {
+              set((s) => {
+                const d = { ...s.downloads };
+                delete d[id];
+                return { downloads: d };
+              });
+            }
+          } else if (rec.status === "active") {
+            set((s) => ({ downloads: { ...s.downloads, [id]: { p: 0, status: "queued" } } }));
           }
         }
       },

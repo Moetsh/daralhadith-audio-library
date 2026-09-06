@@ -231,7 +231,6 @@ export const AudioCardH = ({ item, onOpen }: { item: AudioItem; onOpen?: () => v
 
 /* بطاقة سلسلة — تصميم محسّن */
 export const SeriesCard = ({ series, wide = false }: { series: Series; wide?: boolean }) => {
-  const lang = useSettings((s) => s.lang);
   const nav = useNav();
   const play = usePlayer((s) => s.playItem);
   const t = useSettings((s) => s.t);

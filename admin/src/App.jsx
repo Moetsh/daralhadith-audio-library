@@ -11,6 +11,7 @@ import ImportPage from "./pages/Import";
 import Users from "./pages/Users";
 import Announcements from "./pages/Announcements";
 import Activity from "./pages/Activity";
+import Crashes from "./pages/Crashes";
 import Settings from "./pages/Settings";
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="/users" element={<Users />} />
             <Route path="/announcements" element={<Announcements />} />
             <Route path="/activity" element={<Activity />} />
+            <Route path="/crashes" element={<Crashes />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Route>
