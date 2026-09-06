@@ -39,7 +39,8 @@ export const HomeScreen = () => {
     [history, syncVer]
   );
   const hours = useMemo(() => Math.round(allItems().reduce((a, b) => a + b.duration, 0) / 3600), [syncVer]);
-  const featured = allSeries().find((s) => s.id === "sr-سلسلة-فضائل-الصحابة") ?? allSeries()[0] ?? null;
+  const featured = allSeries().find((s) => s.scholarId === "albani" && s.title.includes("الهدى") && s.title.includes("النور"))
+    ?? allSeries().find((s) => s.id === "sr-سلسلة-فضائل-الصحابة") ?? allSeries()[0] ?? null;
   const featEps = featured ? itemsOfSeries(featured.id) : [];
   const quote = dailyQuote();
 
