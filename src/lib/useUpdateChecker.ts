@@ -25,6 +25,24 @@ function isNewer(a: string, b: string) {
 
 const ApkInstaller = Capacitor.registerPlugin<{ downloadAndInstall(options: { url: string }): Promise<{ ok: boolean }> }>("ApkInstaller");
 
+export function useAppVersion(fallback = "1.40") {
+  const [v, setV] = useState(fallback);
+  useEffect(() => {
+    let on = true;
+    (async () => {
+      try {
+        const { App } = await import("@capacitor/app");
+        const info = await App.getInfo();
+        if (on && info?.version) setV(info.version);
+      } catch {}
+    })();
+    return () => {
+      on = false;
+    };
+  }, []);
+  return v;
+}
+
 export function useUpdateChecker(currentVersion: string) {
   const [latest, setLatest] = useState<VersionInfo | null>(null);
   const [checking, setChecking] = useState(false);

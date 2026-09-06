@@ -4,9 +4,9 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ar } from "../lib/utils";
-import { useUpdateChecker } from "../lib/useUpdateChecker";
+import { useAppVersion, useUpdateChecker } from "../lib/useUpdateChecker";
 import { useSettings, type Theme } from "../store/core";
 import { useServerContent } from "../store/serverContent";
 import { GirihBG, Logo } from "../components/ui";
@@ -95,16 +95,7 @@ const FALLBACK_VERSION = "1.40";
 
 const UpdateCard = () => {
   const t = useSettings((s) => s.t);
-  const [currentVersion, setCurrentVersion] = useState(FALLBACK_VERSION);
-  useEffect(() => {
-    (async () => {
-      try {
-        const { App } = await import("@capacitor/app");
-        const info = await App.getInfo();
-        if (info?.version) setCurrentVersion(info.version);
-      } catch {}
-    })();
-  }, []);
+  const currentVersion = useAppVersion(FALLBACK_VERSION);
   const u = useUpdateChecker(currentVersion);
 
   if (!u.isAndroid) return null;
@@ -173,6 +164,7 @@ export const SettingsScreen = () => {
   const s = useSettings();
   const t = s.t;
   const set = s.set;
+  const appVer = useAppVersion(FALLBACK_VERSION);
 
   return (
     <div className="h-full overflow-y-auto no-bar bg-app relative">
@@ -238,7 +230,7 @@ export const SettingsScreen = () => {
                   <Sparkles size={11} /> {s.lang === "ar" ? "عمل خيري — بدون إعلانات" : "Charity — No ads"}
                 </span>
                 <span className="text-[0.64rem] font-black text-[#8fa795] border border-[#ffffff22] rounded-full px-3 py-1">
-                  {t.ver} {CURRENT_VERSION} · Android 15
+                  {t.ver} {appVer}
                 </span>
               </div>
               <div className="flex items-center gap-3 mt-4 text-[#d9a13f]">
