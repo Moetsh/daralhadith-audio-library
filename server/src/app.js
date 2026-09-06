@@ -83,6 +83,26 @@ export function createApp() {
     });
   }
 
+  /* تطبيق المستمعين (نسخة الويب/PWA للآيفون) على /app + ملفاته من الجذر */
+  const rootDist = join(__dir, "..", "..", "dist");
+  if (existsSync(rootDist)) {
+    app.use(express.static(rootDist, {
+      index: false,
+      setHeaders(res) {
+        noStore(res);
+      }
+    }));
+    const serveApp = (_req, res) => {
+      noStore(res);
+      res.sendFile(join(rootDist, "index.html"));
+    };
+    app.get("/app", serveApp);
+    app.get("/app/*", (req, res) => {
+      if (req.path.startsWith("/api")) return res.status(404).json({ error: "غير موجود" });
+      serveApp(req, res);
+    });
+  }
+
   /* ربط لوحة التحكم المبنيّة (اختياري) */
   if (existsSync(adminDist)) {
     app.use(express.static(adminDist, {
