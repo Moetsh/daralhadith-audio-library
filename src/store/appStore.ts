@@ -123,7 +123,21 @@ export const useApp = create<AppState>()(
         }
         set((s) => ({ downloads: { ...s.downloads, [id]: { p: 0, status: "active" } } }));
         try {
-          await Filesystem.downloadFile({ path: dlPath(id), url: it.streamUrl, directory: Directory.Data });
+          try {
+            await Filesystem.mkdir({ path: "dh-audio", directory: Directory.Data, recursive: true });
+          } catch {}
+          const listener = await Filesystem.addListener("progress", (st) => {
+            if (st.url === it.streamUrl && st.contentLength > 0) {
+              set((s) => ({
+                downloads: { ...s.downloads, [id]: { p: Math.min(0.999, st.bytes / st.contentLength), status: "active" } },
+              }));
+            }
+          });
+          try {
+            await Filesystem.downloadFile({ path: dlPath(id), url: it.streamUrl, directory: Directory.Data, progress: true });
+          } finally {
+            await listener.remove();
+          }
           set((s) => ({ downloads: { ...s.downloads, [id]: { p: 1, status: "done", path: dlPath(id) } } }));
           get().showToast("تم التحميل — يعمل دون اتصال");
         } catch {

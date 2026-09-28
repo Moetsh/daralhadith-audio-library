@@ -1,5 +1,6 @@
 .vercel
 .env*
+/.tools/
 node_modules/
 dist/
 *.apk
