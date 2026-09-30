@@ -10,7 +10,17 @@ export interface PosRec { pos: number; dur: number; done: boolean }
 let toastTimer: number | undefined;
 
 const DL_DIR = "dh-audio";
-export const dlPath = (id: string) => `${DL_DIR}/${id}.mp3`;
+const audioExt = (url: string): string => {
+  const clean = url.split(/[?#]/)[0].toLowerCase();
+  if (clean.endsWith(".ogg")) return "ogg";
+  if (clean.endsWith(".opus")) return "opus";
+  if (clean.endsWith(".m4a")) return "m4a";
+  if (clean.endsWith(".aac")) return "aac";
+  if (clean.endsWith(".wav")) return "wav";
+  return "mp3";
+};
+export const dlPath = (id: string, url?: string) =>
+  `${DL_DIR}/${id}.${audioExt(url || "")}`;
 
 async function wifiOk(): Promise<boolean> {
   try {
@@ -134,11 +144,11 @@ export const useApp = create<AppState>()(
             }
           });
           try {
-            await Filesystem.downloadFile({ path: dlPath(id), url: it.streamUrl, directory: Directory.Data, progress: true });
+            await Filesystem.downloadFile({ path: dlPath(id, it.streamUrl), url: it.streamUrl, directory: Directory.Data, progress: true });
           } finally {
             await listener.remove();
           }
-          set((s) => ({ downloads: { ...s.downloads, [id]: { p: 1, status: "done", path: dlPath(id) } } }));
+          set((s) => ({ downloads: { ...s.downloads, [id]: { p: 1, status: "done", path: dlPath(id, it.streamUrl) } } }));
           get().showToast("تم التحميل — يعمل دون اتصال");
         } catch {
           set((s) => ({ downloads: { ...s.downloads, [id]: { p: 0, status: "error" } } }));
