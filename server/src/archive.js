@@ -68,12 +68,20 @@ export async function inspectArchive(urlOrId) {
       url: fileDownloadUrl(id, f.name),
     }));
   files.sort((a, b) => a.name.localeCompare(b.name, "en", { numeric: true }));
+  const imgs = (j.files ?? [])
+    .filter((f) =>
+      /jpe?g|png|gif/i.test(String(f.format || "")) &&
+      !/thumb|small|tiles|_djvu|_meta/i.test(String(f.name || ""))
+    )
+    .sort((a, b) => (parseInt(b.size, 10) || 0) - (parseInt(a.size, 10) || 0));
+  const cover = imgs.length ? fileDownloadUrl(id, imgs[0].name) : null;
   return {
     ok: true,
     identifier: id,
     title: j.metadata?.title || null,
     creator: j.metadata?.creator || null,
     description: j.metadata?.description || null,
+    cover,
     files,
   };
 }

@@ -57,7 +57,7 @@ export const toAudio = (a: ServerAudio): AudioItem => {
     listenCount: Number(a.listen_count) || 0,
     seriesId: a.series_id || undefined,
     episode: a.episode_number ?? undefined,
-    cover: a.cover_image_url || `/covers/${a.id}.png`,
+    cover: a.cover_image_url || `/covers/${a.id}.jpg`,
   };
 };
 

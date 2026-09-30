@@ -246,7 +246,7 @@ r.post("/bulk-import", authUser, adminOnly, wrap(async (req, res) => {
 
   let mainId = series_id || null;
   const branchIds = new Map();
-  const itemCover = "https://archive.org/services/img/" + insp.identifier;
+  const itemCover = insp.cover || ("https://archive.org/services/img/" + insp.identifier);
   if (new_series?.title) {
     mainId = await findOrCreateSeries(new_series.title, {
       scholar_id, category_id, total_episodes: new_series.total_episodes ?? files.length, cover_image_url: itemCover,
