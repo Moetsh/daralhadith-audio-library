@@ -30,6 +30,17 @@ export function useAppVersion(fallback = "1.40") {
   useEffect(() => {
     let on = true;
     (async () => {
+      /* الويب/PWA: نقرأ نسخة الحزمة المبنية — وإلا ظنّ التطبيق أن�� 항상 قديم */
+      if (Capacitor.getPlatform() === "web") {
+        try {
+          const r = await fetch("/version.json", { cache: "no-store" as RequestCache });
+          if (r.ok) {
+            const j = (await r.json()) as { version?: string };
+            if (on && j?.version) setV(j.version);
+          }
+        } catch {}
+        return;
+      }
       try {
         const { App } = await import("@capacitor/app");
         const info = await App.getInfo();
@@ -53,7 +64,6 @@ export function useUpdateChecker(currentVersion: string) {
   const isAndroid = Capacitor.getPlatform() === "android";
 
   const checkForUpdate = useCallback(async () => {
-    if (!isAndroid) return null;
     setChecking(true);
     setError(null);
     const ctrl = new AbortController();
@@ -89,6 +99,12 @@ export function useUpdateChecker(currentVersion: string) {
     setDone(false);
 
     try {
+      if (!isAndroid) {
+        const { Browser } = await import("@capacitor/browser");
+        await Browser.open({ url: apkUrl });
+        setDone(true);
+        return;
+      }
       const listener = await (ApkInstaller as any).addListener("downloadProgress", (data: { percent: number }) => {
         setProgress(data.percent / 100);
       });

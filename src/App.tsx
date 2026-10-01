@@ -1,13 +1,14 @@
 /* مكتبة دار الحديث الصوتية — الهيكل الرئيسي */
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  BatteryFull, Compass, Fingerprint, Headphones, Home, LayoutGrid, LibraryBig,
-  MoonStar, Search, Settings as SettingsIcon, Signal, Wifi,
+  ArrowDownToLine, BatteryFull, Compass, Fingerprint, Headphones, Home, LayoutGrid,
+  LibraryBig, MoonStar, RefreshCw, Search, Settings as SettingsIcon, Signal, Upload, Wifi, X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MiniPlayer, FullPlayer } from "./components/Player";
 import { GirihBG, Logo, Toast } from "./components/ui";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { useAppVersion, useUpdateChecker } from "./lib/useUpdateChecker";
 import { useApp } from "./store/appStore";
 import { useNav, useSettings, type Route } from "./store/core";
 import { useServerContent } from "./store/serverContent";
@@ -100,6 +101,72 @@ const BottomNav = () => {
   );
 };
 
+/* شريط تنبيه التحديث — يظهر تلقائياً عند توفر نسخة جديدة */
+const UpdateBanner = () => {
+  const currentVersion = useAppVersion();
+  const u = useUpdateChecker(currentVersion);
+  const [dismissed, setDismissed] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (u.hasUpdate && u.latestVersion && dismissed !== u.latestVersion) return;
+  }, [u.hasUpdate, u.latestVersion, dismissed]);
+
+  if (!u.hasUpdate || !u.apkUrl || dismissed === u.latestVersion) return null;
+
+  return (
+    <div className="absolute inset-x-3 top-3 z-50 pointer-events-none">
+      <motion.div
+        initial={{ y: -70, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 24 }}
+        className="pointer-events-auto rounded-2xl border border-[#e07a22]/45 shadow-pop overflow-hidden"
+        style={{ background: "color-mix(in srgb, var(--card) 95%, transparent)", backdropFilter: "blur(8px)" }}
+      >
+        <div className="p-3.5 flex items-start gap-3">
+          <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(224,122,34,0.16)" }}>
+            <Upload size={16} className="c-gold" />
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="font-extrabold ink text-[0.78rem]">يتوفر تحديث للبرنامج — {u.latestVersion}</div>
+            {u.releaseNotes && (
+              <div className="ink-3 text-[0.64rem] font-bold mt-1 leading-relaxed line-clamp-3">{u.releaseNotes}</div>
+            )}
+            {u.downloading && (
+              <div className="w-full h-1.5 rounded-full bg-[var(--line)] overflow-hidden mt-2">
+                <div className="h-full bg-[#e07a22] rounded-full transition-all duration-300"
+                  style={{ width: `${Math.round(u.progress * 100)}%` }} />
+              </div>
+            )}
+            {u.error && <div className="text-[0.64rem] font-bold c-danger mt-1.5">{u.error}</div>}
+            <div className="flex items-center gap-2 mt-2.5">
+              <button
+                onClick={() => u.downloadAndInstall(u.apkUrl!)}
+                disabled={u.downloading}
+                className="h-8 px-3.5 rounded-full bg-[#e07a22] text-white text-[0.66rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
+              >
+                {u.downloading ? (
+                  <><RefreshCw size={12} className="animate-spin" /> {Math.round(u.progress * 100)}%</>
+                ) : (
+                  <><ArrowDownToLine size={12} /> تحديث الآن</>
+                )}
+              </button>
+              <button
+                onClick={() => setDismissed(u.latestVersion)}
+                className="h-8 px-3 rounded-full surface bline border text-[0.66rem] font-extrabold active:scale-95 transition"
+              >
+                لاحقاً
+              </button>
+            </div>
+          </div>
+          <button onClick={() => setDismissed(u.latestVersion)} className="shrink-0 ink-3 p-1" aria-label="إغلاق">
+            <X size={14} />
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 /* جسم التطبيق داخل الإطار */
 const AppShell = ({ framed }: { framed: boolean }) => {
   const nav = useNav();
@@ -135,6 +202,7 @@ const AppShell = ({ framed }: { framed: boolean }) => {
       <MiniPlayer />
       <FullPlayer />
       <Toast />
+      <UpdateBanner />
 
       <AnimatePresence>
         {splash && <Splash done={() => setSplash(false)} />}

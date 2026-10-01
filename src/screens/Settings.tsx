@@ -98,8 +98,6 @@ const UpdateCard = () => {
   const currentVersion = useAppVersion(FALLBACK_VERSION);
   const u = useUpdateChecker(currentVersion);
 
-  if (!u.isAndroid) return null;
-
   return (
     <Card>
       <Row icon={Upload} title={u.hasUpdate ? `${t.updateAvailable} — ${u.latestVersion}` : t.updateH}
