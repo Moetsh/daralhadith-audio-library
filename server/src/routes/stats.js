@@ -3,6 +3,49 @@ import { mapNode, listNode, sumNode, wrap } from "../fb.js";
 import { authUser, adminOnly } from "../auth.js";
 
 const r = Router();
+
+/* حزمة خفيفة عامة للتطبيق: نفس بيانات RTDB بلا الحقول الثقيلة (description/tags/dates) */
+r.get("/client-pack", wrap(async (_req, res) => {
+  const [audios, scholars, categories, series] = await Promise.all([
+    mapNode("audios"), mapNode("scholars"), mapNode("categories"), mapNode("series"),
+  ]);
+  const pack = {};
+  for (const [id, a] of Object.entries(audios)) {
+    if (a.status && a.status !== "published") continue;
+    /* cover_image_url كان 6MB من أصل 7.3MB (رو CDN طويلة) — نستبدله بمعرّف الأرشيف فقط */
+    const coverId = String(a.cover_image_url || "").match(/archive\.org\/(?:download|images)\/([^/?#]+)/i)?.[1] || "";
+    /* file_url كان رابطاً طويلاً مُرمَّزاً — نحفظ المعرّف + اسم الملف ونعيد بناءه عند العميل */
+    const fu = String(a.file_url || "");
+    const fm = fu.match(/archive\.org\/download\/([^/?#]+)\/([^?#]+)$/i);
+    const arId = fm ? fm[1] : String(a.archive_url || "").match(/archive\.org\/(?:details|download)\/([^/?#]+)/i)?.[1] || "";
+    /* نُبقي اسم الملف بترميزه الأصلي كما في RTDB (سلاسل وأرقام حقيقية) */
+    const arName = fm ? fm[2] : "";
+    pack[id] = [
+      a.scholar_id || "",
+      a.category_id || "",
+      a.series_id || "",
+      a.title || "",
+      Math.round(Number(a.duration) || 0),
+      coverId,
+      a.episode_number ?? -1,
+      arId,
+      arName,
+    ];
+  }
+  const packs = {};
+  for (const [id, s] of Object.entries(series)) {
+    packs[id] = [s.title || "", s.scholar_id || "", s.category_id || "", Number(s.total_episodes) || 0];
+  }
+  res.setHeader("Cache-Control", "public, max-age=300, s-maxage=600, stale-while-revalidate=86400");
+  res.json({
+    v: 1,
+    a: pack,
+    s: packs,
+    c: Object.values(categories).map((c) => [c.id, c.name || "", c.parent_id || "", c.icon || ""]),
+    h: Object.values(scholars).map((s) => [s.id, s.name || "", s.title || "", s.bio || "", s.era || "", s.reciter ? 1 : 0]),
+  });
+}));
+
 r.use(authUser, adminOnly);
 
 r.get("/overview", wrap(async (req, res) => {
