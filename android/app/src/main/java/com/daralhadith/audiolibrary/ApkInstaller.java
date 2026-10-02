@@ -71,7 +71,7 @@ public class ApkInstaller extends Plugin {
                 if (code == 416) {
                     apkFile.delete();
                     existing = 0;
-                    conn.disconnect();
+                    if (conn != null) conn.disconnect();
                     conn = (HttpURLConnection) new URL(url).openConnection();
                     conn.setConnectTimeout(15000);
                     conn.setReadTimeout(60000);
@@ -117,6 +117,12 @@ public class ApkInstaller extends Plugin {
                     return;
                 }
 
+                try {
+                    apkFile.setReadable(true, false);
+                    apkFile.setExecutable(false, false);
+                    apkFile.setWritable(false, false);
+                } catch (Exception ignored) {}
+
                 Uri uri = FileProvider.getUriForFile(
                     getContext(),
                     getContext().getPackageName() + ".fileprovider",
@@ -125,7 +131,7 @@ public class ApkInstaller extends Plugin {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setDataAndType(uri, "application/vnd.android.package-archive");
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 getActivity().startActivity(intent);
 
                 JSObject ret = new JSObject();
@@ -133,6 +139,11 @@ public class ApkInstaller extends Plugin {
                 call.resolve(ret);
             } catch (Exception e) {
                 if (conn != null) conn.disconnect();
+                try {
+                    File cacheDir = getContext().getCacheDir();
+                    File apkFile = new File(cacheDir, "update.apk");
+                    if (apkFile.exists()) apkFile.delete();
+                } catch (Exception ignored) {}
                 call.reject(e.getMessage());
             }
         }).start();
