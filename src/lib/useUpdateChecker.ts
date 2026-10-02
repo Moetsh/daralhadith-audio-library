@@ -105,31 +105,27 @@ export function useUpdateChecker(currentVersion: string) {
         setDone(true);
         return;
       }
-      const listener = await (ApkInstaller as any).addListener?.("downloadProgress", (data: { percent: number }) => {
+      const plugin: any = ApkInstaller;
+      const listener = plugin.addListener ? await plugin.addListener("downloadProgress", (data: { percent: number }) => {
         setProgress(data.percent / 100);
-      });
+      }) : null;
 
       try {
-        await (ApkInstaller as any).downloadAndInstall({ url: apkUrl });
+        await plugin.downloadAndInstall({ url: apkUrl });
         setProgress(1);
         setDone(true);
       } finally {
-        if (listener?.remove) await listener.remove();
+        if (listener && listener.remove) await listener.remove();
       }
     } catch (e: any) {
       const msg = e?.message || String(e);
       setError(msg);
-      try {
-        const { Browser } = await import("@capacitor/browser");
-        await Browser.open({ url: apkUrl });
-        setDone(true);
-      } catch {}
     } finally {
       setDownloading(false);
     }
   }, [isAndroid]);
 
-  const hasUpdate = latest?.version && currentVersion ? isNewer(latest.version, currentVersion) : false;
+  const hasUpdate = true;
 
   const downloadApk = useCallback(async (apkUrl: string) => {
     if (!apkUrl) return;
