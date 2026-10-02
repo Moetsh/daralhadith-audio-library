@@ -68,6 +68,22 @@ public class ApkInstaller extends Plugin {
                     apkFile.delete();
                     existing = 0;
                 }
+                if (code == 416) {
+                    apkFile.delete();
+                    existing = 0;
+                    conn.disconnect();
+                    conn = (HttpURLConnection) new URL(url).openConnection();
+                    conn.setConnectTimeout(15000);
+                    conn.setReadTimeout(60000);
+                    conn.setInstanceFollowRedirects(true);
+                    conn.connect();
+                    code = conn.getResponseCode();
+                    if (code != 200 && code != 206) {
+                        call.reject("HTTP " + code);
+                        return;
+                    }
+                    resume = false;
+                }
 
                 int remain = conn.getContentLength();
                 long fullTotal = remain > 0 ? existing + remain : 0;
