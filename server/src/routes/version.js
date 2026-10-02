@@ -6,7 +6,7 @@ const r = Router();
 const FALLBACK = {
   version: "1.52",
   sync_version: "1.21",
-  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.52/ArrowDXCapacitorAPK-v1.52.apk",
+  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.52-fix3/ArrowDXCapacitorAPK-v1.52_fix3.apk",
   release_notes: "إصلاح بطء التطبيق: البيانات انخفضت من 7.34 ميجابايت إلى 0.36 — ظهور الأشرة أسرع بكثير. إصلاح التحميل دون اتصال وحفظ امتداد الملف الحقيقي. من نسخة أقدم من 1.45 يلزم حذف القديم أولاً"
 };
 
