@@ -23,7 +23,14 @@ function isNewer(a: string, b: string) {
   return false;
 }
 
-const ApkInstaller = Capacitor.registerPlugin<{ downloadAndInstall(options: { url: string }): Promise<{ ok: boolean }> }>("ApkInstaller");
+interface ApkInstallerPlugin {
+  downloadAndInstall(options: { url: string }): Promise<{ ok: boolean }>;
+  canInstallPackages(): Promise<{ can: boolean }>;
+  openInstallSettings(): Promise<{ ok: boolean }>;
+  addListener(eventName: "downloadProgress", cb: (data: { percent: number }) => void): Promise<{ remove: () => Promise<void> }>;
+}
+
+const ApkInstaller = Capacitor.registerPlugin<ApkInstallerPlugin>("ApkInstaller") as ApkInstallerPlugin;
 
 export function useAppVersion(fallback = "1.40") {
   const [v, setV] = useState(fallback);
@@ -61,11 +68,13 @@ export function useUpdateChecker(currentVersion: string) {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [needsInstallPermission, setNeedsInstallPermission] = useState(false);
   const isAndroid = Capacitor.getPlatform() === "android";
 
   const checkForUpdate = useCallback(async () => {
     setChecking(true);
     setError(null);
+    setNeedsInstallPermission(false);
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 15000);
     try {
@@ -91,41 +100,72 @@ export function useUpdateChecker(currentVersion: string) {
     checkForUpdate();
   }, [checkForUpdate]);
 
+  const openInstallSettings = useCallback(async () => {
+    if (!isAndroid) return false;
+    try {
+      await ApkInstaller.openInstallSettings();
+      setNeedsInstallPermission(true);
+      return true;
+    } catch (e: any) {
+      setError(e?.message || String(e));
+      return false;
+    }
+  }, [isAndroid]);
+
+  const ensureInstallPermission = useCallback(async () => {
+    if (!isAndroid) return true;
+    try {
+      const res = await ApkInstaller.canInstallPackages();
+      if (res?.can) {
+        setNeedsInstallPermission(false);
+        return true;
+      }
+    } catch {
+      return true;
+    }
+    return openInstallSettings();
+  }, [isAndroid, openInstallSettings]);
+
   const downloadAndInstall = useCallback(async (apkUrl: string) => {
     if (!apkUrl) return;
     setDownloading(true);
     setProgress(0.05);
     setError(null);
+    setNeedsInstallPermission(false);
     setDone(false);
 
     try {
+      if (!(await ensureInstallPermission())) return;
       if (!isAndroid) {
         const { Browser } = await import("@capacitor/browser");
         await Browser.open({ url: apkUrl });
         setDone(true);
         return;
       }
-      const plugin: any = ApkInstaller;
-      const listener = plugin.addListener ? await plugin.addListener("downloadProgress", (data: { percent: number }) => {
+      const listener = await ApkInstaller.addListener("downloadProgress", (data: { percent: number }) => {
         setProgress(data.percent / 100);
-      }) : null;
+      });
 
       try {
-        await plugin.downloadAndInstall({ url: apkUrl });
+        await ApkInstaller.downloadAndInstall({ url: apkUrl });
         setProgress(1);
         setDone(true);
       } finally {
-        if (listener && listener.remove) await listener.remove();
+        await listener.remove();
       }
     } catch (e: any) {
       const msg = e?.message || String(e);
-      setError(msg);
+      if (msg.includes("INSTALL_PERMISSION_REQUIRED")) {
+        setNeedsInstallPermission(true);
+      } else {
+        setError(msg);
+      }
     } finally {
       setDownloading(false);
     }
-  }, [isAndroid]);
+  }, [isAndroid, ensureInstallPermission]);
 
-  const hasUpdate = true;
+  const hasUpdate = latest?.version && currentVersion ? isNewer(latest.version.trim(), currentVersion.trim()) : false;
 
   const downloadApk = useCallback(async (apkUrl: string) => {
     if (!apkUrl) return;
@@ -149,9 +189,11 @@ export function useUpdateChecker(currentVersion: string) {
     progress,
     error,
     done,
+    needsInstallPermission,
     isAndroid,
     checkForUpdate,
     downloadAndInstall,
+    openInstallSettings,
     downloadApk,
   };
 }

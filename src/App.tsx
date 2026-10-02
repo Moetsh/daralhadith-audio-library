@@ -103,6 +103,7 @@ const BottomNav = () => {
 
 /* شريط تنبيه التحديث — يظهر تلقائياً عند توفر نسخة جديدة */
 const UpdateBanner = () => {
+  const t = useSettings((s) => s.t);
   const currentVersion = useAppVersion();
   const u = useUpdateChecker(currentVersion);
   const [dismissed, setDismissed] = useState<string | null>(null);
@@ -134,6 +135,9 @@ const UpdateBanner = () => {
               </div>
             )}
             {u.error && <div className="text-[0.64rem] font-bold c-danger mt-1.5">{u.error}</div>}
+            {u.needsInstallPermission && (
+              <div className="text-[0.64rem] font-bold c-gold mt-1.5">{t.allowInstallHint}</div>
+            )}
             <div className="flex items-center gap-2 mt-2.5">
               <button
                 onClick={() => u.downloadAndInstall(u.apkUrl!)}
@@ -146,13 +150,23 @@ const UpdateBanner = () => {
                   <><ArrowDownToLine size={12} /> تحديث الآن</>
                 )}
               </button>
-              <button
-                onClick={() => u.downloadApk(u.apkUrl!)}
-                disabled={u.downloading}
-                className="h-8 px-2.5 rounded-full surface bline border text-[0.62rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
-              >
-                APK
-              </button>
+              {u.needsInstallPermission ? (
+                <button
+                  onClick={() => u.openInstallSettings()}
+                  disabled={u.downloading}
+                  className="h-8 px-2.5 rounded-full surface bline border text-[0.62rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
+                >
+                  {t.allowInstall}
+                </button>
+              ) : (
+                <button
+                  onClick={() => u.downloadApk(u.apkUrl!)}
+                  disabled={u.downloading}
+                  className="h-8 px-2.5 rounded-full surface bline border text-[0.62rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
+                >
+                  APK
+                </button>
+              )}
               <button
                 onClick={() => setDismissed(u.latestVersion)}
                 className="h-8 px-3 rounded-full surface bline border text-[0.66rem] font-extrabold active:scale-95 transition"

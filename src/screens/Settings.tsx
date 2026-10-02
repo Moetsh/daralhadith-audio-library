@@ -151,6 +151,18 @@ const UpdateCard = () => {
           )}
         </div>
         {u.done && <div className="text-[0.66rem] font-bold c-green">تم فتح صفحة التحميل. ثبّت ملف الـ APK بعد الانتهاء، ثم عد إلى التطبيق.</div>}
+        {u.needsInstallPermission && (
+          <div className="flex flex-col gap-2">
+            <div className="text-[0.66rem] font-bold c-gold">{t.allowInstallHint}</div>
+            <button
+              onClick={() => u.openInstallSettings()}
+              disabled={u.downloading}
+              className="h-9 px-4 rounded-full surface bline border text-[0.72rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50 self-start"
+            >
+              {t.allowInstall}
+            </button>
+          </div>
+        )}
         {u.error && <div className="text-[0.66rem] font-bold c-danger">{u.error}</div>}
         {!u.hasUpdate && !u.checking && !u.error && (
           <div className="text-[0.66rem] font-bold ink-3">{t.latestVer}</div>
