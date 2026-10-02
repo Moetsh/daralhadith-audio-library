@@ -88,8 +88,8 @@ export function useUpdateChecker(currentVersion: string) {
   }, [isAndroid, currentVersion]);
 
   useEffect(() => {
-    if (isAndroid) checkForUpdate();
-  }, [isAndroid, checkForUpdate]);
+    checkForUpdate();
+  }, [checkForUpdate]);
 
   const downloadAndInstall = useCallback(async (apkUrl: string) => {
     if (!apkUrl) return;
@@ -105,7 +105,7 @@ export function useUpdateChecker(currentVersion: string) {
         setDone(true);
         return;
       }
-      const listener = await (ApkInstaller as any).addListener("downloadProgress", (data: { percent: number }) => {
+      const listener = await (ApkInstaller as any).addListener?.("downloadProgress", (data: { percent: number }) => {
         setProgress(data.percent / 100);
       });
 
@@ -114,7 +114,7 @@ export function useUpdateChecker(currentVersion: string) {
         setProgress(1);
         setDone(true);
       } finally {
-        await listener.remove();
+        if (listener?.remove) await listener.remove();
       }
     } catch (e: any) {
       const msg = e?.message || String(e);
@@ -127,9 +127,9 @@ export function useUpdateChecker(currentVersion: string) {
     } finally {
       setDownloading(false);
     }
-  }, []);
+  }, [isAndroid]);
 
-  const hasUpdate = latest?.version ? isNewer(latest.version, currentVersion) : false;
+  const hasUpdate = latest?.version && currentVersion ? isNewer(latest.version, currentVersion) : false;
 
   const downloadApk = useCallback(async (apkUrl: string) => {
     if (!apkUrl) return;

@@ -107,10 +107,6 @@ const UpdateBanner = () => {
   const u = useUpdateChecker(currentVersion);
   const [dismissed, setDismissed] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (u.hasUpdate && u.latestVersion && dismissed !== u.latestVersion) return;
-  }, [u.hasUpdate, u.latestVersion, dismissed]);
-
   if (!u.hasUpdate || !u.apkUrl || dismissed === u.latestVersion) return null;
 
   return (
@@ -149,6 +145,13 @@ const UpdateBanner = () => {
                 ) : (
                   <><ArrowDownToLine size={12} /> تحديث الآن</>
                 )}
+              </button>
+              <button
+                onClick={() => u.downloadApk(u.apkUrl!)}
+                disabled={u.downloading}
+                className="h-8 px-2.5 rounded-full surface bline border text-[0.62rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
+              >
+                APK
               </button>
               <button
                 onClick={() => setDismissed(u.latestVersion)}

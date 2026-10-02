@@ -119,7 +119,7 @@ const UpdateCard = () => {
           {u.hasUpdate ? (
             <>
               <button
-                onClick={() => u.apkUrl && u.downloadAndInstall(u.apkUrl)}
+                onClick={() => u.apkUrl && (u.isAndroid ? u.downloadAndInstall(u.apkUrl) : u.downloadApk(u.apkUrl))}
                 disabled={u.downloading}
                 className="h-9 px-4 rounded-full bg-[#e07a22] text-white text-[0.72rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
               >
@@ -129,13 +129,15 @@ const UpdateCard = () => {
                   <><ArrowDownToLine size={13} /> {t.updateNow}</>
                 )}
               </button>
-              <button
-                onClick={() => u.apkUrl && u.downloadApk(u.apkUrl)}
-                disabled={u.downloading}
-                className="h-9 px-4 rounded-full surface bline border text-[0.72rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
-              >
-                <Download size={13} /> تحميل APK
-              </button>
+              {u.isAndroid && (
+                <button
+                  onClick={() => u.apkUrl && u.downloadApk(u.apkUrl)}
+                  disabled={u.downloading}
+                  className="h-9 px-4 rounded-full surface bline border text-[0.72rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
+                >
+                  <Download size={13} /> تحميل APK
+                </button>
+              )}
             </>
           ) : (
             <button
