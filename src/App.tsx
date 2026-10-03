@@ -138,6 +138,9 @@ const UpdateBanner = () => {
             {u.needsInstallPermission && (
               <div className="text-[0.64rem] font-bold c-gold mt-1.5">{t.allowInstallHint}</div>
             )}
+            {u.done && (
+              <div className="text-[0.64rem] font-bold c-green mt-1.5">{u.downloadOpened ? t.browserOpened : t.installPrompt}</div>
+            )}
             <div className="flex items-center gap-2 mt-2.5">
               <button
                 onClick={() => u.downloadAndInstall(u.apkUrl!)}
@@ -158,15 +161,15 @@ const UpdateBanner = () => {
                 >
                   {t.allowInstall}
                 </button>
-              ) : (
+              ) : u.isAndroid && u.error ? (
                 <button
                   onClick={() => u.downloadApk(u.apkUrl!)}
                   disabled={u.downloading}
                   className="h-8 px-2.5 rounded-full surface bline border text-[0.62rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
                 >
-                  APK
+                  {t.manualApk}
                 </button>
-              )}
+              ) : null}
               <button
                 onClick={() => setDismissed(u.latestVersion)}
                 className="h-8 px-3 rounded-full surface bline border text-[0.66rem] font-extrabold active:scale-95 transition"

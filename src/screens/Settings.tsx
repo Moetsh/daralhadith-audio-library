@@ -129,13 +129,13 @@ const UpdateCard = () => {
                   <><ArrowDownToLine size={13} /> {t.updateNow}</>
                 )}
               </button>
-              {u.isAndroid && (
+              {u.isAndroid && u.error && (
                 <button
                   onClick={() => u.apkUrl && u.downloadApk(u.apkUrl)}
                   disabled={u.downloading}
                   className="h-9 px-4 rounded-full surface bline border text-[0.72rem] font-extrabold flex items-center gap-1.5 active:scale-95 transition disabled:opacity-50"
                 >
-                  <Download size={13} /> تحميل APK
+                  <Download size={13} /> {t.manualApk}
                 </button>
               )}
             </>
@@ -150,7 +150,7 @@ const UpdateCard = () => {
             </button>
           )}
         </div>
-        {u.done && <div className="text-[0.66rem] font-bold c-green">تم فتح صفحة التحميل. ثبّت ملف الـ APK بعد الانتهاء، ثم عد إلى التطبيق.</div>}
+        {u.done && <div className="text-[0.66rem] font-bold c-green">{u.downloadOpened ? t.browserOpened : t.installPrompt}</div>}
         {u.needsInstallPermission && (
           <div className="flex flex-col gap-2">
             <div className="text-[0.66rem] font-bold c-gold">{t.allowInstallHint}</div>

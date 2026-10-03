@@ -68,12 +68,14 @@ export function useUpdateChecker(currentVersion: string) {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [downloadOpened, setDownloadOpened] = useState(false);
   const [needsInstallPermission, setNeedsInstallPermission] = useState(false);
   const isAndroid = Capacitor.getPlatform() === "android";
 
   const checkForUpdate = useCallback(async () => {
     setChecking(true);
     setError(null);
+    setDownloadOpened(false);
     setNeedsInstallPermission(false);
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 15000);
@@ -132,6 +134,7 @@ export function useUpdateChecker(currentVersion: string) {
     setProgress(0.05);
     setError(null);
     setNeedsInstallPermission(false);
+    setDownloadOpened(false);
     setDone(false);
 
     try {
@@ -139,6 +142,7 @@ export function useUpdateChecker(currentVersion: string) {
       if (!isAndroid) {
         const { Browser } = await import("@capacitor/browser");
         await Browser.open({ url: apkUrl });
+        setDownloadOpened(true);
         setDone(true);
         return;
       }
@@ -173,6 +177,7 @@ export function useUpdateChecker(currentVersion: string) {
     try {
       const { Browser } = await import("@capacitor/browser");
       await Browser.open({ url: apkUrl });
+      setDownloadOpened(true);
       setDone(true);
     } catch (e: any) {
       setError(e?.message || String(e));
@@ -189,6 +194,7 @@ export function useUpdateChecker(currentVersion: string) {
     progress,
     error,
     done,
+    downloadOpened,
     needsInstallPermission,
     isAndroid,
     checkForUpdate,
