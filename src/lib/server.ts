@@ -88,6 +88,37 @@ export const toSeries = (s: ServerSeries): Series => ({
 export const RTDB_URL =
   "https://daralhadith-8e2c5-default-rtdb.europe-west1.firebasedatabase.app";
 
+/* تبليغ أول تشغيل/تثبيت للتطبيق (أندرويد/iOS فقط): معرف عشوائي لكل جهاز، بلا أي بيانات شخصية */
+export async function reportInstall() {
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    const platform = Capacitor.getPlatform();
+    if (platform !== "android" && platform !== "ios") return;
+    let id = "";
+    try {
+      id = localStorage.getItem("dh-install-id") || "";
+    } catch {}
+    if (!id) {
+      id = (globalThis.crypto?.randomUUID?.() ||
+        Math.random().toString(36).slice(2) + Date.now().toString(36)).replace(/[^A-Za-z0-9_-]/g, "");
+      try {
+        localStorage.setItem("dh-install-id", id);
+      } catch {}
+    }
+    if (!/^[A-Za-z0-9_-]{8,64}$/.test(id)) return;
+    let appVersion = "";
+    try {
+      const { App } = await import("@capacitor/app");
+      appVersion = (await App.getInfo()).version || "";
+    } catch {}
+    await fetch("https://daralhadith.vercel.app/api/admin/install", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ install_id: id, platform, app_version: appVersion }),
+    });
+  } catch {}
+}
+
 const MAX_AUDIOS = 5000;
 const toArray = <T,>(obj: Record<string, T> | null): T[] => Object.values(obj ?? {});
 

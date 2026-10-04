@@ -9,6 +9,7 @@ import { MiniPlayer, FullPlayer } from "./components/Player";
 import { GirihBG, Logo, Toast } from "./components/ui";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { useAppVersion, useUpdateChecker } from "./lib/useUpdateChecker";
+import { reportInstall } from "./lib/server";
 import { useApp } from "./store/appStore";
 import { useNav, useSettings, type Route } from "./store/core";
 import { useServerContent } from "./store/serverContent";
@@ -317,6 +318,7 @@ export default function App() {
   useApplySettings();
   useEffect(() => { resumeDownloads(""); }, [resumeDownloads]);
   useEffect(() => { useServerContent.getState().sync(); }, []);
+  useEffect(() => { reportInstall(); }, []);
 
   return desktop ? (
     <DesktopStage />

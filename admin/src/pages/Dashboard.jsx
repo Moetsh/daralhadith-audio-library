@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import { Button, Card, Loading, ErrorBox, PageTitle, cx } from "../components/ui";
 import { AreaChart, HBarList } from "../components/charts";
-import { Music2, GraduationCap, FolderTree, Headphones, PlaySquare, UserPlus, Download, Library } from "lucide-react";
+import { Music2, GraduationCap, FolderTree, Headphones, PlaySquare, UserPlus, Download, Library, Smartphone } from "lucide-react";
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -12,6 +12,7 @@ export default function Dashboard() {
   const [topScholars, setTopScholars] = useState([]);
   const [terms, setTerms] = useState([]);
   const [downloads, setDownloads] = useState([]);
+  const [installs, setInstalls] = useState([]);
   const [error, setError] = useState(null);
   const [expBusy, setExpBusy] = useState(false);
 
@@ -34,13 +35,14 @@ export default function Dashboard() {
         if (on) setError(e);
         return;
       }
-      const [ls, cd, ta, ts, st, dl] = await Promise.all([
+      const [ls, cd, ta, ts, st, dl, ins] = await Promise.all([
         safe(api("/admin/listens"), []),
         safe(api("/admin/categories"), []),
         safe(api("/admin/popular?n=6"), []),
         safe(api("/admin/top-scholars"), []),
         safe(api("/admin/search-terms"), []),
         safe(api("/admin/downloads"), []),
+        safe(api("/admin/installs"), []),
       ]);
       if (!on) return;
       setListens(ls);
@@ -49,6 +51,7 @@ export default function Dashboard() {
       setTopScholars(ts);
       setTerms(st);
       setDownloads(dl);
+      setInstalls(ins);
     })();
     return () => {
       on = false;
@@ -81,6 +84,7 @@ export default function Dashboard() {
     { label: "التصنيفات", value: data.categories, icon: FolderTree, tone: "bg-green-soft text-green" },
     { label: "السلاسل", value: data.series, icon: Library, tone: "bg-gold-soft text-gold2" },
     { label: "المستخدمون", value: data.users, icon: UserPlus, tone: "bg-green-soft text-green" },
+    { label: "مثبتو التطبيق", value: data.installs, icon: Smartphone, tone: "bg-gold-soft text-gold2" },
     { label: "إجمالي الاستماعات", value: data.listens, icon: Headphones, tone: "bg-gold-soft text-gold2" },
     { label: "التنزيلات", value: data.downloads, icon: Download, tone: "bg-green-soft text-green" },
   ];
@@ -126,6 +130,11 @@ export default function Dashboard() {
       <Card className="p-5">
         <h2 className="font-bold text-green mb-4">التحميلات — آخر 30 يوماً</h2>
         <AreaChart data={downloads} />
+      </Card>
+
+      <Card className="p-5">
+        <h2 className="font-bold text-green mb-4">تثبيتات التطبيق الجديدة — آخر 30 يوماً</h2>
+        <AreaChart data={installs} color="#1a6b3c" />
       </Card>
 
       <div className="grid lg:grid-cols-2 gap-4">

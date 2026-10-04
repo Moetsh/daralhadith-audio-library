@@ -4,10 +4,10 @@ const RTDB_URL = "https://daralhadith-8e2c5-default-rtdb.europe-west1.firebaseda
 const r = Router();
 
 const FALLBACK = {
-  version: "1.52.2",
+  version: "1.52.3",
   sync_version: "1.25",
-  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.52.2/ArrowDXCapacitorAPK-v1.52.2.apk",
-  release_notes: "إصلاح أخطاء التحديث: زر التحديث لا يفتح المتصفح تلقائياً، والتحميل اليدوي يظهر فقط عند فشل التثبيت الداخلي."
+  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.52.3/ArrowDXCapacitorAPK-v1.52.3.apk",
+  release_notes: "إضافة عدّاد مثبتو التطبيق في لوحة التحكم (يبدأ العد من هذه النسخة)."
 };
 
 /* استقبال تقارير أخطاء العملاء تلقائياً (عام، محدود الحجم، احتفاظ بآخر 200) */

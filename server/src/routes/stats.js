@@ -1,8 +1,35 @@
 import { Router } from "express";
-import { mapNode, listNode, sumNode, wrap } from "../fb.js";
+import { mapNode, listNode, sumNode, getNode, setNode, updateNode, countNode, wrap } from "../fb.js";
 import { authUser, adminOnly } from "../auth.js";
 
 const r = Router();
+
+/* تسجيل تثبيت/أول تشغيل للتطبيق (عام): يخزّن معرفاً عشوائياً لكل جهاز بدون أي بيانات شخصية */
+r.post("/install", wrap(async (req, res) => {
+  try {
+    const b = req.body || {};
+    const id = String(b.install_id || "");
+    if (!/^[A-Za-z0-9_-]{8,64}$/.test(id)) return res.status(400).json({ error: "bad id" });
+    const cut = (v, n) => String(v ?? "").slice(0, n);
+    const now = new Date().toISOString();
+    const prev = await getNode("admin/installs/" + id);
+    if (!prev) {
+      await setNode("admin/installs/" + id, {
+        first_seen: now, last_seen: now,
+        platform: cut(b.platform, 16), app_version: cut(b.app_version, 20),
+      });
+    } else {
+      await updateNode("admin/installs/" + id, {
+        last_seen: now,
+        platform: cut(b.platform, 16) || prev.platform || null,
+        app_version: cut(b.app_version, 20) || prev.app_version || null,
+      });
+    }
+    res.json({ ok: true });
+  } catch {
+    res.json({ ok: false });
+  }
+}));
 
 /* حزمة خفيفة عامة للتطبيق: نفس بيانات RTDB بلا الحقول الثقيلة (description/tags/dates) */
 r.get("/client-pack", wrap(async (_req, res) => {
@@ -49,9 +76,10 @@ r.get("/client-pack", wrap(async (_req, res) => {
 r.use(authUser, adminOnly);
 
 r.get("/overview", wrap(async (req, res) => {
-  const [audios, scholars, categories, users, listens, downloads, series] = await Promise.all([
+  const [audios, scholars, categories, users, listens, downloads, series, installs] = await Promise.all([
     mapNode("audios"), mapNode("scholars"), mapNode("categories"),
     mapNode("admin/users"), sumNode("audios", "listen_count"), sumNode("audios", "download_count"), mapNode("series"),
+    countNode("admin/installs"),
   ]);
   res.json({
     audios: Object.keys(audios).length,
@@ -60,7 +88,23 @@ r.get("/overview", wrap(async (req, res) => {
     users: Object.values(users).filter((u) => u.role !== "admin").length,
     listens, downloads,
     series: Object.keys(series).length,
+    installs,
   });
+}));
+
+/* تثبيتات جديدة يومياً — آخر 30 يوماً (حسب first_seen) */
+r.get("/installs", wrap(async (_req, res) => {
+  const byDate = new Map();
+  for (const { value } of await listNode("admin/installs")) {
+    const d = String(value?.first_seen || "").slice(0, 10);
+    if (d) byDate.set(d, (byDate.get(d) || 0) + 1);
+  }
+  const out = [];
+  for (let i = 29; i >= 0; i--) {
+    const dt = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+    out.push({ date: dt, count: byDate.get(dt) || 0 });
+  }
+  res.json(out);
 }));
 
 /* استماعات آخر 30 يوماً (من سجل الاستماع) */
