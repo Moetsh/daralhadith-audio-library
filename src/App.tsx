@@ -12,7 +12,7 @@ import { useAppVersion, useUpdateChecker } from "./lib/useUpdateChecker";
 import { reportInstall } from "./lib/server";
 import { useApp } from "./store/appStore";
 import { useNav, useSettings, type Route } from "./store/core";
-import { useServerContent } from "./store/serverContent";
+import { syncIfNeeded } from "./store/serverContent";
 import { CatsScreen, CatScreen } from "./screens/Categories";
 import { DetailScreen } from "./screens/Detail";
 import { HomeScreen } from "./screens/Home";
@@ -317,7 +317,7 @@ export default function App() {
   const resumeDownloads = useApp((s) => s.resumeDownloads);
   useApplySettings();
   useEffect(() => { resumeDownloads(""); }, [resumeDownloads]);
-  useEffect(() => { useServerContent.getState().sync(); }, []);
+  useEffect(() => { syncIfNeeded(); }, []);
   useEffect(() => { reportInstall(); }, []);
 
   return desktop ? (

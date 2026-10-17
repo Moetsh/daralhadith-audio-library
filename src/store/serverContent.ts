@@ -17,7 +17,7 @@ interface ServerContentState {
   scholars: Scholar[];
   series: Series[];
   setConfig: (p: Partial<Pick<ServerContentState, "enabled" | "baseUrl">>) => void;
-  sync: () => Promise<{ ok: boolean; added?: number; message?: string }>;
+  sync: (remoteVersion?: string) => Promise<{ ok: boolean; added?: number; message?: string }>;
   clearError: () => void;
 }
 
@@ -39,19 +39,21 @@ export const useServerContent = create<ServerContentState>()(
       series: [],
       setConfig: (p) => set(p),
       clearError: () => set({ error: null }),
-      sync: async () => {
+      sync: async (remoteVersion) => {
         if (get().syncing) return { ok: true, added: 0 };
         set({ syncing: true, error: null });
         try {
           const data = await fetchServerContent();
           const items = data.audios.map(toAudio);
           const now = Date.now();
-          /* جلب sync_version من الخادم وتخزينه محلياً */
-          let remoteSync = "";
-          try {
-            const vr = await fetch(`${VERSION_API}?_t=${Date.now()}`, { cache: "no-store" as RequestCache });
-            if (vr.ok) { const vd = await vr.json(); remoteSync = String(vd.sync_version || ""); }
-          } catch {}
+          /* sync_version: يُمرَّر جاهزاً من syncIfNeeded لتجنّب طلب مكرر */
+          let remoteSync = String(remoteVersion || "");
+          if (!remoteSync) {
+            try {
+              const vr = await fetch(`${VERSION_API}?_t=${Date.now()}`, { cache: "no-store" as RequestCache });
+              if (vr.ok) { const vd = await vr.json(); remoteSync = String(vd.sync_version || ""); }
+            } catch {}
+          }
           set({
             items,
             cats: data.cats.map(toCat),
@@ -60,7 +62,7 @@ export const useServerContent = create<ServerContentState>()(
             lastSync: now,
             lastOk: now,
             syncing: false,
-            syncVersion: remoteSync || "1.16",
+            syncVersion: remoteSync || get().syncVersion || "1.16",
           });
           return { ok: true, added: items.length };
         } catch (e) {
@@ -86,31 +88,38 @@ export const useServerContent = create<ServerContentState>()(
   )
 );
 
-/* تزامن تلقائي: يتحقق عند كل تغيير في الـ visibility + عند فتح الصفحة */
+/* مزامنة خفيفة: يتحقق من sync_version ثم يزامن فقط عند تغيّره أو مرور ساعة */
+let lastCheck = 0;
+export async function syncIfNeeded(force = false): Promise<void> {
+  const s = useServerContent.getState();
+  if (!s.enabled || s.syncing) return;
+  /* لا تُكرّر الطلب عند التنقل السريع */
+  if (!force && Date.now() - lastCheck < 60_000) return;
+  lastCheck = Date.now();
+  /* قراءة sync_version من الخادم المنشور (طلب صغير جداً) */
+  let remoteSync = "";
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const vr = await fetch(`${VERSION_API}?_t=${Date.now()}`, { cache: "no-store" as RequestCache, signal: ctrl.signal });
+    clearTimeout(timer);
+    if (vr.ok) { const vd = await vr.json(); remoteSync = String(vd.sync_version || ""); }
+  } catch {}
+  /* إذا اختلف الإصدار → تحديث فوري */
+  if (remoteSync && remoteSync !== s.syncVersion) {
+    s.sync(remoteSync);
+    return;
+  }
+  /* إذا مرّت ساعة منذ آخر مزامنة → حدّث */
+  if (!s.lastSync || Date.now() - s.lastSync > 3600_000) {
+    s.sync(remoteSync);
+  }
+}
+
+/* تزامن تلقائي عند عودة التطبيق للمقدمة (visibilitychange/focus) */
 if (typeof window !== "undefined") {
-  const trySync = async () => {
-    const s = useServerContent.getState();
-    if (!s.enabled || s.syncing) return;
-    /* قراءة sync_version من الخادم المنشور */
-    let remoteSync = "";
-    try {
-      const vr = await fetch(`${VERSION_API}?_t=${Date.now()}`, { cache: "no-store" as RequestCache });
-      if (vr.ok) { const vd = await vr.json(); remoteSync = String(vd.sync_version || ""); }
-    } catch {}
-    /* إذا اختلف الإصدار → تحديث فوري */
-    if (remoteSync && remoteSync !== s.syncVersion) {
-      s.sync();
-      return;
-    }
-    /* إذا مرّت ساعة منذ آخر مزامنة → حدّث */
-    if (!s.lastSync || Date.now() - s.lastSync > 3600_000) {
-      s.sync();
-    }
-  };
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") trySync();
+    if (document.visibilityState === "visible") syncIfNeeded();
   });
-  window.addEventListener("focus", trySync);
-  /* تشغيل فوري عند تحميل الصفحة */
-  setTimeout(trySync, 1000);
+  window.addEventListener("focus", () => { syncIfNeeded(); });
 }
