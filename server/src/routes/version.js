@@ -5,7 +5,7 @@ const r = Router();
 
 const FALLBACK = {
   version: "1.53.0",
-  sync_version: "1.35",
+  sync_version: "1.36",
   apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.53.0/ArrowDXCapacitorAPK-v1.53.0.apk",
   release_notes: "تحسين المزامنة: لم يعد التطبيق ينزّل الحزمة كاملة عند كل فتح؛ يتحقق من الإصدار فقط ثم يزامن عند وجود تحديث."
 };

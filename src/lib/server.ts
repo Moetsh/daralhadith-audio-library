@@ -172,9 +172,10 @@ const unpack = (p: Pack) => {
   return { audios, cats, scholars, series };
 };
 
-async function fetchPack(): Promise<ReturnType<typeof unpack> | null> {
+async function fetchPack(buster: string): Promise<ReturnType<typeof unpack> | null> {
   try {
-    const res = await fetch(PACK_URL, { headers: { Accept: "application/json" } });
+    const url = `${PACK_URL}?v=${encodeURIComponent(buster)}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" as RequestCache });
     if (!res.ok) return null;
     const p = (await res.json()) as Pack;
     if (!p || p.v !== 1 || !p.a) return null;
@@ -184,16 +185,19 @@ async function fetchPack(): Promise<ReturnType<typeof unpack> | null> {
   }
 }
 
-/* يجلب كل الأشرطة المنشورة + التصنيفات + العلماء + السلاسل من الخادم */
-export async function fetchServerContent() {
-  const pack = await fetchPack();
+/* يجلب كل الأشرطة المنشورة + التصنيفات + العلماء + السلاسل من الخادم
+   `buster` (رقم المزامنة) يكسر كاش الحافة حتى لا تُستلم حزمة قديمة عند تغيّر المحتوى */
+export async function fetchServerContent(buster?: string) {
+  const key = String(buster || "") || String(Date.now());
+  const pack = await fetchPack(key);
   if (pack && pack.audios.length) return pack;
 
+  const t = `?t=${Date.now()}`;
   const [audiosRes, catsRes, schRes, serRes] = await Promise.all([
-    fetch(`${RTDB_URL}/audios.json`),
-    fetch(`${RTDB_URL}/categories.json`),
-    fetch(`${RTDB_URL}/scholars.json`),
-    fetch(`${RTDB_URL}/series.json`),
+    fetch(`${RTDB_URL}/audios.json${t}`),
+    fetch(`${RTDB_URL}/categories.json${t}`),
+    fetch(`${RTDB_URL}/scholars.json${t}`),
+    fetch(`${RTDB_URL}/series.json${t}`),
   ]);
   if (!audiosRes.ok || !catsRes.ok || !schRes.ok || !serRes.ok)
     throw new Error("تعذّر الاتصال بالخادم");

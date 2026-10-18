@@ -43,10 +43,7 @@ export const useServerContent = create<ServerContentState>()(
         if (get().syncing) return { ok: true, added: 0 };
         set({ syncing: true, error: null });
         try {
-          const data = await fetchServerContent();
-          const items = data.audios.map(toAudio);
-          const now = Date.now();
-          /* sync_version: يُمرَّر جاهزاً من syncIfNeeded لتجنّب طلب مكرر */
+          /* نعرف رقم المزامنة أولاً لاستخدامه ككاسرٍ لكاش الحزمة (وإلا قد نستلم حزمة قديمة ونحفظ الإصدار الجديد) */
           let remoteSync = String(remoteVersion || "");
           if (!remoteSync) {
             try {
@@ -54,6 +51,9 @@ export const useServerContent = create<ServerContentState>()(
               if (vr.ok) { const vd = await vr.json(); remoteSync = String(vd.sync_version || ""); }
             } catch {}
           }
+          const data = await fetchServerContent(remoteSync);
+          const items = data.audios.map(toAudio);
+          const now = Date.now();
           set({
             items,
             cats: data.cats.map(toCat),

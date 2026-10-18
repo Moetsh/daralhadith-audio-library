@@ -63,7 +63,7 @@ r.get("/client-pack", wrap(async (_req, res) => {
   for (const [id, s] of Object.entries(series)) {
     packs[id] = [s.title || "", s.scholar_id || "", s.category_id || "", Number(s.total_episodes) || 0];
   }
-  res.setHeader("Cache-Control", "public, max-age=300, s-maxage=600, stale-while-revalidate=86400");
+  res.setHeader("Cache-Control", "public, max-age=0, s-maxage=30");
   res.json({
     v: 1,
     a: pack,
