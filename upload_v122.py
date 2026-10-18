@@ -1,7 +1,7 @@
-import requests, io, sys, base64
+import os, requests, io, sys, base64
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-TOKEN = "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"
+TOKEN = os.environ["GHTOKEN"]
 headers = {"Authorization": f"token {TOKEN}", "Content-Type": "application/json"}
 REPO = "Moetsh/daralhadith-releases"
 
