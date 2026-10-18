@@ -5,7 +5,7 @@ const r = Router();
 
 const FALLBACK = {
   version: "1.53.1",
-  sync_version: "1.37",
+  sync_version: "1.38",
   apk_url: "https://archive.org/download/daralhadith-v1.53.1/daralhadith-v1.53.1.apk",
   release_notes: "إصلاح ظهور الأشرطة المضافة حديثاً (كسر كاش حزمة المحتوى) + تحسين سرعة المزامنة عند فتح التطبيق."
 };
