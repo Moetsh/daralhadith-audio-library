@@ -47,6 +47,9 @@ r.get("/client-pack", wrap(async (_req, res) => {
     const arId = fm ? fm[1] : String(a.archive_url || "").match(/archive\.org\/(?:details|download)\/([^/?#]+)/i)?.[1] || "";
     /* نُبقي اسم الملف بترميزه الأصلي كما في RTDB (سلاسل وأرقام حقيقية) */
     const arName = fm ? fm[2] : "";
+    /* الأحدث أولاً: عدد الأيام منذ الإضافة محسوب لحظياً من created_at (الحقل المخزّن قد يكون قديماً) */
+    const createdMs = a.created_at ? Date.parse(a.created_at) : 0;
+    const daysAgo = createdMs ? Math.max(0, Math.round((Date.now() - createdMs) / 86400000)) : Number(a.added_days) || 0;
     pack[id] = [
       a.scholar_id || "",
       a.category_id || "",
@@ -57,6 +60,8 @@ r.get("/client-pack", wrap(async (_req, res) => {
       a.episode_number ?? -1,
       arId,
       arName,
+      daysAgo,
+      Math.round(Number(a.listen_count) || 0),
     ];
   }
   const packs = {};

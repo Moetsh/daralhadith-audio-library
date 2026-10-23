@@ -137,7 +137,7 @@ const coverUrl = (idOrCover: string, audioId: string): string => {
 
 type Pack = {
   v: number;
-  a: Record<string, [string, string, string, string, number, string, number, string, string]>;
+  a: Record<string, [string, string, string, string, number, string, number, string, string, number, number]>;
   s: Record<string, [string, string, string, number]>;
   c: [string, string, string, string][];
   h: [string, string, string, string, string, number][];
@@ -155,6 +155,9 @@ const unpack = (p: Pack) => {
       duration: r[4],
       cover_image_url: r[5] || null,
       episode_number: r[6] >= 0 ? r[6] : null,
+      /* r[9]=الأيام منذ الإضافة (الأحدث أصغر)، r[10]=عدد الاستماع */
+      added_days: r[9] ?? 0,
+      listen_count: r[10] ?? 0,
       /* روابط البث تُجلب عند الطلب: r[7]=archive_id و r[8]=اسم الملف */
       archive_url: r[7] ? `https://archive.org/details/${encodeURIComponent(r[7])}` : "",
       /* نحافظ على ترميز filename كامل (-slashes-%20) — نفس رابط RTDB الأصلي */
