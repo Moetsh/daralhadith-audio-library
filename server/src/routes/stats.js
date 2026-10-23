@@ -39,8 +39,12 @@ r.get("/client-pack", wrap(async (_req, res) => {
   const pack = {};
   for (const [id, a] of Object.entries(audios)) {
     if (a.status && a.status !== "published") continue;
-    /* cover_image_url كان 6MB من أصل 7.3MB (رو CDN طويلة) — نستبدله بمعرّف الأرشيف فقط */
-    const coverId = String(a.cover_image_url || "").match(/archive\.org\/(?:download|images)\/([^/?#]+)/i)?.[1] || "";
+    /* الأغلفة: نُمرّر الرابط الكامل إن كان http(s) لأن services/img قد يعيد صورة بديلة (180×127)
+       بدل الغلاف الحقيقي؛ وإلا نستخرج معرّف الأرشيف فقط */
+    const coverRaw = String(a.cover_image_url || "").trim();
+    const coverId = /^https?:\/\//i.test(coverRaw)
+      ? coverRaw
+      : (coverRaw.match(/archive\.org\/(?:download|details|images|services\/img)\/([^/?#]+)/i)?.[1] || "");
     /* file_url كان رابطاً طويلاً مُرمَّزاً — نحفظ المعرّف + اسم الملف ونعيد بناءه عند العميل */
     const fu = String(a.file_url || "");
     const fm = fu.match(/archive\.org\/download\/([^/?#]+)\/([^?#]+)$/i);
