@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 
 const API_BASE = "https://daralhadith.vercel.app";
@@ -70,6 +70,7 @@ export function useUpdateChecker(currentVersion: string) {
   const [done, setDone] = useState(false);
   const [downloadOpened, setDownloadOpened] = useState(false);
   const [needsInstallPermission, setNeedsInstallPermission] = useState(false);
+  const pendingUrlRef = useRef<string | null>(null);
   const isAndroid = Capacitor.getPlatform() === "android";
 
   const checkForUpdate = useCallback(async () => {
@@ -125,11 +126,13 @@ export function useUpdateChecker(currentVersion: string) {
     } catch {
       return true;
     }
-    return openInstallSettings();
+    await openInstallSettings();
+    return false;
   }, [isAndroid, openInstallSettings]);
 
   const downloadAndInstall = useCallback(async (apkUrl: string) => {
     if (!apkUrl) return;
+    pendingUrlRef.current = apkUrl;
     setDownloading(true);
     setProgress(0.05);
     setError(null);
@@ -139,6 +142,7 @@ export function useUpdateChecker(currentVersion: string) {
 
     try {
       if (!(await ensureInstallPermission())) return;
+      pendingUrlRef.current = null;
       if (!isAndroid) {
         const { Browser } = await import("@capacitor/browser");
         await Browser.open({ url: apkUrl });
@@ -168,6 +172,39 @@ export function useUpdateChecker(currentVersion: string) {
       setDownloading(false);
     }
   }, [isAndroid, ensureInstallPermission]);
+
+  /* بعد منح صلاحية «تثبيت من مصادر غير معروفة» نتابع التنزيل والتثبيت تلقائياً */
+  useEffect(() => {
+    if (!isAndroid) return;
+    let active = true;
+    const tryResume = async () => {
+      if (!active || !pendingUrlRef.current) return;
+      try {
+        const res = await ApkInstaller.canInstallPackages();
+        if (!active || !res?.can) return;
+        const url = pendingUrlRef.current;
+        if (!url) return;
+        setNeedsInstallPermission(false);
+        downloadAndInstall(url);
+      } catch {}
+    };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tryResume();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    let removeApp: (() => void) | undefined;
+    import("@capacitor/app")
+      .then(({ App }) => App.addListener("resume", tryResume))
+      .then((h) => { removeApp = () => { h.remove(); }; })
+      .catch(() => {});
+    return () => {
+      active = false;
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      removeApp?.();
+    };
+  }, [isAndroid, downloadAndInstall]);
 
   const hasUpdate = latest?.version && currentVersion ? isNewer(latest.version.trim(), currentVersion.trim()) : false;
 

@@ -4,10 +4,10 @@ const RTDB_URL = "https://daralhadith-8e2c5-default-rtdb.europe-west1.firebaseda
 const r = Router();
 
 const FALLBACK = {
-  version: "1.53.2",
+  version: "1.53.3",
   sync_version: "1.42",
-  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.53.2/ArrowDXCapacitorAPK-v1.53.2.apk",
-  release_notes: "إصلاح ترتيب الأشرطة: الأحدث يظهر أولاً (كانت الحزمة بلا طابع زمني فيظهر الأقدم فقط)."
+  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.53.3/ArrowDXCapacitorAPK-v1.53.3.apk",
+  release_notes: "إصلاح تدفّق تحديث البرنامج: التحقق من صلاحية التثبيت قبل التنزيل، واستكمال التنزيل والتثبيت تلقائياً بعد منح الصلاحية."
 };
 
 /* استقبال تقارير أخطاء العملاء تلقائياً (عام، محدود الحجم، احتفاظ بآخر 200) */
