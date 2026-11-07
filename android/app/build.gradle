@@ -7,8 +7,8 @@ android {
         applicationId "com.daralhadith.audiolibrary"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 51
-        versionName "1.53.3"
+            versionCode 52
+        versionName "1.53.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -18,10 +18,28 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file('daralhadith-release.keystore')
-            storePassword 'daralhadith123'
-            keyAlias 'daralhadith'
-            keyPassword 'daralhadith123'
+            /* الأسرار تُقرأ من keystore.properties (مستثنى في .gitignore) أو متغيرات البيئة —
+               لا تُكتب كلمات المرور في هذا الملف أبداً. */
+            def keystoreProps = new Properties()
+            def keystorePropsFile = rootProject.file('keystore.properties')
+            if (keystorePropsFile.exists()) {
+                keystorePropsFile.withInputStream { keystoreProps.load(it) }
+            }
+            def envOr = { String key, String fallbackKey ->
+                keystoreProps.getProperty(key) ?: System.getenv(fallbackKey) ?: ''
+            }
+            def storePw = envOr('storePassword', 'DARALHADITH_STORE_PASSWORD')
+            def keyPw = envOr('keyPassword', 'DARALHADITH_KEY_PASSWORD')
+            if (!storePw || !keyPw) {
+                throw new GradleException(
+                    'مفقود: أنشئ android/keystore.properties يحتوي storePassword و keyPassword\n' +
+                    '(أو صدّر DARALHADITH_STORE_PASSWORD و DARALHADITH_KEY_PASSWORD) — راجع android/keystore.properties.example'
+                )
+            }
+            storeFile file(keystoreProps.getProperty('storeFile') ?: 'daralhadith-release.keystore')
+            storePassword storePw
+            keyAlias keystoreProps.getProperty('keyAlias') ?: System.getenv('DARALHADITH_KEY_ALIAS') ?: 'daralhadith'
+            keyPassword keyPw
         }
     }
     buildTypes {

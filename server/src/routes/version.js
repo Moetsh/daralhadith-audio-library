@@ -1,13 +1,12 @@
 import { Router } from "express";
-import { pushNode, listNode, removeNode } from "../fb.js";
-const RTDB_URL = "https://daralhadith-8e2c5-default-rtdb.europe-west1.firebasedatabase.app";
+import { pushNode, listNode, removeNode, getNode } from "../fb.js";
 const r = Router();
 
 const FALLBACK = {
-  version: "1.53.3",
+  version: "1.53.4",
   sync_version: "1.43",
-  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.53.3/ArrowDXCapacitorAPK-v1.53.3.apk",
-  release_notes: "تحديث البرنامج 1.53.3: تحسين تدفّق التحديث والتثبيت، وإصلاح أغلفة سلسلة الهدى والنور."
+  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.53.4/ArrowDXCapacitorAPK-v1.53.4.apk",
+  release_notes: "تحديث البرنامج 1.53.4: سلسلة مختارة تتدوّر تلقائياً كل يومين من لوحة التحكم، واستكمال العرض من آخر نقطة، ومؤقت نوم ذكي، وإصلاحات التشغيل والتحميل.",
 };
 
 /* استقبال تقارير أخطاء العملاء تلقائياً (عام، محدود الحجم، احتفاظ بآخر 200) */
@@ -36,14 +35,13 @@ r.post("/client-errors", async (req, res) => {
 });
 
 r.get("/", async (_req, res) => {
+  /* رقم المزامنة يُقرأ من meta لأن app_config غير مسموح في قواعد RTDB */
+  let sync = "";
   try {
-    const snap = await fetch(`${RTDB_URL}/app_config/latest.json`);
-    if (snap.ok) {
-      const data = await snap.json();
-      if (data?.version) return res.json({ ...FALLBACK, ...data });
-    }
+    const v = await getNode("meta/sync_version");
+    if (v !== null && v !== undefined) sync = String(v);
   } catch {}
-  res.json(FALLBACK);
+  res.json({ ...FALLBACK, ...(sync ? { sync_version: sync } : {}) });
 });
 
 export default r;
