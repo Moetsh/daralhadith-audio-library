@@ -42,6 +42,21 @@ export const HomeScreen = () => {
   const featured = allSeries().find((s) => s.scholarId === "albani" && s.title.includes("الهدى") && s.title.includes("النور"))
     ?? allSeries().find((s) => s.id === "sr-سلسلة-فضائل-الصحابة") ?? allSeries()[0] ?? null;
   const featEps = featured ? itemsOfSeries(featured.id) : [];
+  /* غلاف حقيقي للسلسلة إن وُجد، ومدة إجمالية، ونقطة استكمال إن كانت هناك جلسة غير مكتملة */
+  const featCover = featEps.find((x) => x.cover)?.cover || "";
+  const featMins = Math.round(featEps.reduce((a, b) => a + b.duration, 0) / 60);
+  const featDur = featMins >= 90
+    ? `· ${ar(Math.round(featMins / 60))} ${lang === "ar" ? "ساعة" : "hrs"}`
+    : featMins > 0 ? `· ${ar(featMins)} ${lang === "ar" ? "دقيقة" : "min"}` : "";
+  const featResumeId = history
+    .map((h) => h.id)
+    .find((id) => {
+      const e = featEps.find((x) => x.id === id);
+      const p = positions[id];
+      if (!e || !p || p.done) return false;
+      return p.pos > 0 && p.pos < p.dur - 30;
+    });
+  const featResume = featResumeId ? featEps.find((x) => x.id === featResumeId) : null;
   const quote = dailyQuote();
 
   const browseTiles = useMemo(() => {
@@ -89,21 +104,32 @@ export const HomeScreen = () => {
         {/* السلسلة المختارة — تصميم محسّن */}
         {featured && featEps.length > 0 && (
           <motion.div {...fadeUp(3)} className="mt-5 relative rounded-3xl overflow-hidden shadow-pop border border-[#d9a13f33]">
-          <img src="/hero.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={featCover || "/hero.jpg"} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(11,25,16,0.7) 0%, rgba(11,25,16,0.5) 50%, rgba(11,25,16,0.65) 100%)" }} />
           <div className="absolute inset-0 girih opacity-[0.08]" style={{ color: "#d9a13f" }} />
           <div className="relative p-5">
             <span className="text-[0.6rem] font-black text-[#d9a13f] tracking-widest border border-[#d9a13f55] rounded-full px-2.5 py-1">{t.featured}</span>
             <h2 className="font-brand text-[1.3rem] text-[#f4ecd7] mt-3 leading-snug">{featured.title}</h2>
             <p className="text-[#c3cdbf] text-[0.72rem] font-bold mt-1.5">
-              {scholarById(featured.scholarId).name} · {ar(featEps.length)} {t.eps}
+              {scholarById(featured.scholarId).name} · {ar(featEps.length)} {t.eps} {featDur}
             </p>
-            <button
-              onClick={() => featEps.length && play(featEps[0].id, featEps.map((x) => x.id))}
-              className="mt-4 h-10 px-5 rounded-full bg-gold text-[#231a05] font-extrabold text-[0.8rem] flex items-center gap-2 shadow-pop active:scale-95 transition-all duration-200 hover:shadow-xl"
-            >
-              <Play size={15} fill="currentColor" /> {t.playAll}
-            </button>
+            <div className="mt-4 flex items-center gap-2.5">
+              <button
+                onClick={() => featResume
+                  ? featEps.length && play(featResume.id, featEps.map((x) => x.id))
+                  : featEps.length && play(featEps[0].id, featEps.map((x) => x.id))}
+                className="h-10 px-5 rounded-full bg-gold text-[#231a05] font-extrabold text-[0.8rem] flex items-center gap-2 shadow-pop active:scale-95 transition-all duration-200 hover:shadow-xl"
+              >
+                <Play size={15} fill="currentColor" />
+                {featResume ? (lang === "ar" ? `استكمال الحلقة ${featResume.episode ? ar(featResume.episode) : ""}` : "Resume") : t.playAll}
+              </button>
+              <button
+                onClick={() => featEps.length && nav.push({ name: "detail", id: featEps[0].id })}
+                className="h-10 px-4 rounded-full border border-[#d9a13f66] text-[#d9a13f] font-extrabold text-[0.78rem] flex items-center gap-2 active:scale-95 transition-all duration-200"
+              >
+                <Clock3 size={14} /> {lang === "ar" ? "السلسلة كاملة" : "Full series"}
+              </button>
+            </div>
           </div>
         </motion.div>
         )}
