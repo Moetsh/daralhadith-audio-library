@@ -54,6 +54,27 @@ export async function applySeriesCover(seriesId, { mode = "empty", cover_image_u
   return { updated, total: targets.length };
 }
 
+/* تطبيق التصنيف/الفرعي/الشيخ على السلسلة وكل حلقاتها (تسلسل على الخادم paginated).
+   يصلح التصنيف الخاطئ الذي استُورد مع السلسلة كلها دفعة واحدة. */
+export async function applySeriesFields(seriesId, fields, onProgress) {
+  if (!seriesId) throw new Error("لا توجد سلسلة");
+  const clean = {};
+  for (const k of ["category_id", "sub_category_id", "scholar_id"]) {
+    if (k in fields) clean[k] = fields[k] || null;
+  }
+  if (!Object.keys(clean).length) throw new Error("لا حقول للتطبيق");
+  let offset = 0, done = false, updated = 0, total = 0;
+  while (!done) {
+    const r = await api(`/series/${seriesId}/audios-fields`, { method: "PUT", body: { ...clean, limit: 200, offset } });
+    updated += r.updated || 0;
+    total = r.total || 0;
+    done = !!r.done;
+    offset = r.nextOffset || 0;
+    onProgress?.({ updated, total, done });
+  }
+  return { updated, total };
+}
+
 /* حلقات السلسلة مع نبذة كل شريط (كما تظهر في التطبيق) — قابلة للتحرير. */
 function SeriesEpisodes({ seriesId }) {
   const [eps, setEps] = useState(null);
@@ -145,11 +166,23 @@ function SeriesEpisodes({ seriesId }) {
 export function SeriesModal({ editing, scholars, categories, onClose, onSaved }) {
   const handleSave = async (payload) => {
     const coverChanged = (payload.cover_image_url || null) !== (editing?.cover_image_url || null);
+    /* هل غيّر المستخدم التصنيف أو الشيخ؟ (لتصحيح تصنيف استُورد خطأً مع السلسلة كلها) */
+    const fieldsChanged =
+      !!editing?.id &&
+      ((payload.category_id || null) !== (editing.category_id ?? null) ||
+        (payload.scholar_id || null) !== (editing.scholar_id ?? null));
     if (editing?.id) await api("/series/" + editing.id, { method: "PUT", body: payload });
     else await api("/series", { method: "POST", body: payload });
     const sid = editing?.id || payload.id;
     if (coverChanged && payload.cover_image_url && sid) {
       await applySeriesCover(sid, { mode: overwrite ? "all" : "empty", cover_image_url: payload.cover_image_url });
+    }
+    /* تطبيق التصنيف/الشيخ الجديد على كل حلقات السلسلة عند الطلب */
+    if (sid && editing?.id && fieldsChanged && cascadeFields) {
+      await applySeriesFields(sid, {
+        category_id: payload.category_id || null,
+        scholar_id: payload.scholar_id || null,
+      });
     }
     onClose();
     await onSaved?.();
@@ -159,12 +192,14 @@ export function SeriesModal({ editing, scholars, categories, onClose, onSaved })
   const [overwrite, setOverwrite] = useState(false);
   const [applyBusy, setApplyBusy] = useState(false);
   const [applyMsg, setApplyMsg] = useState(null);
+  const [cascadeFields, setCascadeFields] = useState(true);
 
   useEffect(() => {
     setApply(false);
     setOverwrite(false);
     setApplyMsg(null);
     setApplyBusy(false);
+    setCascadeFields(true);
   }, [editing?.id]);
 
   return (
@@ -265,6 +300,19 @@ export function SeriesModal({ editing, scholars, categories, onClose, onSaved })
                     )}
                   </>
                 )}
+              </div>
+            )}
+            {editing?.id && (
+              <div className="rounded-2xl border border-line p-4 space-y-2 bg-bg2/40">
+                <Check
+                  label="تطبيق التصنيف والشيخ على كل حلقات السلسلة عند الحفظ"
+                  checked={cascadeFields}
+                  onChange={(e) => setCascadeFields(e.target.checked)}
+                />
+                <p className="text-[11px] text-ink3">
+                  عند تغيير التصنيف أو الشيخ مع تفعيل هذا الخيار، يُطبَّق الجديد تلقائياً على جميع حلقات
+                  السلسلة دفعة واحدة — مفيد لتصحيح تصنيف استُورد بالخطأ.
+                </p>
               </div>
             )}
           </>

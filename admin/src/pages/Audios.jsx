@@ -11,7 +11,8 @@ import { EditModal } from "../components/EditModal";
 import { ConfirmDelete } from "../components/ConfirmDelete";
 import { CoverPicker } from "../components/CoverPicker";
 import { CatSelect } from "../components/CatSelect";
-import { SeriesModal, applySeriesCover } from "../components/SeriesModal";
+import { SeriesModal, applySeriesCover, applySeriesFields } from "../components/SeriesModal";
+import { bustRefsCache } from "../hooks";
 import { Search, Plus, Pencil, ImageIcon } from "lucide-react";
 
 const EMPTY = {
@@ -61,7 +62,53 @@ export default function Audios() {
     setPages(r.pages);
     return r.items;
   }, [page, filters]);
-  const { editing, setEditing, confirmDel, setConfirmDel, save, remove } = useCrud("/audios", { reload });
+  const { editing, setEditing, confirmDel, setConfirmDel, remove } = useCrud("/audios", { reload });
+
+  /* حفظ الشريط + خيار تطبيق التصنيف/الفرعي/الشيخ على السلسلة كاملة عند التغيير
+     (يصلح تصنيفاً استُورد بالخطأ مع السلسلة كلها — يطبَّق على كل حلقاتها). */
+  const [fCascade, setFCascade] = useState(true);
+  const [fMsg, setFMsg] = useState(null);
+
+  useEffect(() => {
+    setFCascade(true);
+    setFMsg(null);
+  }, [editing?.id]);
+
+  const handleSave = async (payload) => {
+    const cascade =
+      !!editing?.id &&
+      fCascade &&
+      !!payload.series_id &&
+      ((payload.category_id || null) !== (editing.category_id ?? null) ||
+        (payload.sub_category_id || null) !== (editing.sub_category_id ?? null) ||
+        (payload.scholar_id || null) !== (editing.scholar_id ?? null));
+    if (editing?.id) await api("/audios/" + editing.id, { method: "PUT", body: payload });
+    else await api("/audios", { method: "POST", body: payload });
+    if (cascade) {
+      try {
+        await applySeriesFields(
+          payload.series_id,
+          {
+            category_id: payload.category_id || null,
+            sub_category_id: payload.sub_category_id || null,
+            scholar_id: payload.scholar_id || null,
+          },
+          ({ updated, total, done }) => {
+            if (!done) setFMsg({ ok: true, text: `جارٍ التطبيق على السلسلة… ${updated} من ${total} حلقة` });
+          }
+        );
+      } catch (e) {
+        /* الشريط نفسه محفوظ لكن فشل تطبيق السلسلة — نبقي النافذة مفتوحة لعرض الخطأ */
+        setFMsg({ ok: false, text: e.message || "تعذّر التطبيق على السلسلة" });
+        bustRefsCache();
+        reload();
+        throw e;
+      }
+    }
+    setEditing(null);
+    bustRefsCache();
+    reload();
+  };
 
   const setFilter = (k, v) => {
     setPage(1);
@@ -182,7 +229,7 @@ export default function Audios() {
         newTitle="شريط جديد"
         width="max-w-2xl"
         onClose={() => setEditing(null)}
-        onSave={save}
+        onSave={handleSave}
       >
         {({ form, set }) => {
           const applyAudioCover = async () => {
@@ -263,6 +310,24 @@ export default function Audios() {
                 <Check label="يُسمح بالتحميل" checked={!!form.allow_download} onChange={(e) => set("allow_download", e.target.checked)} />
               </div>
             </div>
+            {editing?.id && form.series_id && (
+              <div className="rounded-2xl border border-line p-4 space-y-3 bg-bg2/40">
+                <Check
+                  label="تطبيق نفس التصنيف والشيخ على السلسلة كاملة عند الحفظ"
+                  checked={fCascade}
+                  onChange={(e) => { setFCascade(e.target.checked); setFMsg(null); }}
+                />
+                <p className="text-[11px] text-ink3">
+                  عند تغيير التصنيف أو التصنيف الفرعي أو الشيخ مع تفعيل هذا الخيار، يُطبَّق الجديد تلقائياً
+                  على جميع حلقات السلسلة دفعة واحدة — مفيد لتصحيح تصنيف استُورد بالخطأ.
+                </p>
+                {fMsg && (
+                  <div>
+                    <Badge tone={fMsg.ok ? "green" : "danger"}>{fMsg.text}</Badge>
+                  </div>
+                )}
+              </div>
+            )}
             {editing?.id && form.series_id && (
               <div className="rounded-2xl border border-line p-4 space-y-3 bg-bg2/40">
                 <Check

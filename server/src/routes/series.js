@@ -135,6 +135,34 @@ r.post("/:id/apply-cover", authUser, adminOnly, wrap(async (req, res) => {
   res.json({ ok: true, updated, total: eps.length, offset, limit, nextOffset, done });
 }));
 
+/* تطبيق التصنيف/الفرعي/الشيخ على السلسلة نفسها وكل حلقاتها — paginated مثل apply-cover
+   لتتمكن لوحة التحكم من التسلسل بحلقات متعددة حتى في السلاسل الضخمة. */
+r.put("/:id/audios-fields", authUser, adminOnly, wrap(async (req, res) => {
+  const s = await getNode("series/" + req.params.id);
+  if (!s) return res.status(404).json({ error: "غير موجود" });
+  const b = req.body || {};
+  const fields = {};
+  for (const k of ["category_id", "sub_category_id", "scholar_id"]) {
+    if (k in b) fields[k] = b[k] || null;
+  }
+  if (!Object.keys(fields).length) return res.status(400).json({ error: "لا حقول للتطبيق" });
+  const sPatch = {};
+  for (const k of ["category_id", "scholar_id"]) if (k in fields) sPatch[k] = fields[k];
+  if (Object.keys(sPatch).length) await updateNode("series/" + req.params.id, sPatch);
+  const eps = (await listNode("audios")).filter(({ value }) => value.series_id === req.params.id);
+  const limit = Math.min(Math.max(parseInt(b.limit, 10) || 200, 1), 500);
+  const offset = Math.max(parseInt(b.offset, 10) || 0, 0);
+  const batch = eps.slice(offset, offset + limit);
+  for (const { id } of batch) await updateNode("audios/" + id, fields);
+  const nextOffset = offset + batch.length;
+  const done = nextOffset >= eps.length;
+  if (done) {
+    const applied = Object.keys(fields).join("، ");
+    logAction(req, "update", "series", req.params.id, `طبّق ${applied} على السلسلة وكل حلقاتها (${eps.length})`);
+  }
+  res.json({ ok: true, updated: batch.length, total: eps.length, offset, limit, nextOffset, done });
+}));
+
 r.delete("/:id", authUser, adminOnly, wrap(async (req, res) => {
   const s = await getNode("series/" + req.params.id);
   if (!s) return res.status(404).json({ error: "غير موجود" });
