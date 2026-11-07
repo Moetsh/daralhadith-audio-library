@@ -3,10 +3,10 @@ import { pushNode, listNode, removeNode, getNode } from "../fb.js";
 const r = Router();
 
 const FALLBACK = {
-  version: "1.53.4",
+  version: "1.54.1",
   sync_version: "1.43",
-  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.53.4/ArrowDXCapacitorAPK-v1.53.4.apk",
-  release_notes: "تحديث البرنامج 1.53.4: سلسلة مختارة تتدوّر تلقائياً كل يومين من لوحة التحكم، واستكمال العرض من آخر نقطة، ومؤقت نوم ذكي، وإصلاحات التشغيل والتحميل.",
+  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.54.1/ArrowDXCapacitorAPK-v1.54.1.apk",
+  release_notes: "تحديث البرنامج 1.54.1 (تجاوز إصدار 1.54 القديم): بطاقة السلسلة المختارة بالتدوير كل يومين، واستكمال العرض من آخر نقطة، ومؤقت نوم ذكي، وإصلاحات التشغيل والتحميل والتصنيفات.",
 };
 
 /* استقبال تقارير أخطاء العملاء تلقائياً (عام، محدود الحجم، احتفاظ بآخر 200) */
