@@ -24,6 +24,8 @@ export default function ImportPage() {
   const [teraCookies, setTeraCookies] = useState("");
   const [teraInsp, setTeraInsp] = useState(null);
 
+  const [coverUrl, setCoverUrl] = useState("");
+
   const inspect = async (e) => {
     e.preventDefault();
     setBusy(true); setError(null); setDone(null);
@@ -54,6 +56,7 @@ export default function ImportPage() {
       let body;
       if (tab === "archive") {
         body = { url, scholar_id: form.scholar_id, category_id: form.category_id, selected: [...selected] };
+        if (coverUrl.trim()) body.cover_image_url = coverUrl.trim();
         if (wantSeries && serName.trim()) {
           body.new_series = { title: serName.trim(), total_episodes: parseInt(serCount, 10) || selected.size };
         } else if (form.series_id) {
@@ -89,7 +92,7 @@ export default function ImportPage() {
 
   const resetForm = () => {
     resetF({ scholar_id: "", category_id: "", series_id: "" });
-    setSerName(""); setSerCount(""); setStartEp(""); setWantSeries(false);
+    setSerName(""); setSerCount(""); setStartEp(""); setWantSeries(false); setCoverUrl("");
   };
 
   const currentInsp = tab === "archive" ? insp : teraInsp;
@@ -161,6 +164,15 @@ export default function ImportPage() {
                 {series.map((s) => <option key={s.id} value={s.id}>{s.parent_title ? "↳ " : ""}{s.title}</option>)}
               </Select>
             </div>
+
+            <Input
+              dir="ltr"
+              className="text-left mt-3"
+              label="رابط غلاف مخصص (اختياري — يتجاوز غلاف الأرشيف)"
+              placeholder="https://…/cover.jpg"
+              value={coverUrl}
+              onChange={(e) => setCoverUrl(e.target.value)}
+            />
 
             {!wantSeries && form.series_id && (
               <div className="mt-3">
