@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, getToken } from "../api";
-import { PageTitle, Button, Card, Input, Loading, ErrorBox, Spinner, Badge } from "../components/ui";
-import { Save, Download, CloudUpload, RefreshCw } from "lucide-react";
+import { PageTitle, Button, Card, Input, Loading, ErrorBox, Spinner, Badge, Select } from "../components/ui";
+import { Save, Download, CloudUpload, RefreshCw, Star } from "lucide-react";
 
 export default function Settings() {
   const [form, setForm] = useState(null);
@@ -13,6 +13,17 @@ export default function Settings() {
   const [bkBusy, setBkBusy] = useState(false);
   const [bkMsg, setBkMsg] = useState(null);
   const [backups, setBackups] = useState([]);
+  const [seriesList, setSeriesList] = useState([]);
+  const [featBusy, setFeatBusy] = useState(false);
+
+  useEffect(() => {
+    api("/series")
+      .then((rows) => {
+        const arr = Array.isArray(rows) ? rows.slice().sort((a, b) => String(a.title).localeCompare(String(b.title), "ar")) : [];
+        setSeriesList(arr);
+      })
+      .catch(() => {});
+  }, []);
 
   const fbSync = async () => {
     setFbBusy(true);
@@ -105,6 +116,30 @@ export default function Settings() {
     </label>
   );
 
+  /* السلاسل المختارة: JSON array في الإعدادات، حتى 4 — تدور كل يومين على الرئيسية */
+  let featuredIds = [];
+  try {
+    const parsed = JSON.parse(form.featured_series || "[]");
+    if (Array.isArray(parsed)) featuredIds = parsed;
+  } catch {}
+  const setFeatured = async (idx, id) => {
+    setOk(false);
+    const arr = [...featuredIds].slice(0, 4);
+    while (arr.length < 4) arr.push("");
+    arr[idx] = id;
+    const next = { ...form, featured_series: JSON.stringify(arr.filter(Boolean)) };
+    setForm(next);
+    setFeatBusy(true);
+    try {
+      await api("/admin", { method: "PUT", body: next });
+      setOk(true);
+    } catch (e2) {
+      setError(e2);
+    } finally {
+      setFeatBusy(false);
+    }
+  };
+
   return (
     <div>
       <PageTitle title="الإعدادات" subtitle="إعدادات التطبيق العامة" actions={<>
@@ -153,6 +188,26 @@ export default function Settings() {
             <Badge tone={fbMsg.ok ? "green" : "danger"}>{fbMsg.ok ? "✓ " + fbMsg.text : "✗ " + fbMsg.text}</Badge>
           </div>
         )}
+      </Card>
+
+      <Card className="p-5 mb-4 max-w-3xl">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-xl bg-gold-soft text-gold flex items-center justify-center shrink-0"><Star size={20} /></div>
+          <div>
+            <h2 className="font-bold text-green">السلاسل المختارة (تدور تلقائياً كل يومين)</h2>
+            <p className="text-xs text-ink3 font-bold">اختر حتى أربع سلاسل — تعرض على الشاشة الرئيسية بالتناوب: الأولى يومين ثم الثانية وهكذا. التغيير يصل التطبيق بعد مزامنته القادمة تلقائياً.</p>
+          </div>
+          {featBusy && <Spinner className="w-5 h-5 border-t-green ml-auto shrink-0" />}
+        </div>
+        <div className="grid md:grid-cols-2 gap-3 mt-4">
+          {[0, 1, 2, 3].map((i) => (
+            <Select key={i} label={`الترتيب ${i + 1} (يومين لكل سلسلة)`} value={featuredIds[i] || ""}
+              onChange={(e) => setFeatured(i, e.target.value)}>
+              <option value="">— بدون —</option>
+              {seriesList.map((s) => <option key={s.id} value={s.id}>{s.parent_title ? "↳ " : ""}{s.title}</option>)}
+            </Select>
+          ))}
+        </div>
       </Card>
 
       <form onSubmit={save} className="space-y-4 max-w-3xl">

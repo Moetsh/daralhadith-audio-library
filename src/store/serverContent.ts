@@ -16,6 +16,7 @@ interface ServerContentState {
   cats: Category[];
   scholars: Scholar[];
   series: Series[];
+  featured: string[];
   setConfig: (p: Partial<Pick<ServerContentState, "enabled" | "baseUrl">>) => void;
   sync: (remoteVersion?: string) => Promise<{ ok: boolean; added?: number; message?: string }>;
   clearError: () => void;
@@ -37,6 +38,7 @@ export const useServerContent = create<ServerContentState>()(
       cats: [],
       scholars: [],
       series: [],
+      featured: [],
       setConfig: (p) => set(p),
       clearError: () => set({ error: null }),
       sync: async (remoteVersion) => {
@@ -59,6 +61,7 @@ export const useServerContent = create<ServerContentState>()(
             cats: data.cats.map(toCat),
             scholars: data.scholars.map(toScholar),
             series: data.series.map(toSeries),
+            featured: Array.isArray(data.featured) ? data.featured.slice(0, 4) : [],
             lastSync: now,
             lastOk: now,
             syncing: false,
@@ -83,6 +86,7 @@ export const useServerContent = create<ServerContentState>()(
         cats: s.cats,
         scholars: s.scholars,
         series: s.series,
+        featured: s.featured,
       }),
     }
   )

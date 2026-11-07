@@ -27,6 +27,7 @@ export const HomeScreen = () => {
   const positions = useApp((s) => s.positions);
   const counts = useApp((s) => s.counts);
   const syncVer = useServerContent((s) => s.lastSync);
+  const featureds = useServerContent((s) => s.featured);
 
   const recent = useMemo(() => allItems().sort((a, b) => a.addedDays - b.addedDays).slice(0, 12), [syncVer]);
   const most = useMemo(
@@ -39,7 +40,13 @@ export const HomeScreen = () => {
     [history, syncVer]
   );
   const hours = useMemo(() => Math.round(allItems().reduce((a, b) => a + b.duration, 0) / 3600), [syncVer]);
-  const featured = allSeries().find((s) => s.scholarId === "albani" && s.title.includes("الهدى") && s.title.includes("النور"))
+  /* السلاسل المختارة: يقيّرها المشرف من لوحة التحكم — وتتدور كل يومين تلقائياً
+     (الفهرس = نصف اليوم العالمي % عدد السلاسل). إن لم تُقيّر أي سلسلة نستخدم الافتراضية */
+  const featuredList = featureds.filter((fid) => itemsOfSeries(fid).length > 0);
+  const halfDay = Math.floor(Date.now() / 86400000 / 2);
+  const rotatePick = featuredList.length ? featuredList[halfDay % featuredList.length] : null;
+  const featured = (rotatePick && allSeries().find((s) => s.id === rotatePick))
+    ?? allSeries().find((s) => s.scholarId === "albani" && s.title.includes("الهدى") && s.title.includes("النور"))
     ?? allSeries().find((s) => s.id === "sr-سلسلة-فضائل-الصحابة") ?? allSeries()[0] ?? null;
   const featEps = featured ? itemsOfSeries(featured.id) : [];
   /* غلاف حقيقي للسلسلة إن وُجد، ومدة إجمالية، ونقطة استكمال إن كانت هناك جلسة غير مكتملة */

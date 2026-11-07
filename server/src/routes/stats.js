@@ -33,8 +33,10 @@ r.post("/install", wrap(async (req, res) => {
 
 /* حزمة خفيفة عامة للتطبيق: نفس بيانات RTDB بلا الحقول الثقيلة (description/tags/dates) */
 r.get("/client-pack", wrap(async (_req, res) => {
-  const [audios, scholars, categories, series] = await Promise.all([
+  const [audios, scholars, categories, series, adminSettings] = await Promise.all([
     mapNode("audios"), mapNode("scholars"), mapNode("categories"), mapNode("series"),
+    /* السلاسل المختارة التي يقيّرها المشرف من لوحة التحكم (تتدور كل يومين داخل التطبيق) */
+    mapNode("admin/settings").catch(() => null),
   ]);
   const pack = {};
   for (const [id, a] of Object.entries(audios)) {
@@ -72,6 +74,16 @@ r.get("/client-pack", wrap(async (_req, res) => {
   for (const [id, s] of Object.entries(series)) {
     packs[id] = [s.title || "", s.scholar_id || "", s.category_id || "", Number(s.total_episodes) || 0];
   }
+  /* قائمة السلاسل المختارة: مخزّنة JSON أو نصاً بفواصل — نتطايع الاثنين */
+  let featuredIds = [];
+  try {
+    const rawFs = adminSettings?.featured_series;
+    if (Array.isArray(rawFs)) featuredIds = rawFs;
+    else if (rawFs) {
+      try { const arr = JSON.parse(String(rawFs)); if (Array.isArray(arr)) featuredIds = arr; }
+      catch { featuredIds = String(rawFs).split(",").map((x) => x.trim()).filter(Boolean); }
+    }
+  } catch {}
   res.setHeader("Cache-Control", "public, max-age=0, s-maxage=30");
   res.json({
     v: 1,
@@ -79,6 +91,7 @@ r.get("/client-pack", wrap(async (_req, res) => {
     s: packs,
     c: Object.values(categories).map((c) => [c.id, c.name || "", c.parent_id || "", c.icon || ""]),
     h: Object.values(scholars).map((s) => [s.id, s.name || "", s.title || "", s.bio || "", s.era || "", s.reciter ? 1 : 0]),
+    f: featuredIds.slice(0, 4).map(String),
   });
 }));
 

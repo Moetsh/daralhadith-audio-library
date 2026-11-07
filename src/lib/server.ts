@@ -141,6 +141,7 @@ type Pack = {
   s: Record<string, [string, string, string, number]>;
   c: [string, string, string, string][];
   h: [string, string, string, string, string, number][];
+  f?: string[];
 };
 
 const unpack = (p: Pack) => {
@@ -172,7 +173,7 @@ const unpack = (p: Pack) => {
   }
   const cats: ServerCategory[] = (p.c || []).map((r) => ({ id: r[0], name: r[1], parent_id: r[2] || null, icon: r[3] || null }));
   const scholars: ServerScholar[] = (p.h || []).map((r) => ({ id: r[0], name: r[1], title: r[2], bio: r[3], era: r[4], reciter: !!r[5] }));
-  return { audios, cats, scholars, series };
+  return { audios, cats, scholars, series, featured: Array.isArray(p.f) ? p.f.slice(0, 4) : [] };
 };
 
 async function fetchPack(buster: string): Promise<ReturnType<typeof unpack> | null> {
@@ -212,5 +213,5 @@ export async function fetchServerContent(buster?: string) {
   const scholars = toArray<ServerScholar>(await schRes.json().catch(() => null)) || [];
   const series = toArray<ServerSeries>(await serRes.json().catch(() => null)) || [];
 
-  return { audios, cats, scholars, series };
+  return { audios, cats, scholars, series, featured: [] };
 }

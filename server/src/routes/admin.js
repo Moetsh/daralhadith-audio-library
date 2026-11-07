@@ -1,6 +1,7 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { getNode, setNode, updateNode, removeNode, pushNode, mapNode, listNode, wrap, nowISO } from "../fb.js";
 import { authUser, adminOnly, logAction } from "../auth.js";
+import { bumpSyncVersion } from "../syncVersion.js";
 
 const r = Router();
 r.use(authUser, adminOnly);
@@ -19,6 +20,8 @@ const DEFAULTS = {
   twitter: "",
   telegram: "",
   email: "",
+  /* السلاسل المختارة: JSON array بمعرّفات السلاسل (حتى 4) — تدور كل يومين على الرئيسية */
+  featured_series: "[]",
 };
 
 r.get("/", wrap(async (req, res) => {
@@ -263,9 +266,18 @@ r.post("/firebase-sync", wrap(async (req, res) => {
     categories: Object.keys(categories).length,
     series: Object.keys(series).length,
   };
-  await setNode("meta", { lastPush: nowISO() });
+  /* updateNode وليس setNode: حتى لا يُحذف meta/sync_version عند كل مزامنة */
+  await updateNode("meta", { lastPush: nowISO() });
   logAction(req, "firebase-sync", "catalog", null, `تحقّق من المحتوى (${stats.audios} شريطاً، ${stats.scholars} شيخاً، ${stats.categories} تصنيفاً، ${stats.series} سلسلة)`);
   res.json({ ok: true, ...stats });
+}));
+
+/* رفع رقم المزامنة يدوياً (بعد نشر إصلاح القراءة، أو لإجبار كل الأجهزة على التحديث الآن) */
+r.post("/bump-sync", wrap(async (_req, res) => {
+  const v = await bumpSyncVersion({ force: true });
+  if (!v) return res.status(502).json({ error: "تعذّر تحديث رقم المزامنة" });
+  logAction(_req, "update", "catalog", null, `رفع رقم المزامنة إلى ${v}`);
+  res.json({ ok: true, sync_version: v });
 }));
 
 export default r;
