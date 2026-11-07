@@ -4,6 +4,7 @@ import { api } from "../api";
 import { Input, Select, Textarea, Check, Button, Badge, ErrorBox, Spinner } from "./ui";
 import { EditModal } from "./EditModal";
 import { CoverPicker } from "./CoverPicker";
+import { CatSelect } from "./CatSelect";
 
 export const SERIES_EMPTY = {
   id: "", title: "", title_en: "", scholar_id: "", category_id: "",
@@ -212,10 +213,12 @@ export function SeriesModal({ editing, scholars, categories, onClose, onSaved })
                 <option value="">— بدون —</option>
                 {scholars.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </Select>
-              <Select label="التصنيف" value={form.category_id} onChange={(e) => set("category_id", e.target.value)}>
-                <option value="">— بدون —</option>
-                {categories.map((c) => <option key={c.id} value={c.id}>{c.parent_id ? "↳ " + c.name : c.name}</option>)}
-              </Select>
+              <CatSelect
+                categories={categories}
+                emptyLabel="— بدون —"
+                value={form.category_id}
+                onChange={(e) => set("category_id", e.target.value)}
+              />
               <Input label="رابط الغلاف" dir="ltr" value={form.cover_image_url || ""} onChange={(e) => { set("cover_image_url", e.target.value); setApplyMsg(null); }} placeholder="https://…/cover.jpg" />
               <Input label="عدد الحلقات" type="number" value={form.total_episodes} onChange={(e) => set("total_episodes", e.target.value)} />
               <Select label="اتجاه الترتيب" value={form.order_direction} onChange={(e) => set("order_direction", e.target.value)}>

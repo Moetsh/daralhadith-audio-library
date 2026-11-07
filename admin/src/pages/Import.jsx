@@ -2,6 +2,7 @@ import { useState } from "react";
 import { api } from "../api";
 import { useRefs, useForm } from "../hooks";
 import { PageTitle, Button, Card, Input, Select, ErrorBox, cx, Spinner, Badge } from "../components/ui";
+import { CatSelect } from "../components/CatSelect";
 import { Search, DownloadCloud, CheckSquare, Square, Layers, Link } from "lucide-react";
 
 export default function ImportPage() {
@@ -155,10 +156,13 @@ export default function ImportPage() {
                 <option value="">— اختر الشيخ —</option>
                 {scholars.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </Select>
-              <Select label="التصنيف" required value={form.category_id} onChange={(e) => setF("category_id", e.target.value)}>
-                <option value="">— اختر التصنيف —</option>
-                {categories.map((c) => <option key={c.id} value={c.id}>{c.parent_id ? "↳ " : ""}{c.name}</option>)}
-              </Select>
+              <CatSelect
+                categories={categories}
+                required
+                emptyLabel="— اختر التصنيف —"
+                value={form.category_id}
+                onChange={(e) => setF("category_id", e.target.value)}
+              />
               <Select label="السلسلة" value={wantSeries ? "" : form.series_id} disabled={wantSeries} onChange={(e) => setF("series_id", e.target.value)}>
                 <option value="">بدون سلسلة</option>
                 {series.map((s) => <option key={s.id} value={s.id}>{s.parent_title ? "↳ " : ""}{s.title}</option>)}

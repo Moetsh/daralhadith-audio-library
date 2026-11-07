@@ -10,6 +10,7 @@ import {
 import { EditModal } from "../components/EditModal";
 import { ConfirmDelete } from "../components/ConfirmDelete";
 import { CoverPicker } from "../components/CoverPicker";
+import { CatSelect } from "../components/CatSelect";
 import { SeriesModal, applySeriesCover } from "../components/SeriesModal";
 import { Search, Plus, Pencil, ImageIcon } from "lucide-react";
 
@@ -215,12 +216,13 @@ export default function Audios() {
                 <option value="">— اختر الشيخ —</option>
                 {scholars.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </Select>
-              <Select label="التصنيف" required value={form.category_id} onChange={(e) => set("category_id", e.target.value)}>
-                <option value="">— اختر التصنيف —</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.parent_id ? "↳ " + c.name : c.name}</option>
-                ))}
-              </Select>
+              <CatSelect
+                categories={categories}
+                required
+                emptyLabel="— اختر التصنيف —"
+                value={form.category_id}
+                onChange={(e) => set("category_id", e.target.value)}
+              />
               <Select label="التصنيف الفرعي (اختياري)" value={form.sub_category_id || ""} onChange={(e) => set("sub_category_id", e.target.value)}>
                 <option value="">بدون تصنيف فرعي</option>
                 {categories.filter((c) => c.parent_id === form.category_id).map((c) => (
