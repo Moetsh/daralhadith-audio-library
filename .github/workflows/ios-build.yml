@@ -1,0 +1,67 @@
+# بناء IPA غير مُمضى للآيفون — على آلة macOS سحابية (مجاني للمخازن العامة)
+# الملف الناتج (app-unsigned.ipa) يُنزّل من صفحة Actions ثم يُثبَّت على الآيفون
+# عبر Sideloadly على ويندوز بحساب Apple ID مجاني (يبثّ التوقيع لمدة 7 أيام).
+name: iOS Build (unsigned IPA)
+
+on:
+  workflow_dispatch: {}
+  push:
+    tags:
+      - "v*ios*"
+      - "ios-v*"
+
+jobs:
+  build:
+    name: Build unsigned .ipa
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      - name: Build unsigned .app (Xcode)
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY= 
+
+      - name: Package unsigned .ipa
+        run: |
+          set -euo pipefail
+          APP_PATH=$(find build/Build/Products/Release-iphoneos -maxdepth 1 -name "*.app" | head -n1)
+          test -n "$APP_PATH"
+          rm -rf Payload
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -qry app-unsigned.ipa Payload
+          ls -lh app-unsigned.ipa
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-unsigned-ipa
+          path: app-unsigned.ipa
+          retention-days: 30
+          if-no-files-found: error
