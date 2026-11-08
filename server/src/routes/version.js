@@ -5,7 +5,8 @@ const r = Router();
 const FALLBACK = {
   version: "1.54.2",
   sync_version: "1.43",
-  apk_url: "https://github.com/Moetsh/daralhadith-releases/releases/download/v1.54.2/ArrowDXCapacitorAPK-v1.54.2.apk",
+  /* APK مستضاف على نطاقنا مباشرة — روابط تنزيل GitHub تفشل (404) على بعض الشبكات */
+  apk_url: "https://daralhadith.vercel.app/apk/ArrowDXCapacitorAPK-v1.54.2.apk",
   release_notes: "تحديث البرنامج 1.54.2: واجهة رئيسية جديدة — شريط «المضاف حديثاً» البانري بتدوير تلقائي كل 8 ثوانٍ، وسلايدر عمودي «الأكثر استماعاً» بعشر بطاقات بأغلفة كاملة، وإصلاحات الاستقرار.",
 };
 
