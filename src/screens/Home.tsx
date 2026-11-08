@@ -1,17 +1,17 @@
 /* الشاشة الرئيسية */
-import { motion } from "framer-motion";
-import { Play, Clock3 } from "lucide-react";
-import { useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Play, Clock3 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  allItems, allScholars, allSeries, dailyQuote, itemById, itemsOfSeries, mainCats, scholarById,
+  allItems, allScholars, allSeries, catById, dailyQuote, itemById, itemsOfSeries, mainCats, scholarById,
   type AudioItem,
 } from "../data/library";
-import { ar } from "../lib/utils";
 import { useApp } from "../store/appStore";
 import { useNav, useSettings, type Route } from "../store/core";
 import { useServerContent } from "../store/serverContent";
 import { usePlayer } from "../store/player";
-import { AudioCardH, AudioRow, Avatar, CatIcon, GirihBG, Logo, Ornament, SearchEntry, SectionHead, SeriesCard } from "../components/ui";
+import { AudioRow, Avatar, CatIcon, GirihBG, Logo, Ornament, SearchEntry, SectionHead, SeriesCard } from "../components/ui";
+import { ar, fmtDur } from "../lib/utils";
 
 const fadeUp = (i: number) => ({
   initial: { opacity: 0, y: 22 },
@@ -33,6 +33,67 @@ const recentsGroupKey = (it: { seriesId?: string; title: string }) => {
   return "t:" + t.slice(0, 50);
 };
 
+/* بطاقة عرض مشتركة (بانر عريض 168px) تُستخدم في «المُضاف حديثاً» و«الأكثر استماعاً» —
+   صورة الغلاف + تظليل متراعٍ + العنوان والشيخ والمدة + زر تشغيل.
+   fit: "cover" يملأ البطاقة (المُضاف حديثاً)، "contain" غلاف بوسترة يظهر كاملاً
+   بارتفاع البطاقة وبعرض نسبة الصورة الأصلية (المُضاف: نظام عمود ثابت). */
+const ShowcaseBanner = ({ it, lang, onPlay, onOpen, fit = "cover" }: {
+  it: AudioItem;
+  lang: string;
+  onPlay: () => void;
+  onOpen: () => void;
+  fit?: "cover" | "contain";
+}) => (
+  <div
+    className="relative w-full h-[168px] cursor-pointer select-none overflow-hidden"
+    onClick={onOpen}
+  >
+    {it.cover && fit === "contain" ? (
+      /* غلاف «بوسترة»: يظهر كاملاً بلا قصّ وبارتفاع البطاقة كاملاً —
+         عرضه يتبع نسبة الصورة الأصلية (حتى 55% من البطاقة)، والنص على اليسار */
+      <div className="absolute inset-0 flex" style={{ background: "var(--card-2)" }}>
+        <img
+          src={it.cover}
+          alt=""
+          loading="lazy"
+          className="h-full w-auto max-w-[55%] object-contain shrink-0"
+        />
+      </div>
+    ) : it.cover ? (
+      <img src={it.cover} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+    ) : (
+      <div className="absolute inset-0" style={{ background: "var(--card-2)" }}>
+        <div className="absolute inset-0 girih opacity-[0.12]" style={{ color: "#d9a13f" }} />
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+          <CatIcon icon={catById(it.categoryId)?.icon ?? "book"} size={30} className="c-gold" />
+          <span className="ink-3 font-black text-[0.7rem]" style={{ fontFamily: "Amiri" }}>دار الحديث</span>
+        </div>
+      </div>
+    )}
+    <div
+      className="absolute inset-0"
+      style={{ background: "linear-gradient(to top, rgba(9,20,14,0.9) 0%, rgba(9,20,14,0.4) 45%, rgba(9,20,14,0.12) 100%)" }}
+    />
+    <div className="absolute inset-x-0 bottom-0 flex items-end gap-3 p-3.5">
+      <div className="flex-1 min-w-0" style={{ textAlign: fit === "contain" ? "end" : "start" }}>
+        <div className="text-[#f4ecd7] font-extrabold text-[0.95rem] leading-snug line-clamp-1">
+          {it.title}
+        </div>
+        <div className="text-[#c3cdbf] text-[0.7rem] font-bold mt-1 truncate">
+          {scholarById(it.scholarId).name} · {fmtDur(it.duration, lang)}
+        </div>
+      </div>
+      <button
+        onClick={(e) => { e.stopPropagation(); onPlay(); }}
+        className="rounded-full bg-gold text-[#231a05] flex items-center justify-center shadow-pop active:scale-90 transition-all duration-200 shrink-0 w-10 h-10"
+        aria-label="تشغيل"
+      >
+        <Play size={16} fill="currentColor" className="translate-x-[1px]" />
+      </button>
+    </div>
+  </div>
+);
+
 export const HomeScreen = () => {
   const t = useSettings((s) => s.t);
   const lang = useSettings((s) => s.lang);
@@ -49,20 +110,65 @@ export const HomeScreen = () => {
   const recent = useMemo(() => {
     const sorted = allItems().slice().sort((a, b) => a.addedDays - b.addedDays);
     const seen = new Set<string>();
+    const picked: AudioItem[] = [];    for (const it of sorted) {
+      const key = recentsGroupKey(it);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      picked.push(it);
+      if (picked.length >= 18) break;
+    }
+    return picked;
+  }, [syncVer]);
+  /* شريط «المضاف حديثاً»: بطاقة عريضة تمر فيها الأشرطة تلقائياً (كل 4.5 ثانية)
+     وتَدور عند الوصول للنهاية، مع سهمين يدويين وعدّاد تقدّم */
+  const [recIdx, setRecIdx] = useState(0);
+  const [recDir, setRecDir] = useState(1);
+  const recTotal = recent.length;
+  useEffect(() => { setRecIdx(0); setRecDir(1); }, [recent]);
+  const recGo = (d: number) => {
+    setRecDir(d);
+    setRecIdx((i) => (i + d + recTotal) % recTotal);
+  };
+  useEffect(() => {
+    if (recTotal <= 1) return undefined;
+    const iv = window.setInterval(() => {
+      setRecDir(1);
+      setRecIdx((i) => (i + 1) % recTotal);
+    }, 8000);
+    return () => window.clearInterval(iv);
+  }, [recIdx, recTotal]);
+  /* الأكثر استماعاً — سلايدر عمودي بشرائط: واحد ممثِّل لكل سلسلة (نفس منطق المضاف حديثاً) */
+  const most10 = useMemo(() => {
+    const sorted = allItems()
+      .slice()
+      .sort((a, b) => b.listenCount + (counts[b.id] ?? 0) - (a.listenCount + (counts[a.id] ?? 0)));
+    const seen = new Set<string>();
     const picked: AudioItem[] = [];
     for (const it of sorted) {
       const key = recentsGroupKey(it);
       if (seen.has(key)) continue;
       seen.add(key);
       picked.push(it);
-      if (picked.length >= 12) break;
+      if (picked.length >= 10) break;
     }
     return picked;
-  }, [syncVer]);
-  const most = useMemo(
-    () => allItems().sort((a, b) => b.listenCount + (counts[b.id] ?? 0) - (a.listenCount + (counts[a.id] ?? 0))).slice(0, 5),
-    [counts, syncVer]
-  );
+  }, [counts, syncVer]);
+  const [mostIdx, setMostIdx] = useState(0);
+  const [mostDir, setMostDir] = useState(1);
+  const mostTotal = most10.length;
+  useEffect(() => { setMostIdx(0); setMostDir(1); }, [most10]);
+  const mostGo = (d: number) => {
+    setMostDir(d);
+    setMostIdx((i) => (i + d + mostTotal) % mostTotal);
+  };
+  useEffect(() => {
+    if (mostTotal <= 1) return undefined;
+    const iv = window.setInterval(() => {
+      setMostDir(1);
+      setMostIdx((i) => (i + 1) % mostTotal);
+    }, 8000);
+    return () => window.clearInterval(iv);
+  }, [mostIdx, mostTotal]);
   const seriesSugg = useMemo(() => allSeries().filter((s) => itemsOfSeries(s.id).length >= 6).slice(0, 6), [syncVer]);
   const cont = useMemo(
     () => history.map((hh) => itemById(hh.id)).filter(Boolean).slice(0, 2) as NonNullable<ReturnType<typeof itemById>>[],
@@ -221,21 +327,110 @@ export const HomeScreen = () => {
           </motion.div>
         )}
 
-        {/* المضاف حديثاً */}
-        <motion.div {...fadeUp(7)} className="mt-7">
-          <SectionHead title={t.recentlyAdded} action={t.seeAll} onAction={() => nav.push({ name: "search" })} />
-          <div className="flex gap-3.5 overflow-x-auto no-bar -mx-4 px-4 pb-1">
-            {recent.map((it) => <AudioCardH key={it.id} item={it} />)}
-          </div>
-        </motion.div>
+        {/* المضاف حديثاً — شريط عرض أفقي تمر منه الأشرطة واحداً تلو الآخر ويَدور عند النهاية */}
+        {recTotal > 0 && (
+          <motion.div {...fadeUp(7)} className="mt-7">
+            <SectionHead title={t.recentlyAdded} action={t.seeAll} onAction={() => nav.push({ name: "search" })} />
+            <div className="relative mt-2 rounded-[20px] surface bline border shadow-card overflow-hidden">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={recIdx}
+                  initial={{ x: recDir > 0 ? "105%" : "-105%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: recDir > 0 ? "-105%" : "105%" }}
+                  transition={{ type: "tween", duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <ShowcaseBanner
+                    it={recent[recIdx]}
+                    lang={lang}
+                    onPlay={() => { const it = recent[recIdx]; if (it) play(it.id); }}
+                    onOpen={() => { const it = recent[recIdx]; if (it) nav.push({ name: "detail", id: it.id }); }}
+                  />
+                </motion.div>
+              </AnimatePresence>
+              {/* شريط تقدّم العرض أسفل البطاقة */}
+              <div className="absolute bottom-0 inset-x-0 h-[3px]" style={{ background: "var(--line)" }}>
+                <motion.div
+                  className="h-full bg-gold"
+                  animate={{ width: `${((recIdx + 1) / recTotal) * 100}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+              {/* سهم الرجوع (يمين) */}
+              <button
+                onClick={() => recGo(-1)}
+                className="absolute top-1/2 -translate-y-1/2 start-1.5 w-8 h-8 rounded-full surface bline border shadow-pop flex items-center justify-center ink-2 active:scale-90 transition-all duration-150 z-[2]"
+                style={{ opacity: 0.95 }}
+                aria-label="السابق"
+              >
+                <ChevronRight size={17} />
+              </button>
+              {/* سهم التقدم (يسار) */}
+              <button
+                onClick={() => recGo(1)}
+                className="absolute top-1/2 -translate-y-1/2 end-1.5 w-8 h-8 rounded-full surface bline border shadow-pop flex items-center justify-center ink-2 active:scale-90 transition-all duration-150 z-[2]"
+                style={{ opacity: 0.95 }}
+                aria-label="التالي"
+              >
+                <ChevronLeft size={17} />
+              </button>
+            </div>
+            <p className="text-center ink-3 text-[0.6rem] font-bold mt-1.5">{ar(recIdx + 1)} / {ar(recTotal)}</p>
+          </motion.div>
+        )}
 
-        {/* الأكثر استماعاً */}
-        <motion.div {...fadeUp(8)} className="mt-7">
-          <SectionHead title={t.mostPlayed} />
-          <div className="space-y-2">
-            {most.map((it, i) => <AudioRow key={it.id} item={it} rank={i + 1} />)}
-          </div>
-        </motion.div>
+        {/* الأكثر استماعاً — سلايدر عمودي (من الأعلى للأسفل) بنفس حجم بطاقة المضاف حديثاً */}
+        {mostTotal > 0 && (
+          <motion.div {...fadeUp(8)} className="mt-7">
+            <SectionHead title={t.mostPlayed} />
+            <div className="relative mt-2 rounded-[20px] surface bline border shadow-card overflow-hidden">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={mostIdx}
+                  initial={{ y: mostDir > 0 ? "-105%" : "105%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: mostDir > 0 ? "105%" : "-105%" }}
+                  transition={{ type: "tween", duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <ShowcaseBanner
+                    it={most10[mostIdx]}
+                    lang={lang}
+                    fit="contain"
+                    onPlay={() => { const it = most10[mostIdx]; if (it) play(it.id); }}
+                    onOpen={() => { const it = most10[mostIdx]; if (it) nav.push({ name: "detail", id: it.id }); }}
+                  />
+                </motion.div>
+              </AnimatePresence>
+              {/* شريط تقدّم العرض أسفل البطاقة */}
+              <div className="absolute bottom-0 inset-x-0 h-[3px]" style={{ background: "var(--line)" }}>
+                <motion.div
+                  className="h-full bg-gold"
+                  animate={{ width: `${((mostIdx + 1) / mostTotal) * 100}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+              {/* سهم الرجوع (يمين) */}
+              <button
+                onClick={() => mostGo(-1)}
+                className="absolute top-1/2 -translate-y-1/2 start-1.5 w-8 h-8 rounded-full surface bline border shadow-pop flex items-center justify-center ink-2 active:scale-90 transition-all duration-150 z-[2]"
+                style={{ opacity: 0.95 }}
+                aria-label="السابق"
+              >
+                <ChevronUp size={17} />
+              </button>
+              {/* سهم التقدم (يسار) */}
+              <button
+                onClick={() => mostGo(1)}
+                className="absolute top-1/2 -translate-y-1/2 end-1.5 w-8 h-8 rounded-full surface bline border shadow-pop flex items-center justify-center ink-2 active:scale-90 transition-all duration-150 z-[2]"
+                style={{ opacity: 0.95 }}
+                aria-label="التالي"
+              >
+                <ChevronDown size={17} />
+              </button>
+            </div>
+            <p className="text-center ink-3 text-[0.6rem] font-bold mt-1.5">{ar(mostIdx + 1)} / {ar(mostTotal)}</p>
+          </motion.div>
+        )}
 
         {/* سلاسل مقترحة */}
         <motion.div {...fadeUp(9)} className="mt-7">
