@@ -16,6 +16,7 @@ import teraboxRoutes from "./routes/terabox.js";
 import adminRoutes from "./routes/admin.js";
 import aiRoutes from "./routes/ai.js";
 import versionRoutes from "./routes/version.js";
+import { bumpSyncVersion } from "./syncVersion.js";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
@@ -53,6 +54,19 @@ export function createApp() {
     res.set("Expires", "0");
   };
 
+  /* بعد أي تعديل ناجح في الكتالوج: ارفع رقم المزامنة ليجلب التطبيق المحتوى الجديد فوراً */
+  app.use("/api", (req, res, next) => {
+    const isMutation = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
+    const isCatalog = /^\/(audios|series|scholars|categories)(\/|$)/.test(req.path);
+    const isCounter = /\/(listen|download)$/.test(req.path);
+    if (isMutation && isCatalog && !isCounter) {
+      res.on("finish", () => {
+        if (res.statusCode < 400) bumpSyncVersion();
+      });
+    }
+    next();
+  });
+
   app.get("/", (_req, res) => {
     if (existsSync(join(adminDist, "index.html"))) {
       noStore(res);
@@ -85,6 +99,16 @@ export function createApp() {
 
   /* تطبيق المستمعين (نسخة الويب/PWA للآيفون) على /app + ملفاته من الجذر */
   const rootDist = join(__dir, "..", "..", "dist");
+
+  /* APK التحديث — ملفات ثابتة خارج dist حتى لا يمسحها بناء vite */
+  const apkDir = join(__dir, "..", "..", "apk");
+  if (existsSync(apkDir)) {
+    app.use("/apk", express.static(apkDir, {
+      maxAge: "1h",
+      setHeaders(res) { res.setHeader("Content-Type", "application/vnd.android.package-archive"); }
+    }));
+  }
+
   if (existsSync(rootDist)) {
     app.use(express.static(rootDist, {
       index: false,

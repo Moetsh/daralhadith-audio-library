@@ -55,6 +55,16 @@ if os.path.exists(dd):
             files[k] = sha
     print(f'dist: {len([k for k in files if k.startswith("dist/")])} files')
 
+# 5b) apk/** (استضافة APK مباشرة على النطاق، خارج dist كي لا يمسحها vite)
+apkd = os.path.join(ROOT, 'apk')
+if os.path.exists(apkd):
+    for root, dirs, fnames in os.walk(apkd):
+        for fn in fnames:
+            full = os.path.join(root, fn)
+            k, sha, sc = upload_file(full)
+            files[k] = sha
+    print(f'apk: {len([k for k in files if k.startswith("apk/")])} files')
+
 # 6) admin/dist/** (dashboard) - skip covers folder
 ad = os.path.join(ROOT, 'admin', 'dist')
 if os.path.exists(ad):

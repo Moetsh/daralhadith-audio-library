@@ -82,7 +82,10 @@ const BottomNav = () => {
     { ic: SettingsIcon, label: t.settings, r: { name: "settings" }, match: ["settings"] },
   ];
   return (
-    <div className="absolute bottom-0 inset-x-0 z-40 px-3 pb-3 pt-1 pointer-events-none">
+    <div
+      className="absolute bottom-0 inset-x-0 z-40 px-3 pt-1 pointer-events-none"
+      style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
+    >
       <div className="pointer-events-auto mx-auto max-w-lg surface border bline rounded-[22px] shadow-pop flex items-stretch h-[68px] px-1.5"
         style={{ background: "color-mix(in srgb, var(--card) 92%, transparent)" }}>
         {items.map((it) => {
@@ -102,11 +105,56 @@ const BottomNav = () => {
   );
 };
 
-/* شريط تنبيه التحديث — يظهر تلقائياً عند توفر نسخة جديدة */
+/* دليل تثبيت الآيفون: سفاري لا يُظهر بانر تثبيت تلقائياً — نرشد المستخدم يدوياً (يظهر بلا وضع standalone فقط) */
+const IosInstallHint = () => {
+  const [show, setShow] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  useEffect(() => {
+    try {
+      const ua = window.navigator.userAgent || "";
+      const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const standalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+      setShow(isIOS && !standalone && localStorage.getItem("ios_install_hint") !== "off");
+    } catch {}
+  }, []);
+  if (!show || dismissed) return null;
+  return (
+    <div className="absolute top-2 inset-x-3 z-30 pointer-events-none">
+      <div
+        className="pointer-events-auto rounded-2xl border bline shadow-pop overflow-hidden flex items-center gap-2.5 p-2.5"
+        style={{ background: "color-mix(in srgb, var(--card) 94%, transparent)", backdropFilter: "blur(8px)" }}
+      >
+        <span className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(245,128,36,0.14)" }}>
+          <Upload size={15} className="c-gold" />
+        </span>
+        <div className="flex-1 min-w-0 ink text-[0.6rem] font-bold leading-relaxed">
+          لتثبيت التطبيق على الآيفون: زر <span className="c-gold font-black">مشاركة</span> ⊞ ثم «إضافة إلى الشاشة الرئيسية»
+        </div>
+        <button
+          onClick={() => {
+            try { localStorage.setItem("ios_install_hint", "off"); } catch {}
+            setDismissed(true);
+          }}
+          className="w-7 h-7 rounded-full bline border flex items-center justify-center ink-3 shrink-0 active:scale-90 transition-transform"
+          aria-label="إخفاء"
+        >
+          <X size={13} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/* شريط تنبيه التحديث — يظهر تلقائياً عند توفر نسخة جديدة.
+   وضع التشخيص: /app?testUpdate=1 يجبر التطبيق على الظهور كنسخة قديمة جداً. */
 const UpdateBanner = () => {
   const t = useSettings((s) => s.t);
+  const debug = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("testUpdate") === "1";
   const currentVersion = useAppVersion();
-  const u = useUpdateChecker(currentVersion);
+  const ver = debug ? "1.0.0" : currentVersion;
+  const u = useUpdateChecker(ver);
   const [dismissed, setDismissed] = useState<string | null>(null);
 
   if (!u.hasUpdate || !u.apkUrl || dismissed === u.latestVersion) return null;
@@ -323,8 +371,16 @@ export default function App() {
   return desktop ? (
     <DesktopStage />
   ) : (
-    <div className="h-dvh w-full relative overflow-hidden bg-app">
+    <div
+      className="h-dvh w-full relative overflow-hidden bg-app"
+      style={{
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        paddingLeft: "env(safe-area-inset-left, 0px)",
+        paddingRight: "env(safe-area-inset-right, 0px)"
+      }}
+    >
       <AppShell framed={false} />
+      <IosInstallHint />
     </div>
   );
 }
