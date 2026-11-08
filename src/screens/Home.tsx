@@ -4,6 +4,7 @@ import { Play, Clock3 } from "lucide-react";
 import { useMemo } from "react";
 import {
   allItems, allScholars, allSeries, dailyQuote, itemById, itemsOfSeries, mainCats, scholarById,
+  type AudioItem,
 } from "../data/library";
 import { ar } from "../lib/utils";
 import { useApp } from "../store/appStore";
@@ -18,6 +19,20 @@ const fadeUp = (i: number) => ({
   transition: { delay: 0.05 + i * 0.06, duration: 0.5 },
 });
 
+/* مفتاح تعاقب بطاقة «المضاف حديثاً»: السلسلة المرتبطة عبر معرفها،
+   والأشرطة المستوردة بلا ربط سلسلة تُجمع عبر بادئة العنوان المشتركة بعد
+   حذف أرقام الحلقات (الدرس/الجزء/المقطع/الحلقة/الشريط + الرقم) — فلن يحجز
+   استيراد سلسلة كاملة القسم، ويظهر شريط واحد ممثِّلٍ لكل سلسلة. */
+const recentsGroupKey = (it: { seriesId?: string; title: string }) => {
+  if (it.seriesId) return "sr:" + it.seriesId;
+  const t = (it.title || "")
+    .replace(/\s*(?:الدرس|الجزء|المقطع|الحلقة|الشريط)\s*(?:[\d٠-٩]+|الأول|الثاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر)/g, " ")
+    .replace(/[\d٠-٩]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return "t:" + t.slice(0, 50);
+};
+
 export const HomeScreen = () => {
   const t = useSettings((s) => s.t);
   const lang = useSettings((s) => s.lang);
@@ -29,7 +44,21 @@ export const HomeScreen = () => {
   const syncVer = useServerContent((s) => s.lastSync);
   const featureds = useServerContent((s) => s.featured);
 
-  const recent = useMemo(() => allItems().sort((a, b) => a.addedDays - b.addedDays).slice(0, 12), [syncVer]);
+  /* المضاف حديثاً: شريط واحد فقط من كل سلسلة (فلما تستورد سلسلة كاملة دفعة واحدة
+     لا تحجز قسم كله — تُجمع السلسلة المرتبطة بمعرّفها، والمبثوثة بلا ربط عبر بادئة العنوان) */
+  const recent = useMemo(() => {
+    const sorted = allItems().slice().sort((a, b) => a.addedDays - b.addedDays);
+    const seen = new Set<string>();
+    const picked: AudioItem[] = [];
+    for (const it of sorted) {
+      const key = recentsGroupKey(it);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      picked.push(it);
+      if (picked.length >= 12) break;
+    }
+    return picked;
+  }, [syncVer]);
   const most = useMemo(
     () => allItems().sort((a, b) => b.listenCount + (counts[b.id] ?? 0) - (a.listenCount + (counts[a.id] ?? 0))).slice(0, 5),
     [counts, syncVer]
